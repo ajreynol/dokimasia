@@ -46,6 +46,51 @@ The target, stated as one line:
 
 > **If cvc5 solves it, cvc5 will produce a proof of it.**
 
+### cvc5 already promises this, in one configuration
+
+That sentence is not our invention. `--safe-mode=safe` is defined in
+[`base_options.toml`](https://github.com/cvc5/cvc5/blob/main/src/options/base_options.toml)
+as:
+
+> *"Do not allow using expert options or theories, more than one regular option,
+> or any feature that does not have **full proof and model support**."*
+
+and its sibling `--safe-mode=stable` is defined as the one that *"**may allow
+incomplete proofs** or models."*
+
+So cvc5 draws the line itself, and **safe mode is the side of it that carries
+the contract**. `SetDefaults::setDefaultsPre` implements the promise by
+disabling, by name, the features that would break it — `nlCov`,
+`ufSymmetryBreaker` ("never use symmetry breaker, which does not have proofs"),
+`cegqiBv` ("proofs not yet supported"), `varEntEqElimQuant` ("a class of
+rewrites in quantifiers we don't have proof support for"), the experimental
+theories, and `bvSolver → BITBLAST_INTERNAL`. It upgrades `proofMode` to
+`FULL_STRICT`, and turns on `checkProofsComplete` when proofs are checked.
+
+**That list is hand-maintained.** Which gives dokimasia its sharpest question,
+and its first priority:
+
+> Is there anything reachable in safe mode with no proof support that nobody
+> remembered to put on the list?
+
+An input for which
+
+```bash
+cvc5 --safe-mode=safe --produce-proofs --check-proofs benchmark.smt2
+```
+
+reports `The proof was incomplete` is not a gap or a wish. It is **cvc5 failing
+a promise it makes in its own documentation** — and it is the bug report this
+project exists to produce.
+
+Stable and unrestricted are worth analyzing too, and most of the checks below
+apply unchanged. But findings there are *roadmap items*: those modes never
+promised complete proofs, so a hole in them is a gap to prioritize, not a
+contract to enforce. The ranking is in
+[`docs/tooling.md`](docs/tooling.md#d5--safe-mode-first-and-the-reproducer-is-the-deliverable).
+
+### The three ways it breaks
+
 Three things have to hold for that to be true, and each is a different kind of
 analysis. Keeping them apart is most of the design.
 
@@ -163,9 +208,9 @@ stylish.
 
 | prefix | family | asks |
 | --- | --- | --- |
-| `MODE` | **the proof-mode delta** | what does enabling proofs change about the solver? which changes are silent? is `incompatibleWithProofs` still complete after this commit? |
+| `MODE` | **the safe-mode contract** | is anything reachable in `--safe-mode=safe` without proof support and not on the disable list? and what does enabling proofs change about the solver at all? |
 | `RULE` | **the rule ledger** | for every `ProofRule`: who produces it, who checks it, who elaborates it, who prints it. Four columns; the interesting rows are the ones with a hole |
-| `TRUST` | **the trust census** | every site that can introduce a trust step, keyed by `TrustId`; which are reachable by default, which are dead, which are unnamed |
+| `TRUST` | **the trust census** | every site that can introduce a trust step, keyed by `TrustId`; **which are reachable in safe mode**, which are dead, which are unnamed |
 | `INFER` | **inference coverage** | for each `InferenceId` a theory can emit, does its `InferProofCons` have a case, and is a `ProofGenerator` attached at the call site? |
 | `RW` | **rewrite coverage** | can every rewrite the rewriter can perform be reconstructed as DSL or theory-rewrite steps, and which reconstructions are budget-dependent? |
 | `PP` | **preprocessing coverage** | does every `PreprocessingPass` either prove its work or declare a `PREPROCESS_*` trust id? |
@@ -228,15 +273,38 @@ until they are resolved or declined. `docs/findings.md` will carry how each was
 confirmed; `docs/upstream.md` will carry what came back — accepted, declined,
 deferred — because the log of what we got *wrong* is the more useful half.
 
-## What we promise about a finding
+## What a finding is, and what we promise about it
 
-Inherited from anoieu, unchanged, because they are the reason anyone reads the
-second report:
+Four kinds, extending anoieu's three:
 
-- **It was confirmed before it was filed.** For an analyzer of a solver that
-  means a reproducer: an input, an option set, and the trust step or incomplete
-  proof it produces — quoted. A claim that a path is reachable is worth nothing
-  until something reaches it.
+| | kind | what it asks of cvc5 |
+| --- | --- | --- |
+| **A** | a defect | an incomplete proof, named down to the input that produces it |
+| **B** | an adoption | run a check of ours in your CI, with the configuration it needs |
+| **C** | a change to the pipeline | to the proof infrastructure or to what safe mode promises |
+| **D** | **an assertion** | a patch adding an invariant to cvc5, so the check lives in your tree and not ours |
+
+**Kind D is the one we most want to be right about.** An assertion is not a
+solution — it converts a silent hole into a loud failure and no more — but it is
+enforced on every developer's machine forever, at no infrastructure cost, and
+cvc5's CI already builds `--assertions`. When an invariant we check is one cvc5
+could check about itself at startup, the correct deliverable is the patch, and
+the correct thing to do with our check afterwards is delete it. See
+[`docs/tooling.md`](docs/tooling.md#d3--where-an-invariant-should-live) for
+where each invariant should live.
+
+The promises:
+
+- **It was confirmed before it was filed, and for kind A that means an input.**
+  Not a code location and an argument — a `.smt2` file, an option set, and the
+  quoted `--check-proofs-complete` failure. A claim that a path is reachable is
+  worth nothing until something reaches it, and the static analysis's job is to
+  tell us *where to look*, not to substitute for looking.
+- **A suggested assertion that fires falsely is our bug.** Exactly as a false
+  positive is. So no assertion is proposed until it has been applied to a cvc5
+  build configured `--assertions` and the regression suite has passed with it in
+  place. An assertion we have not run is a hypothesis, and hypotheses go in
+  `docs/findings.md`, not in a patch.
 - **A false positive is our bug, not yours.** Every check that fires wrongly on
   cvc5 gets narrowed until it stops, and each narrowing is recorded as what it
   is — a fact about cvc5 we had got wrong. Our own CI runs the checks over a
@@ -268,15 +336,17 @@ kernel certificate would say.
 
 ## Using it
 
-*Designed, not built.* Python 3.10 or later; the table tier needs only a cvc5
-checkout, the semantic tier additionally needs a `compile_commands.json`.
+*Designed, not built.* Tier 0 is Python 3.10 or later and needs only a cvc5
+checkout; tiers 1 and 2 ship as checks inside cvc5's own nightly (see
+[how it ships](#how-it-ships)).
 
 ```bash
+python3 -m dokimasia safe <cvc5>                  # THE check: holes reachable in --safe-mode=safe
 python3 -m dokimasia scan <cvc5>                  # every check over a checkout
-python3 -m dokimasia rules <cvc5>                 # the ledger: produced / checked / elaborated / printed
+python3 -m dokimasia rules <cvc5> --mode safe     # the ledger: produced / checked / elaborated / printed
 python3 -m dokimasia rule TRUST_THEORY_REWRITE    # one rule, all four columns, every site
-python3 -m dokimasia trust <cvc5> --reachable     # trust census, default options only
-python3 -m dokimasia delta <cvc5>                 # what --produce-proofs changes about the solver
+python3 -m dokimasia trust <cvc5> --mode safe     # trust census, restricted to safe mode
+python3 -m dokimasia delta <cvc5>                 # safe vs stable vs unrestricted, per option
 python3 -m dokimasia infer strings <cvc5>         # InferenceId coverage for one theory
 python3 -m dokimasia kernel <cvc5> --logic QF_UF  # obligations: discharged, and still assumed
 python3 -m dokimasia explain SEAM0001             # the manual page of a check
@@ -286,27 +356,61 @@ python3 -m dokimasia list-checks
 A finding is meant to look like this:
 
 ```text
-src/theory/strings/infer_proof_cons.cpp:1279: warning[INFER0002]: an inference with no proof reconstruction
+src/theory/strings/infer_proof_cons.cpp:1279: error[INFER0002]: an inference with no proof reconstruction
      |
 1279 |     ps.d_args.push_back(mkTrustId(nm, TrustId::THEORY_INFERENCE_STRINGS));
      |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ falls through to a trust step
      = note: reached by InferenceId::STRINGS_I_CYCLE_E, which theory_strings.cpp:812 can emit
-     = note: `--check-proofs-complete` fails on any input reaching this step
-     = help: reproducer in docs/findings/infer0002.smt2 (default options, QF_S)
+     = note: rank 1 — reachable under --safe-mode=safe, which promises full proof support
+     = note: cvc5 --safe-mode=safe --produce-proofs --check-proofs docs/findings/infer0002.smt2
+             reports: The proof was incomplete due to a trust step with id
+             THEORY_INFERENCE_STRINGS, from theory THEORY_STRINGS
+     = help: minimized with ddsmt from QF_S benchmark <origin>
 ```
 
-## In CI
+## How it ships
 
-The ladder anoieu proposes, aimed at cvc5's build: one versioned tool, a policy
-file and a baseline owned by cvc5, and a corpus job *here* that fails our build
-when a change would invent a false positive in theirs.
+**The infrastructure already exists, and this changed the design.** cvc5 runs a
+nightly [`static_analysis.yml`](https://github.com/cvc5/cvc5/blob/main/.github/workflows/static_analysis.yml)
+that builds a **custom clang-tidy plugin** from `contrib/tidy-checks/`, builds
+cvc5 inside a **CodeQL database**, runs a **custom CodeQL query** that computes
+a transitive call-graph closure, decodes it to CSV, and passes that CSV *into*
+the clang-tidy check as a configuration option.
 
-The rung that matters first is cheap and needs no baseline: **the ledger is a
-regression test**. A commit that adds a `ProofRule` without a checker, an
-`InferenceId` without a reconstruction case, or a technique to
-`incompatibleWithProofs` without a note, is a commit that widens a hole nobody
-sees until a benchmark finds it. That check runs in seconds and is the whole
-argument for adoption.
+That pairing — CodeQL answers the whole-program question, a clang-tidy check
+consumes the answer and judges each site — is precisely what dokimasia's harder
+checks need. cvc5's existing `cvc5-node-id-determinism` check is a domain
+invariant enforced exactly that way. Ours are the same shape with different
+roots.
+
+So we ship as three artifacts, chosen by what each question needs:
+
+| tier | question | artifact | cost |
+| --- | --- | --- | --- |
+| **0 — ledger** | is this table consistent with that table? | standalone, reads a checkout | **seconds, no build** |
+| **1 — local** | does this call site attach a proof? | `cvc5-proof-*` checks in `contrib/tidy-checks/` | one clang-tidy pass |
+| **2 — closure** | what can safe mode reach? | queries in `contrib/codeql/` | one CodeQL DB build |
+
+Tiers 1 and 2 belong **upstream, in cvc5's tree**, because that is where the
+pipeline is. A tool cvc5 must install and schedule will not be run; a check in
+`contrib/tidy-checks/` is already built, loaded and enforced by a job that
+exists. Tier 0 stays here and runs per-push, because table-against-table checks
+need a bracket matcher rather than a compiler — and because it produces findings
+before anyone configures a build.
+
+Two adoptions we can propose immediately, independent of any check we write:
+
+- **Upload SARIF.** The nightly enforces via `-warnings-as-errors` and nothing
+  else, so findings never reach GitHub's code-scanning UI, are not annotated on
+  pull requests, and have no baseline or dismissal mechanism.
+- **The ledger as a per-push lint.** A commit that adds a `ProofRule` with no
+  checker, an `InferenceId` with no reconstruction case, or a technique to
+  `incompatibleWithProofs` with no note, widens a hole nobody sees until a
+  benchmark finds it. That check runs in seconds.
+
+The full survey of C++ static analysis tooling, why none of it can ask our
+question, and the design decisions that follow, are in
+[`docs/tooling.md`](docs/tooling.md).
 
 ## How this repository is maintained
 
