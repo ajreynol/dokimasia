@@ -5,6 +5,11 @@ supposed to emit a proof for everything the solver does, and the seam where that
 proof becomes a [Eunoia](https://github.com/cvc5/ethos) proof for `ethos` to
 check.
 
+It asks one question: **is there a path through the solver that produces no
+proof at all?** Not whether a proof step is valid — completeness, not soundness.
+It reads a checkout in seconds and builds nothing, so what it finds are the
+holes no input has reached.
+
 Modelled on [`anoieu`](https://github.com/ajreynol/anoieu), which does the same
 job for Eunoia signatures. Signatures are its subject; the C++ is ours.
 
@@ -17,43 +22,10 @@ design. Numbers below were measured against cvc5 `16c4001e53`.*
 > reached yet — so silence here is not coverage, and nothing downstream should
 > read it as any.
 
-## Philosophy
-
-The positions we share with anoieu — what we publish, what a finding is worth,
-and why nothing crosses a repository boundary automatically — are stated once,
-for both tools, in
-[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md).
-What follows is particular to this repository.
-
-**Completeness, not soundness.** Not *is this proof step valid*, but *is there a
-path through the solver that produces no proof at all*.
-
-**The goal is complete proofs, always.** cvc5 already promises exactly this in
-one configuration — `--safe-mode=safe` is defined as allowing no feature "that
-does not have full proof and model support." Everything here is an instrument
-for making that promise true and keeping it true.
-
-**White box.** We read the code. Finding holes by generating inputs is
-[murxla's job](docs/tooling.md#posture-toward-murxla) and it is good at it; the
-holes that matter now are the ones **no input has reached**, which is what
-reading finds and running cannot.
-
-**Eager, where cvc5 is lazy.** `--check-proofs-complete` asks our question at
-runtime, one benchmark at a time, and fires only on an input that reaches the
-step. We ask it of the code, with no benchmark in hand.
-
-**Agility over coverage.** Safe mode already has almost no proof holes on
-SMT-LIB. So the corpus is a good oracle and an exhausted signal, and the
-bottleneck is not compute but **feedback latency** — how fast can we find the
-*next* hole, and tell whether a change introduced one.
-
-**Only claims we can back.** Every number here comes from a tool in this
-repository that runs in seconds against a checkout. A claim we cannot measure is
-a design note, and lives in [`TODO.md`](TODO.md) as one.
-
-**A false positive is our bug** — including a retracted one:
-[our first headline number was wrong](docs/findings.md#retractions), and the
-retraction is published beside it.
+Why this question and not another is [`docs/goals.md`](docs/goals.md); what we
+will and will not publish about somebody else's code is
+[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md),
+shared with anoieu.
 
 ## The analyses
 
@@ -221,7 +193,7 @@ the path. Ours happens first.
 | | |
 | --- | --- |
 | [`TODO.md`](TODO.md) | the route to the goal, ordered by feedback latency |
-| [`docs/goals.md`](docs/goals.md) | the goal, the agility constraint, and how we would know it is working |
+| [`docs/goals.md`](docs/goals.md) | the stance, the goal, the agility constraint, and how we would know it is working |
 | [`docs/contract.md`](docs/contract.md) | what cvc5 promises, where, and the three ways completeness breaks |
 | [`docs/pipeline.md`](docs/pipeline.md) | the stages of proof production and where each leaks |
 | [`docs/kernel.md`](docs/kernel.md) | the two stretch goals: a kernel you can argue about, and a safe build that cannot be unsafe |

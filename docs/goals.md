@@ -6,6 +6,31 @@ That is the point of this repository. Everything else in it — the checks, the
 hygiene standard, the TCB measurement, the CI proposals — is an *instrument* for
 that, and should be judged by how much it moves it.
 
+## The stance
+
+**Completeness, not soundness.** Not *is this proof step valid*, but *is there a
+path through the solver that produces no proof at all*. cvc5 already promises
+exactly that in one configuration — `--safe-mode=safe` is defined as allowing no
+feature "that does not have full proof and model support" — and everything here
+is an instrument for making the promise true and keeping it true.
+
+**White box, and eager.** We read the code. Finding holes by generating inputs
+is [murxla's job](tooling.md#posture-toward-murxla) and it is good at it; the
+ones that matter now are the holes **no input has reached**, which is what
+reading finds and running cannot. cvc5 asks our question at runtime —
+`--check-proofs-complete`, one benchmark at a time, firing only on an input that
+reaches the step. We ask it of the code, with no benchmark in hand.
+
+**Only claims we can back.** Every number we publish comes from a tool in this
+repository that runs in seconds against a checkout. A claim we cannot measure is
+a design note, and lives in [`TODO.md`](../TODO.md) as one.
+
+What we will and will not say about somebody else's code — silence is never
+evidence, a false positive is ours, an artifact settles a finding — is the
+position shared with anoieu in
+[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md),
+and is not restated here.
+
 ## The operating constraint: agility
 
 Safe mode already has **almost no proof holes on SMT-LIB**. That single fact
