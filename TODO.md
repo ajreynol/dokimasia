@@ -328,8 +328,14 @@ output is the work list for [stage C](#stage-c--a-safe-build-that-cannot-be-unsa
 One row per `ProofRule`, four columns: **produced by**, **checked by**,
 **elaborated by**, **printed by**. A hole in any column is a claim.
 
-- [ ] **M2.1** Build the ledger and render it (`dokimasia rules`), with a
-      safe-mode column: can this rule be produced under `--safe-mode=safe`?
+- [x] **M2.1** ✅ **`dokimasia.ledger`** — the ledger, built and ratcheted.
+      170 `ProofRule`s: 113 always printable, 17 conditionally, 40 never — of
+      which 14 by design, 12 unreachable and **14 real gaps**. Also answers
+      `RULE0001` (11, all `FF_*`), `RULE0002` (16 trusted checkers: 8 at level
+      1, 2 at level 2, 6 at level 4) and `RULE0003` (14 declared and never
+      produced). Tests in `tests/test_ledger.py`.
+      *Still open:* a safe-mode column — deciding reachability per rule needs
+      the option gate, which the tool does not compute (see c-13).
 - [ ] `RULE0001` a rule with no registered checker.
 - [ ] `RULE0002` a rule registered via `registerTrustedChecker` — surface the
       declared pedantic level (1–4), cvc5's own statement of how much its
@@ -548,6 +554,7 @@ findings.** Each needs a reproducer or a maintainer's answer before it goes near
 | c-7 | `TODO (wishue #154)`: Minisat with DRAT/LRAT throws no logic exception | `MODE0006` | 3 | already known upstream; track, do not re-file |
 | c-8 | The nightly enforces only via `-warnings-as-errors`; no SARIF upload, no baseline, no PR annotation | `A.1` | — | a process recommendation, not a defect |
 | **c-9** | **`stringLazyPreproc` declares `no_support = ["proofs"]`, defaults to `true`, and is disabled by neither `setDefaultsPre` nor the `SolverEngine` guard — so a default safe-mode run enables a feature cvc5 annotates as having no proof support** | `modes check` ✅ | 2 | two readings, both defects: either safe mode should disable it, or the annotation is stale and strings lazy preprocessing does now have proof support. **Needs a maintainer's answer, not a reproducer** — that is the cheapest way to settle it |
+| **c-13** | **14 `ProofRule`s the solver emits cannot be printed by the Eunoia seam**: 4 `ARITH_POW2_*`, 9 `ARITH_TRANS_*`, and `SAT_REFUTATION`. The `ARITH_POW2_*` ones are *also* registered via `registerTrustedChecker` at level 1, so they are weakly checked and unprintable at once | `SEAM0001` ✅ | 3 | verified by hand: all 13 arith rules are behind `--arith-exp`, whose kinds `illegal_checker` rejects outright when it is off — and safe mode sets it off. So these are unrestricted-mode gaps. `SAT_REFUTATION` is the one that needs a separate answer |
 | **c-11** | **`--check-proofs-complete` appears nowhere in cvc5's CI or regressions.** Completeness is enabled implicitly by `setDefaultsPre` in a safe build; the guarantee is a four-link chain no test asserts, and adding a `--proof-granularity` flag to the `proof` tester would switch it off silently | `CI0002` | 2 | works today. The finding is the fragility, and the fix is a one-line explicit flag |
 | c-12 | 51 `InferenceId`s are produced at more than one site, and 14 are declared but produced nowhere — one of those (`STRINGS_CODE_PROXY`) has a proof-reconstruction case for an inference nothing emits | `inferid check` ✅ | 3 | not defects on their own; they are what makes the `INFER` coverage analysis imprecise |
 | c-10 | `macrosQuantMode` also surfaces from `modes check` | `modes check` ✅ | 3 | almost certainly spurious: its effect is gated by `macrosQuant`, default `false`. A defaults-only check cannot see that gate. Listed so the limitation is visible rather than silently filtered |

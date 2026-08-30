@@ -54,13 +54,13 @@ a witness; each says something about the pipeline that is true or false.
 | --- | --- | --- | --- |
 | ✅ | `TCB` | **the checker's dependency surface** | how much of cvc5 must be right for `--check-proofs` to mean anything — and is it growing? |
 | ◐ | `MODE` | **the safe-mode contract** | is anything reachable in safe mode without proof support? what does enabling proofs change about the solver at all? |
-| ○ | `RULE` | **the rule ledger** | for every `ProofRule`: who produces it, checks it, elaborates it, prints it. The interesting rows are the ones with a hole |
+| ✅ | `RULE` | **the rule ledger** | for every `ProofRule`: who produces it, checks it, elaborates it, prints it. The interesting rows are the ones with a hole |
 | ○ | `TRUST` | **the trust census** | every site that can introduce a trust step, keyed by `TrustId`: which are reachable, which are dead, which are unnamed |
 | ○ | `INFER` | **inference coverage** | for each `InferenceId` a theory emits, does its reconstruction have a case, and is a `ProofGenerator` attached? |
 | ○ | `RW` | **rewrite coverage** | can every rewrite the rewriter performs be reconstructed — and which reconstructions depend on a search budget? |
 | ○ | `PP` | **preprocessing coverage** | does every pass either prove its work or declare a `PREPROCESS_*` trust id? |
-| ○ | `ELAB` | **macro elaboration** | is every `MACRO_*` expanded at each granularity, terminating in non-macro rules? |
-| ○ | `SEAM` | **the Eunoia seam** | `isHandled` and `isHandledSkolemId` as coverage problems, including their argument-dependent arms |
+| ◐ | `ELAB` | **macro elaboration** | is every `MACRO_*` expanded at each granularity, terminating in non-macro rules? |
+| ◐ | `SEAM` | **the Eunoia seam** | `isHandled` and `isHandledSkolemId` as coverage problems, including their argument-dependent arms |
 | ◐ | `INFERID` | **inference-id hygiene** | is each `InferenceId` produced at one place, so the control-flow graph is unambiguous? |
 | ○ | `CI` | **is cvc5's proof CI intact?** | do the jobs that guard proof completeness still run, with the flags they need — independently of anyone remembering to keep them? |
 | ○ | `API` | **proof API contracts** | does a `ProofGenerator` return a proof of what was asked? which invariants vanish in a release build? |
@@ -104,6 +104,15 @@ python3 -m dokimasia.inferid dead  <cvc5>          # 14 declared, produced nowhe
 python3 -m dokimasia.inferid stats <cvc5>
 ```
 
+**[`dokimasia.ledger`](dokimasia/ledger/)** — one row per `ProofRule`, four
+columns: produced, checked, elaborated, printed.
+
+```bash
+python3 -m dokimasia.ledger holes <cvc5>          # 14 rules the Eunoia seam cannot print
+python3 -m dokimasia.ledger rule  <cvc5> ARITH_POW2_INIT
+python3 -m dokimasia.ledger table <cvc5> --produced-only
+```
+
 Between them they have produced one report and several candidates:
 
 - **[`tcb-001`](docs/findings/tcb-001.md)** — six proof rule checkers compile
@@ -112,6 +121,10 @@ Between them they have produced one report and several candidates:
 - **`stringLazyPreproc`** declares `no_support = ["proofs"]`, defaults to `true`,
   and is disabled by neither mechanism that enforces safe mode. Either reading is
   a defect.
+- **14 proof rules the solver emits, the Eunoia seam cannot print.** All 13
+  arith ones sit behind `--arith-exp`, which safe mode disables — so they are
+  unrestricted-mode gaps, not contract violations. `SAT_REFUTATION` is the one
+  that is not arith.
 - **Proof completeness is never named in cvc5's CI.** `--check-proofs-complete`
   appears nowhere in `.github/` or `test/`; the guarantee rides on an implication
   inside `setDefaultsPre` that no test asserts.
