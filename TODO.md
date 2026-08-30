@@ -17,7 +17,7 @@ not compute.
 
 | stage | what | latency | status |
 | --- | --- | --- | --- |
-| **A** | **Safe mode does what it says** | seconds, no build | ready to start |
+| **A** | **Safe mode does what it says** | seconds, no build | ◐ tooling built, first candidate found |
 | **B** | **The latent inventory** — holes no input reaches | seconds, no build | needs M1–M5 |
 | **C** | **A safe build that cannot be unsafe** | one build | stretch, tooling exists |
 | **D** | **Fast dynamic signals** — fuzzing, known-hole corpus | minutes | murxla already in cvc5's build |
@@ -37,9 +37,18 @@ support" — is kept by a **hand-maintained list** in
 `SafeLogicException` when a disabled theory is reached anyway. Nothing checks
 that the list is complete or that the guards are exhaustive.
 
-- [ ] **A.1** Extract the runtime disable list: what `setDefaultsPre` turns off
-      under `SAFE` and `STABLE`, what `incompatibleWithProofs` refuses, and what
-      the `FULL_STRICT` upgrade adds.
+- [x] **A.1** ✅ Extract the runtime disable list —
+      [`dokimasia.modes`](dokimasia/modes/). Parses all 172 macro call sites in
+      `set_defaults.cpp` with their guards; renders the per-mode delta (24
+      options for safe, 19 for stable); ratchets it against a baseline.
+      Tests in `tests/test_modes.py`.
+- [x] **A.1b** ✅ **The `no_support` cross-check** (`modes check`). cvc5's option
+      definitions carry a machine-readable `no_support` field; 15 options declare
+      `no_support = ["proofs"]`. Every one must be off in a safe run. Two
+      mechanisms try to ensure it and neither is complete: `setDefaultsPre`
+      disables some by name, and `SolverEngine` throws if a user *sets* one —
+      which never fires for an option already on by default. **Found
+      `stringLazyPreproc`** (see candidates below).
 - [ ] **A.2 — the list against the build.** The runtime disable list and the
       `CVC5_SAFE_MODE` build exclusions must agree. **Today they plainly do
       not:** runtime disables `sep`, `bags`, `ff`, `fp`; the build excludes
@@ -100,12 +109,17 @@ third-party only (LibPoly, CoCoA).
 
 Where new inputs come from, once SMT-LIB is exhausted.
 
-- [ ] **D.1 — fuzzing.** **murxla is already an `ExternalProject` in cvc5's
-      build** (`cmake/fuzzing-murxla.cmake`, pinned at `9ba2583`). Run it with
-      `--safe-mode=safe --produce-proofs --check-proofs-complete` as the oracle:
-      any generated input producing an incomplete proof is a rank-1 finding.
-      This is the highest-yield dynamic work available and most of the
-      infrastructure exists.
+- [ ] **D.1 — fuzzing is murxla's job, not ours.** murxla is an end-to-end
+      black-box fuzzer, already an `ExternalProject` in cvc5's build
+      (`cmake/fuzzing-murxla.cmake`, pinned at `9ba2583`), maintained by people
+      who are good at it. **We do not build, wrap or drive a fuzzer**; we are
+      white box and our value is the holes an input-driven tool cannot reach.
+      Posture written up in
+      [`docs/tooling.md`](docs/tooling.md#posture-toward-murxla).
+
+      What we *can* usefully contribute in that direction is a fragment
+      description — "a hole here needs a formula with these features" — from
+      stage B.3, and consumption of anything it finds as a `holes/` regression.
 - [ ] **D.2 — targeted synthesis.** Stage B.3 says which fragment a latent hole
       needs; generate small inputs against that, rather than fuzzing blind.
 - [ ] **D.3 — the known-hole corpus.** A local `holes/` directory: per hole, the
@@ -479,6 +493,8 @@ findings.** Each needs a reproducer or a maintainer's answer before it goes near
 | c-6 | `ensureClosedWrtInternal` returns early unless `--proof-check=eager` or a trace is on, so a default `--produce-proofs` run never checks its proofs are closed | `API0002` | 3 | deliberate: the check is expensive and CI runs eager mode. Worth stating because it decides what a *release* run guarantees, which is what a kernel contract is about |
 | c-7 | `TODO (wishue #154)`: Minisat with DRAT/LRAT throws no logic exception | `MODE0006` | 3 | already known upstream; track, do not re-file |
 | c-8 | The nightly enforces only via `-warnings-as-errors`; no SARIF upload, no baseline, no PR annotation | `A.1` | — | a process recommendation, not a defect |
+| **c-9** | **`stringLazyPreproc` declares `no_support = ["proofs"]`, defaults to `true`, and is disabled by neither `setDefaultsPre` nor the `SolverEngine` guard — so a default safe-mode run enables a feature cvc5 annotates as having no proof support** | `modes check` ✅ | 2 | two readings, both defects: either safe mode should disable it, or the annotation is stale and strings lazy preprocessing does now have proof support. **Needs a maintainer's answer, not a reproducer** — that is the cheapest way to settle it |
+| c-10 | `macrosQuantMode` also surfaces from `modes check` | `modes check` ✅ | 3 | almost certainly spurious: its effect is gated by `macrosQuant`, default `false`. A defaults-only check cannot see that gate. Listed so the limitation is visible rather than silently filtered |
 
 ## Open design questions
 

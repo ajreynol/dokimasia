@@ -44,7 +44,7 @@ Ranked by how fast they return an answer, not by how much they cost:
 | **1** | **static analysis** of the pipeline | seconds, no build | holes no input has ever reached — *the ones that are left* |
 | **2** | **safe-mode consistency** — does safe mode do what it says? | seconds, no build | features that escape their own guard |
 | **3** | **build-time pruning** — is the unsafe code even linked? | one build | a whole class of hole, converted into a link error |
-| **4** | **fuzzing** (murxla is already in cvc5's build) | minutes | inputs a fixed corpus does not contain |
+| **4** | **fuzzing** — *[murxla's job, not ours](docs/tooling.md#posture-toward-murxla)* | minutes | inputs a fixed corpus does not contain |
 | **5** | **a curated corpus of known holes** | seconds | regressions on holes already reported |
 | **6** | **SMT-LIB census** | hours | the baseline, once |
 
@@ -109,6 +109,34 @@ Today they plainly do not — `setDefaultsPre` disables `sep`, `bags`, `ff` and
 `fp`; `CVC5_SAFE_MODE` excludes LibPoly and CoCoA. Every feature that is disabled
 at runtime but present in the safe build is a feature that a missed guard makes
 reachable.
+
+### Tracking the mode delta
+
+[`dokimasia.modes`](dokimasia/modes/) is the second subtool. It extracts every
+option change in `set_defaults.cpp` with the guards written around it, renders
+what each mode does to the defaults, and ratchets the list so a change to what
+safe mode promises is visible in review rather than buried in a 177-call file.
+
+```bash
+python3 -m dokimasia.modes delta <cvc5>              # what safe mode changes (24 options)
+python3 -m dokimasia.modes delta <cvc5> --mode stable
+python3 -m dokimasia.modes check <cvc5>              # the consistency check
+python3 -m dokimasia.modes baseline <cvc5> --check   # ratchet, for CI
+```
+
+`check` is the interesting one, and it works because **cvc5 already declares the
+answer**: option definitions carry a machine-readable `no_support` field, and
+fifteen options declare `no_support = ["proofs"]`. Safe mode promises no feature
+without full proof support, so every one of them must be off in a safe run. Two
+mechanisms try to ensure that and neither is complete alone — `setDefaultsPre`
+disables some *by name*, and `SolverEngine` throws if a user *sets* one, which
+says nothing about an option already on by default. `check` reports the gap.
+
+It currently reports **`stringLazyPreproc`** — declared `no_support =
+["proofs"]`, default `true`, disabled by neither mechanism. Either reading is a
+defect: the option should be off in safe mode, or the annotation is stale. It is
+[a candidate, not a finding](TODO.md#candidate-findings-from-the-design-pass),
+until someone confirms which.
 
 ## The gap this exists to close
 

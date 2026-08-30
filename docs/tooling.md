@@ -212,11 +212,51 @@ Tier 0 must stay under a few seconds so it can run per-push as a lint. Tiers 1
 and 2 inherit the nightly's budget, which already absorbs a full CodeQL database
 build. Nothing here needs a new machine.
 
+## Posture toward murxla
+
+[murxla](https://github.com/murxla/murxla) is an end-to-end, black-box fuzzer
+for SMT solvers. It is already an `ExternalProject` in cvc5's build
+(`cmake/fuzzing-murxla.cmake`), pinned and maintained by people who are good at
+it. **It is a separate project and we should keep it that way.**
+
+The division is not about quality, it is about method:
+
+| | murxla | dokimasia |
+| --- | --- | --- |
+| **method** | black box — generate inputs, run the solver, check an oracle | white box — read the C++ |
+| **finds a hole by** | *hitting* it | *reading* it |
+| **needs** | a build, and time | a checkout, and seconds |
+| **can say** | "this input breaks it" | "this code path has no proof, and nothing has ever run it" |
+| **cannot say** | anything about a path its inputs never reach | with certainty that a path is reachable |
+
+Those last two rows are the whole relationship, and they are complementary
+rather than competitive. Safe mode already has almost no proof holes on SMT-LIB,
+so the holes that remain are the ones **no input has reached** — which is
+exactly what a black-box tool cannot find and a white-box tool can. Symmetrically,
+we can point at a suspicious path and be wrong about whether anything reaches it;
+an input settles that and we cannot manufacture one by reading.
+
+**So we do not build, wrap, drive or vendor a fuzzer.** Concretely:
+
+- no fuzzing harness in this repository, and no dependency on murxla;
+- we do not measure ourselves in bugs-found-by-fuzzing;
+- when a static finding needs a witness input, the honest options are to
+  construct one by hand or to hand the *fragment description* to whoever runs
+  the fuzzing — "this hole needs a formula with these features" is a useful
+  thing to give someone, and it is the right size of contribution;
+- if murxla finds a proof hole, it lands in our `holes/` corpus as a regression
+  and as evidence about a code site, which is data we consume, not work we did.
+
+The one thing we should actively want from that direction is the *negative*
+information: a hole murxla has never produced, in code we believe is reachable,
+is the most interesting object either tool produces.
+
 ## What we are not doing
 
 - **Not building a general C++ analyzer.** Every check is a statement about
   cvc5's proof pipeline; if a check would be useful to a project that is not
   cvc5, it is probably in the wrong repository.
 - **Not replacing `--check-proofs-complete`.** It is the oracle. We are the
-  thing that decides which inputs to point it at.
+  thing that decides where to point it.
+- **Not building a fuzzer.** See the posture above.
 - **Not analyzing Eunoia signatures.** `anoieu` does that, better.
