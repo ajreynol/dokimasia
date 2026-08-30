@@ -1,6 +1,6 @@
 # TODO
 
-The goal is [**complete proofs, always**](README.md#the-goal). This file is the
+The goal is [**complete proofs, always**](docs/goals.md). This file is the
 route to it. The delivery decisions are in [`docs/tooling.md`](docs/tooling.md).
 
 Everything here is judged by one question: *does this get cvc5 closer to

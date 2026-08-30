@@ -8,7 +8,7 @@ for every later goal in this repository**, for a reason worth stating plainly:
 
 > You cannot draw a boundary around a thing you cannot name.
 
-The kernel goal ([README](../README.md#the-stretch-goal-a-kernel-you-can-argue-about))
+The kernel goal ([README](kernel.md))
 is about making it *easier to argue* which part of cvc5 is its proof-producing
 core. Every such argument is made out of entities — inferences, rules, trust
 steps — and an argument is only as sharp as the entities are. If an

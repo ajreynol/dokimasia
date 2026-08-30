@@ -178,7 +178,7 @@ hypotheses go in `docs/findings.md`, not in a patch.
 
 ### D5 — Safe mode first, and the reproducer is the deliverable
 
-See [the contract](../README.md#the-contract). `--safe-mode=safe` is the only
+See [the contract](contract.md). `--safe-mode=safe` is the only
 configuration cvc5 promises complete proofs in, so it is the only configuration
 where an incomplete proof is a **contract violation** rather than a known gap.
 
