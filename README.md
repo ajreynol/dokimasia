@@ -65,6 +65,7 @@ a witness; each says something about the pipeline that is true or false.
 | ✅ | `CI` | **is cvc5's proof CI intact?** | do the jobs that guard proof completeness still run, with the flags they need — independently of anyone remembering to keep them? |
 | ○ | `API` | **proof API contracts** | does a `ProofGenerator` return a proof of what was asked? which invariants vanish in a release build? |
 | ✅ | `GATE` | **option gates** | which option must be on for a term kind — and so a rule — to occur, so severity can be computed instead of guessed |
+| ✅ | `FRAG` | **the supported fragment** | which term kinds may appear per theory under safe mode — and do the three enforcement mechanisms actually cover it? |
 | ○ | `KRN` | **kernel obligations** | see [the stretch goals](docs/kernel.md) |
 
 Two of these — the ledger's arity column, and severity derived from reachability
@@ -141,6 +142,16 @@ python3 -m dokimasia.rewrites coverage <cvc5>     # RARE vs hand-written vs appl
 python3 -m dokimasia.rewrites gaps     <cvc5>     # applied, and unprintable
 ```
 
+**[`dokimasia.fragment`](dokimasia/fragment/)** — the logical fragment cvc5
+supports, per theory, and whether it is enforced. Generates
+[`docs/fragment.md`](docs/fragment.md).
+
+```bash
+python3 -m dokimasia.fragment theories <cvc5>     # 352 kinds over 14 theories
+python3 -m dokimasia.fragment check    <cvc5>     # is the fragment enforced?
+python3 -m dokimasia.fragment doc      <cvc5> --out docs/fragment.md
+```
+
 **[`dokimasia.gates`](dokimasia/gates/)** — the machinery the other tools kept
 needing: which option legalises each term kind, and so whether a rule can fire
 under `--safe-mode=safe`.
@@ -179,7 +190,7 @@ Between them they have produced one report and several candidates:
   build jobs run a proof tester, and the one that carries the contract would stop
   testing completeness if a `--proof-granularity` flag were ever added to it.
 
-All [candidates, not findings](TODO.md#candidate-findings-from-the-design-pass),
+All [candidates, not findings](docs/issues.md),
 until someone confirms them.
 
 ## The name

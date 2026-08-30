@@ -51,6 +51,8 @@ class KindGates:
     origin: dict[str, str] = field(default_factory=dict)
     #: ProofRewriteRule -> kinds its rewriteViaRule arm names
     rule_kinds: dict[str, set[str]] = field(default_factory=dict)
+    #: option -> (shape, file) for guards that gate something other than a kind
+    nonkind_gate: dict[str, tuple[str, str]] = field(default_factory=dict)
 
     def gated_in_safe_mode(self, kind: str) -> str | None:
         """The safe-mode-disabled option gating this kind, if any."""
@@ -138,16 +140,36 @@ def _from_logic_exceptions(src: str, kg: KindGates) -> None:
             if "LogicException" not in text or "options()." not in text:
                 continue
             rel = os.path.relpath(full, src)
-            for start, end, head in _blocks(text):
+            blocks = _blocks(text)
+            for start, end, head in blocks:
                 body = text[start:end]
                 if "LogicException" not in body:
                     continue
                 opts = {m.group(2) for m in _OPT.finditer(head)}
                 if not opts:
                     continue
-                for m in _KIND.finditer(body):
-                    kg.kind_gate.setdefault(m.group(1), set()).update(opts)
-                    kg.origin.setdefault(m.group(1), rel)
+                kinds = set(_KIND.findall(body))
+                if not kinds:
+                    # The guard may be nested inside the kind test rather than
+                    # around it: `if (nk == Kind::A || ...) { if (!options().x)
+                    # throw; }`. Look outward for the kinds it is guarding.
+                    for os_, oe, ohead in blocks:
+                        if os_ < start and oe > end:
+                            kinds |= set(_KIND.findall(ohead))
+                for k in kinds:
+                    kg.kind_gate.setdefault(k, set()).update(opts)
+                    kg.origin.setdefault(k, rel)
+                if kinds:
+                    continue
+                # No kind at all: the guard is on the logic, or on a type.
+                context = head + body
+                for os_, oe, ohead in blocks:
+                    if os_ < start and oe > end:
+                        context += ohead
+                shape = ("logic" if "isHigherOrder" in context or "logicInfo()" in context
+                         else "type" if "Type" in context else "other")
+                for o in opts:
+                    kg.nonkind_gate.setdefault(o, (shape, rel))
 
 
 def _rule_kinds(src: str, kg: KindGates) -> None:

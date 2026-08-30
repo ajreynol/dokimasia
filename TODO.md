@@ -552,34 +552,13 @@ A rank-1 finding needs an input, and this is the machinery that produces one.
 
 ---
 
-## Candidate findings from the design pass
+## Issues
 
-Noticed while reading cvc5 `16c4001e53`. **Unconfirmed — hypotheses, not
-findings.** Each needs a reproducer or a maintainer's answer before it goes near
-`docs/findings.md`.
+The curated list moved to **[`docs/issues.md`](docs/issues.md)** — open by rank,
+process points, settled hypotheses and filed findings, in one place.
 
-| # | what | first check | rank | why it might be nothing |
-| --- | --- | --- | --- | --- |
-| c-1 | The safe-mode disable list in `setDefaultsPre` is hand-maintained; nothing tests that it still covers everything without proof support | `MODE0001` | 2 | it may be complete today. The check is about the next feature added |
-| c-2 | `EoPrinter::isHandled` is an allowlist of 135 case labels over 172 rules; the unhandled set has never been computed | `SEAM0001` | 2 | 172−135 is a naive subtraction, not a finding: labels are not distinct rules, some rules appear in several switches, and conditional arms make handledness argument-dependent. The point is that nobody knows the real number |
-| c-3 | Proof completeness depends on `--proof-rewrite-rcons-rec-limit` / `-step-limit`: when reconstruction fails the macro step remains | `RW0002` | 2 | known and accepted engineering. Worth stating precisely because it bounds what any kernel contract can claim |
-| c-4 | The 11 `FF_*` rules are in the public enum and documented, have no registered checker, and have zero emission sites — `src/theory/ff` is entirely `#ifdef CVC5_USE_COCOA` | `RULE0003`, `RULE0004` | 3 | likely deliberate: reserved for a CoCoA build. The question is whether the *public* enum should carry rules no build produces. Note safe mode disables `ff` anyway |
-| c-5 | Only `strings`, `datatypes` and `sets` have an `infer_proof_cons.cpp` | `INFER0002` | 2 | other theories may attach generators at the inference site instead — needs tier 1 to tell the two apart |
-| c-6 | `ensureClosedWrtInternal` returns early unless `--proof-check=eager` or a trace is on, so a default `--produce-proofs` run never checks its proofs are closed | `API0002` | 3 | deliberate: the check is expensive and CI runs eager mode. Worth stating because it decides what a *release* run guarantees, which is what a kernel contract is about |
-| c-7 | `TODO (wishue #154)`: Minisat with DRAT/LRAT throws no logic exception | `MODE0006` | 3 | already known upstream; track, do not re-file |
-| c-8 | The nightly enforces only via `-warnings-as-errors`; no SARIF upload, no baseline, no PR annotation | `A.1` | — | a process recommendation, not a defect |
-| **c-9** | **`stringLazyPreproc` declares `no_support = ["proofs"]`, defaults to `true`, and is disabled by neither `setDefaultsPre` nor the `SolverEngine` guard — so a default safe-mode run enables a feature cvc5 annotates as having no proof support** | `modes check` ✅ | 2 | two readings, both defects: either safe mode should disable it, or the annotation is stale and strings lazy preprocessing does now have proof support. **Needs a maintainer's answer, not a reproducer** — that is the cheapest way to settle it |
-| **c-14** | **8 trust steps are constructed with `TrustId::NONE`** — a declared hole with no stated reason, in `prop/`, `rewriter/`, `smt/`, `proof/` and `theory/strings`. Nothing downstream can attribute them | `TRUST0003` ✅ | 3 | may be deliberate where the caller supplies a reason another way. Each site needs one look |
-| **c-15** | **3 `PREPROCESS_*` trust ids are dead**: `PREPROCESS_BV_TO_INT`, `PREPROCESS_BV_TO_INT_LEMMA`, `PREPROCESS_BITVECTOR_EAGER_ATOMS` — mentioned nowhere outside `trust_id.{h,cpp}`. The bv-to-int pass's trust step is `INT_BLASTER`, constructed in `theory/bv/int_blaster.cpp` | `PP0002` ✅ | 3 | cleanup. Either the ids should go or the pass should use them |
-| c-16 | **The pass↔trust-id correspondence is not checkable by name.** 7 ids are not derivable from their pass filename, including `PREPROCESS_BV_GUASS` — a misspelling of Gauss | `PP0001` ✅ | 3 | the tool works around it by matching construction sites instead. The naming is still worth fixing, and the typo certainly is |
-| **c-17** | **`LAMBDA_ELIM` may be a real safe-mode gap.** `isHandledTheoryRewrite` accepts it only when `safeMode == UNRESTRICTED`; `TheoryUfRewriter::rewriteViaRule` applies it; and its arm fires on `Kind::LAMBDA`, which **no gate blocks in safe mode**. So a lambda-eliminating rewrite in a safe-mode run would produce a step the Eunoia seam refuses | `gates rule` ✅ | **2** | `canEliminateLambda` may only succeed in cases needing HOL, which `ufHoExp` gates. **The next thing to settle**, and it wants an input, not more static work |
-| c-17b | The other two unrestricted-only seam rules are **blocked** in safe mode: `ARITH_POW_ELIM` (POW needs `--arith-exp`), `ARRAYS_SELECT_CONST` (its arm conjoins `SELECT` with `STORE_ALL`, which needs `--arrays-exp`) | `gates verdicts` ✅ | — | settled, not a finding |
-| c-18 | Both hard rewrite gaps are **blocked** in safe mode: `ARRAYS_EQ_RANGE_EXPAND` (`EQ_RANGE` needs `--arrays-exp`), `DT_MATCH_ELIM` (`MATCH` needs `--datatypes-exp`) | `gates verdicts` ✅ | — | settled by the gate analysis, not a finding |
-| c-19 | **38 macro rewrite gaps** rely on elaboration succeeding, and elaboration runs under `--proof-rewrite-rcons-rec-limit`. When it fails the macro step stays | `RW0002` | 2 | the budget-dependence is c-3 restated with a count |
-| **c-13** | **14 `ProofRule`s the solver emits cannot be printed by the Eunoia seam**: 4 `ARITH_POW2_*`, 9 `ARITH_TRANS_*`, and `SAT_REFUTATION`. The `ARITH_POW2_*` ones are *also* registered via `registerTrustedChecker` at level 1, so they are weakly checked and unprintable at once | `SEAM0001` ✅ | 3 | verified by hand: all 13 arith rules are behind `--arith-exp`, whose kinds `illegal_checker` rejects outright when it is off — and safe mode sets it off. So these are unrestricted-mode gaps. `SAT_REFUTATION` is the one that needs a separate answer |
-| **c-11** | **`--check-proofs-complete` appears nowhere in cvc5's CI or regressions.** Completeness is enabled implicitly by `setDefaultsPre` in a safe build; the guarantee is a four-link chain no test asserts, and adding a `--proof-granularity` flag to the `proof` tester would switch it off silently | `CI0002` | 2 | works today. The finding is the fragility, and the fix is a one-line explicit flag |
-| c-12 | 51 `InferenceId`s are produced at more than one site, and 14 are declared but produced nowhere — one of those (`STRINGS_CODE_PROXY`) has a proof-reconstruction case for an inference nothing emits | `inferid check` ✅ | 3 | not defects on their own; they are what makes the `INFER` coverage analysis imprecise |
-| c-10 | `macrosQuantMode` also surfaces from `modes check` | `modes check` ✅ | 3 | almost certainly spurious: its effect is gated by `macrosQuant`, default `false`. A defaults-only check cannot see that gate. Listed so the limitation is visible rather than silently filtered |
+Six rank-2 issues are open; the sharpest is `i-1`, `LAMBDA_ELIM`, which wants an
+input rather than more static work.
 
 ## Open design questions
 

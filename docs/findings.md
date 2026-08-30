@@ -58,7 +58,7 @@ in stable or unrestricted.
 | [tcb-001](findings/tcb-001.md) | six proof rule checkers compile against the theory solvers they check, to reach `static` helpers parked on solver classes | C | — | open, refactoring proposed |
 
 Everything else this repository currently believes is in
-[`TODO.md`](../TODO.md#candidate-findings-from-the-design-pass) as an
+[`TODO.md`](issues.md) as an
 unconfirmed candidate, and stays there until it is reproduced.
 
 ## Retractions
