@@ -110,6 +110,7 @@ wrong number. That is the whole robustness budget, and it is enough.
 | `run_regression.py` tester classes | ci | building tester args somewhere other than the class body |
 | `preprocessing/passes/*` filenames | trust | reorganising the directory |
 | `theory/*/rewrites` RARE files | rewrites | moving or renaming them |
+| `d_illegalKinds.insert` blocks in `illegal_checker.cpp`, and theory `LogicException` guards | gates | moving the gate out of a table into scattered checks (**the reverse would help us** — one table would be better) |
 | `#include` graph under `src/` | tcb | nothing much; it is the most robust thing here |
 
 ### Known limits, not breakages
@@ -117,10 +118,13 @@ wrong number. That is the whole robustness budget, and it is enough.
 Worth separating from the above, because these are things the tools *cannot*
 do rather than things that might stop working:
 
-- **Option gates are not computed.** Whether a rule or trust step is reachable
-  under `--safe-mode=safe` usually depends on a guard far from the site — often
-  a kind-legality check in `illegal_checker.cpp`, not a local `if`. Every
-  severity claim that needs this is currently made by hand and labelled as such.
+- **Option gates are computed for rewrite rules only.** `dokimasia.gates` links
+  a rule to the term kinds its `rewriteViaRule` arm names, and those kinds to
+  the options that legalise them. It says nothing about `ProofRule`s or trust
+  steps, whose sites name no kind — those severities are still set by hand.
+- **Conjunction and disjunction are not distinguished.** An arm naming several
+  kinds may require all of them or accept any; the tool reports `partial` and
+  asks a human to read it.
 - **Generated headers are invisible.** `options/options.h` is built from the
   `.toml` files, so the TCB closure does not follow edges through it.
 - **`rewriteViaRule` is one route.** A rewrite applied another way will look

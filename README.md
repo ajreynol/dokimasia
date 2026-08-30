@@ -64,6 +64,7 @@ a witness; each says something about the pipeline that is true or false.
 | ◐ | `INFERID` | **inference-id hygiene** | is each `InferenceId` produced at one place, so the control-flow graph is unambiguous? |
 | ✅ | `CI` | **is cvc5's proof CI intact?** | do the jobs that guard proof completeness still run, with the flags they need — independently of anyone remembering to keep them? |
 | ○ | `API` | **proof API contracts** | does a `ProofGenerator` return a proof of what was asked? which invariants vanish in a release build? |
+| ✅ | `GATE` | **option gates** | which option must be on for a term kind — and so a rule — to occur, so severity can be computed instead of guessed |
 | ○ | `KRN` | **kernel obligations** | see [the stretch goals](docs/kernel.md) |
 
 Two of these — the ledger's arity column, and severity derived from reachability
@@ -140,6 +141,16 @@ python3 -m dokimasia.rewrites coverage <cvc5>     # RARE vs hand-written vs appl
 python3 -m dokimasia.rewrites gaps     <cvc5>     # applied, and unprintable
 ```
 
+**[`dokimasia.gates`](dokimasia/gates/)** — the machinery the other tools kept
+needing: which option legalises each term kind, and so whether a rule can fire
+under `--safe-mode=safe`.
+
+```bash
+python3 -m dokimasia.gates kinds    <cvc5>        # 52 gated term kinds
+python3 -m dokimasia.gates rule     <cvc5> LAMBDA_ELIM
+python3 -m dokimasia.gates verdicts <cvc5>        # blocked / partial / open
+```
+
 Between them they have produced one report and several candidates:
 
 - **[`tcb-001`](docs/findings/tcb-001.md)** — six proof rule checkers compile
@@ -157,9 +168,11 @@ Between them they have produced one report and several candidates:
 - **3 `PREPROCESS_*` trust ids are dead**, including both `bv_to_int` ids: that
   pass's trust step is attributed to `INT_BLASTER`, from a different file.
 - **Safe mode is *stricter* at the Eunoia seam than the default.** Three
-  rewrites — `ARITH_POW_ELIM`, `ARRAYS_SELECT_CONST`, `LAMBDA_ELIM` — are
-  accepted by `isHandledTheoryRewrite` only when `safeMode == UNRESTRICTED`,
-  and all three are implemented by a rewriter.
+  rewrites are accepted by `isHandledTheoryRewrite` only when
+  `safeMode == UNRESTRICTED`, and all three are implemented by a rewriter. The
+  gate analysis blocks two of them in safe mode — but **`LAMBDA_ELIM` comes back
+  open**: its arm fires on `Kind::LAMBDA`, which nothing gates. That is the
+  strongest safe-mode candidate this repository has produced.
 - **Proof completeness is never named in cvc5's CI.** `--check-proofs-complete`
   appears nowhere; in a safe build `setDefaultsPre` turns it on as a side effect
   of `--check-proofs`. Four links hold and nothing asserts any of them — 4 of 22
