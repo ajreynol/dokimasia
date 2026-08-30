@@ -62,7 +62,7 @@ a witness; each says something about the pipeline that is true or false.
 | ◐ | `ELAB` | **macro elaboration** | is every `MACRO_*` expanded at each granularity, terminating in non-macro rules? |
 | ◐ | `SEAM` | **the Eunoia seam** | `isHandled` and `isHandledSkolemId` as coverage problems, including their argument-dependent arms |
 | ◐ | `INFERID` | **inference-id hygiene** | is each `InferenceId` produced at one place, so the control-flow graph is unambiguous? |
-| ○ | `CI` | **is cvc5's proof CI intact?** | do the jobs that guard proof completeness still run, with the flags they need — independently of anyone remembering to keep them? |
+| ✅ | `CI` | **is cvc5's proof CI intact?** | do the jobs that guard proof completeness still run, with the flags they need — independently of anyone remembering to keep them? |
 | ○ | `API` | **proof API contracts** | does a `ProofGenerator` return a proof of what was asked? which invariants vanish in a release build? |
 | ○ | `KRN` | **kernel obligations** | see [the stretch goals](docs/kernel.md) |
 
@@ -122,6 +122,16 @@ python3 -m dokimasia.trust passes <cvc5>          # which passes declare a hole
 python3 -m dokimasia.trust show   <cvc5> THEORY_LEMMA
 ```
 
+**[`dokimasia.ci`](dokimasia/ci/)** — an independent check that cvc5's proof
+testing is still attached. CI is the safety net today, and one that quietly
+stops being attached looks exactly like one that works.
+
+```bash
+python3 -m dokimasia.ci proofs  <cvc5>            # the completeness chain
+python3 -m dokimasia.ci matrix  <cvc5>            # job x tester
+python3 -m dokimasia.ci testers <cvc5>            # what each tester passes
+```
+
 Between them they have produced one report and several candidates:
 
 - **[`tcb-001`](docs/findings/tcb-001.md)** — six proof rule checkers compile
@@ -139,8 +149,10 @@ Between them they have produced one report and several candidates:
 - **3 `PREPROCESS_*` trust ids are dead**, including both `bv_to_int` ids: that
   pass's trust step is attributed to `INT_BLASTER`, from a different file.
 - **Proof completeness is never named in cvc5's CI.** `--check-proofs-complete`
-  appears nowhere in `.github/` or `test/`; the guarantee rides on an implication
-  inside `setDefaultsPre` that no test asserts.
+  appears nowhere; in a safe build `setDefaultsPre` turns it on as a side effect
+  of `--check-proofs`. Four links hold and nothing asserts any of them — 4 of 22
+  build jobs run a proof tester, and the one that carries the contract would stop
+  testing completeness if a `--proof-granularity` flag were ever added to it.
 
 All [candidates, not findings](TODO.md#candidate-findings-from-the-design-pass),
 until someone confirms them.

@@ -1,0 +1,19 @@
+{
+  "chain_holds": [
+    true,
+    true,
+    true,
+    true,
+    false
+  ],
+  "jobs_with_proof_testers": [
+    "ubuntu:production-dbg",
+    "ubuntu:production-dbg-clang",
+    "ubuntu:safe-mode",
+    "ubuntu:stable-mode"
+  ],
+  "proof_tester_flags": [
+    "--check-proofs",
+    "--proof-check=lazy"
+  ]
+}

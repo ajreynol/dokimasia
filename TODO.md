@@ -18,7 +18,7 @@ not compute.
 | stage | what | latency | status |
 | --- | --- | --- | --- |
 | **A** | **Safe mode does what it says** | seconds, no build | ◐ three subtools built, candidates found |
-| **A2** | **Is cvc5's proof CI intact?** | seconds, no build | ○ designed, observations recorded |
+| **A2** | **Is cvc5's proof CI intact?** | seconds, no build | ✅ `dokimasia.ci` |
 | **B** | **The latent inventory** — holes no input reaches | seconds, no build | needs M1–M5 |
 | **C** | **A safe build that cannot be unsafe** | one build | stretch, tooling exists |
 | **D** | **Fast dynamic signals** — fuzzing, known-hole corpus | minutes | murxla already in cvc5's build |
@@ -83,11 +83,15 @@ stage-A latency, and it is the only analysis here whose subject is cvc5's
 
 What the configuration says today, at `16c4001e53`:
 
-- **Proof testers run in 2 of ~25 build jobs** — `ubuntu:safe-mode` and
-  `ubuntu:stable-mode` carry `--tester proof --tester cpc`. The flagship
-  `ubuntu:production` job carries neither. That is defensible (proofs are tested
-  in the modes that promise them) and it means proof coverage rests entirely on
-  those two jobs.
+- **Proof testers run in 4 of 22 matrix jobs.** `ubuntu:safe-mode` and
+  `ubuntu:stable-mode` carry `--tester proof --tester cpc`;
+  `ubuntu:production-dbg` carries `proof`; `ubuntu:production-dbg-clang` carries
+  `cpc`, `alethe` and `unsat-core`. *(An earlier hand count here said 2 of ~25;
+  it missed the jobs whose proof testers are not named `proof`. The tool
+  corrected it — which is the argument for the tool.)*
+- **`proof` is in `g_default_testers` but almost every job overrides the list**,
+  so a developer running regressions locally gets proof checking that most CI
+  jobs do not.
 - **`--check-proofs-complete` appears nowhere** in `.github/` or `test/`. The
   `proof` tester passes `--check-proofs --proof-check=lazy`; completeness is
   enabled *implicitly*, because in a safe build `setDefaultsPre` turns
@@ -103,18 +107,19 @@ What the configuration says today, at `16c4001e53`:
 - `exclude_regress: 3-4` — the two heaviest regression levels are excluded from
   these jobs.
 
-- [ ] **A2.1** Parse `.github/workflows/*.yml` and `test/regress/cli/run_regression.py`
-      into a matrix: job × tester × flags × excluded regression levels.
-- [ ] `CI0001` a build job that promises a proof-bearing mode but runs no proof
-      tester.
+- [x] **A2.1** ✅ **`dokimasia.ci`** — the matrix, the tester flags, and the
+      completeness chain, ratcheted. Tests in `tests/test_ci.py`.
+- [x] `CI0001` ✅ a build job that promises a proof-bearing mode but runs no
+      proof tester. None today: both safe- and stable-mode jobs test proofs.
 - [ ] `CI0002` **the completeness chain.** Assert each link, and fail if any
       breaks. The cheapest fix upstream is to pass `--check-proofs-complete`
       *explicitly* in the proof tester, so the guarantee is named rather than
       implied — a finding of kind C, and a one-line patch.
-- [ ] `CI0003` a proof tester whose flags disable a check it appears to perform
-      (`--proof-check=lazy` vs closedness).
-- [ ] `CI0004` regression tests excluded, disabled or filtered out of proof
-      testing — and whether the exclusions still have a reason.
+- [x] `CI0003` ✅ a proof tester whose flags disable a check it appears to
+      perform. Reported: the `proof` tester runs `--proof-check=lazy`, so
+      closedness is never checked by it.
+- [x] `CI0004` ◐ the exclusions are reported (`exclude_regress: 3-4` on all four
+      proof-testing jobs). *Still open:* whether each still has a reason.
 - [ ] `CI0005` drift: a new job, tester or exclusion that changes proof coverage
       without changing the stated coverage.
 
