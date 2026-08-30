@@ -281,6 +281,94 @@ designed to be watched over time rather than resolved once.
 *Filed as* [`findings/tcb-001.md`](findings/tcb-001.md), with the refactoring.
 
 
+### H11 — The RARE correspondence is stated, not inferred
+
+**Every `ProofRewriteRule` says where it came from, and a RARE rule's owning
+theory is recoverable from its name or its marker.**
+
+*Evidence.* 533 rules: **439 generated from RARE, 94 hand-written.** The
+correspondence for the generated half already exists and is **exact in both
+directions** — `mkrewrites.py` emits
+
+```cpp
+/** Auto-generated from RARE rule bool-double-not-elim */
+EVALUE(BOOL_DOUBLE_NOT_ELIM),
+```
+
+and 439 markers match 439 definitions with nothing left over on either side. It
+holds because it is *generated*: nobody maintains it, so it cannot drift. That
+is the model the rest of this document keeps asking for, already working.
+
+*Where it is nonuniform.* Four things, in increasing order of how much they cost
+a consumer:
+
+1. **Hand-written entries are identified by absence.** A rule is hand-written
+   iff it has *no* marker. That is inference from silence: a generator change
+   that dropped markers would silently reclassify 439 rules.
+2. **The marker names the rule but not its file**, so the owning theory is not
+   recoverable from the header. Every consumer has to go find the RARE files.
+3. **RARE files have six basenames** — `rewrites`, `rewrites-card`,
+   `rewrites-elimination`, `rewrites-regexp-membership`,
+   `rewrites-simplification`, `rewrites-transcendentals` — and no extension, so
+   they must be located by content. *(This one bit us: an early version of
+   `dokimasia.rewrites` globbed `theory/*/rewrites` and undercounted by 118
+   rules, reporting 212 hand-written where the true figure is 94.)*
+4. **Rule-name prefixes do not determine the theory.** `ite-` is claimed by both
+   `booleans` and `builtin`; `strings` uses three prefixes (`str`, `re`, `seq`),
+   `uf` three (`uf`, `eq`, `distinct`), `booleans` two.
+
+*The convention, in the order worth doing it.*
+
+- **C1 — put the source file in the marker.** One line in `mkrewrites.py`:
+  `/** Auto-generated from RARE rule bool-double-not-elim (theory/booleans/rewrites) */`.
+  Fixes (2) and makes (3) and (4) not matter to any consumer of the header,
+  because ownership stops being something you have to reconstruct. **Highest
+  value per effort by a distance.**
+- **C2 — mark the hand-written entries too**, with something as plain as
+  `/** Hand-written theory rewrite */`. Turns (1) from an inference into a fact.
+- **C3 — one prefix, one theory.** `ite-` is the only outright collision;
+  several theories using several prefixes is untidy but unambiguous, so this is
+  worth doing only if it is cheap.
+- **C4 — settle the file naming**, or write down that it is deliberately free
+  and consumers must scan by content. Either is fine; the present state is
+  neither.
+
+*What this buys.* The rewrite vocabulary is the largest in the calculus and the
+one where "is this rule declarative or is it C++ someone must teach the seam
+about" decides whether a proof can be printed. Today that question is answered
+by cross-referencing two directories. C1 and C2 make it a property of the
+header.
+
+### On an auto-compiler for RARE rules
+
+Worth taking seriously and worth being precise about, because "compile RARE
+rules" already describes something cvc5 does. `mkrewrites.py` compiles the 439
+declarative rules into the enum, the rewrite database and their names. The open
+question is the other direction: **could the 94 hand-written rewrites be
+expressed in RARE**, so the whole vocabulary were declarative?
+
+Our position: **do not decide this yet — the classification that would decide it
+does not exist.** The useful interim step is to sort the 94 by *why* they are not
+RARE:
+
+- rules whose condition is syntactic and could be RARE with no change;
+- rules needing a DSL feature RARE lacks but could gain;
+- rules that compute (`MACRO_*` elaborations, anything calling into a solver),
+  which are not rewrites in RARE's sense at all.
+
+If the first two groups are most of the 94, an auto-compiler is a real target.
+If the third dominates, it is misguided, and the honest move is to say so and
+invest in C1–C2 instead.
+
+The risk worth naming: RARE's value is that a rule is *checkable by
+construction* and shared with the Eunoia signature. A DSL extended until it can
+express every hand-written rewrite is a general-purpose language, and a
+general-purpose rule is exactly as trustworthy as C++. **Coverage is not the
+goal; sharing a definition with the signature is.** An auto-compiler that
+achieved the first by giving up the second would be a loss disguised as a
+milestone.
+
+
 ---
 
 ## What to do with this document
@@ -322,6 +410,7 @@ Restating the through-line, because it is the reason this comes first.
 | H7, H8 | the trust ladder is readable off a table instead of reconstructed |
 | H9 | a rule's contract is stated once |
 | **H10** | **the checker becomes small enough to be the kernel, and the number is watched** |
+| H11 | a rule's origin — declarative or hand-written — is a fact in the header, not a cross-reference |
 
 None of that verifies anything. All of it shortens the argument — which is the
 actual goal.

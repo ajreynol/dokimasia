@@ -3,8 +3,18 @@
 Sources, all read as text:
 
 ``include/cvc5/cvc5_proof_rule.h``   the ``ProofRewriteRule`` enum.
-``src/theory/*/rewrites``            RARE definitions, named in kebab-case;
-                                     the enum entry is the UPPER_SNAKE form.
+RARE definition files                found by *content*, not by name: the file
+                                     names are nonuniform (`rewrites`,
+                                     `rewrites-card`, `rewrites-elimination`,
+                                     `rewrites-simplification`,
+                                     `rewrites-transcendentals`,
+                                     `rewrites-regexp-membership`), so globbing
+                                     one pattern silently misses a quarter of
+                                     them.
+``cvc5_proof_rule.h`` doc comments   the authoritative correspondence:
+                                     `mkrewrites.py` emits
+                                     `/** Auto-generated from RARE rule <name> */`
+                                     above each generated entry.
 ``proof/eo/eo_printer.cpp``          ``isHandledTheoryRewrite``, which decides
                                      whether a hand-written theory rewrite can
                                      be printed.
@@ -24,6 +34,8 @@ from dataclasses import dataclass, field
 
 _EVALUE = re.compile(r"EVALUE\(([A-Z][A-Z0-9_]*)\)")
 _RARE = re.compile(r"^\(define-(?:cond-)?rule\*?\s+([A-Za-z0-9_.\-]+)", re.M)
+_MARKER = re.compile(
+    r"Auto-generated from RARE rule ([^\s*]+)\s*\*/\s*\n\s*EVALUE\((\w+)\)")
 _CASE = re.compile(r"case\s+ProofRewriteRule::([A-Z][A-Z0-9_]*)\s*:")
 
 SENTINELS = frozenset({"NONE"})
@@ -40,6 +52,8 @@ class RewriteRules:
     rare: dict[str, str] = field(default_factory=dict)      # enum name -> file
     handled: dict[str, str] = field(default_factory=dict)   # enum name -> always|conditional
     unrestricted_only: set[str] = field(default_factory=set)
+    marker: dict[str, str] = field(default_factory=dict)    # enum name -> RARE name
+    rare_files: dict[str, str] = field(default_factory=dict)  # RARE name -> file
     implemented: dict[str, str] = field(default_factory=dict)  # enum name -> file
 
     @property
@@ -52,6 +66,51 @@ class RewriteRules:
         """RARE names that match no enum entry -- a naming drift check."""
         known = set(self.declared)
         return sorted(n for n in self.rare if n not in known)
+
+    def correspondence(self) -> dict[str, list]:
+        """Check the enum's `Auto-generated from RARE rule` markers against the files.
+
+        The marker is the contract: `mkrewrites.py` writes it, so it cannot
+        drift from what was generated. What it can drift from is the *files* --
+        a rule deleted from a RARE file, or a marker naming something that no
+        longer exists.
+        """
+        marked = set(self.marker.values())
+        infiles = set(self.rare_files)
+        return {
+            "marked_without_file": sorted(marked - infiles),
+            "file_without_marker": sorted(infiles - marked),
+            "marked": sorted(self.marker),
+        }
+
+    def file_shapes(self) -> dict[str, int]:
+        """RARE file basename -> how many rules it holds."""
+        out: dict[str, int] = {}
+        for f in self.rare_files.values():
+            out[os.path.basename(f)] = out.get(os.path.basename(f), 0) + 1
+        return dict(sorted(out.items()))
+
+    def prefix_map(self) -> dict[tuple[str, str], int]:
+        """(owning theory, rule-name prefix) -> count.
+
+        A rule's theory should be recoverable from its name. It is not: `ite-`
+        rules live in both `booleans` and `builtin`, and several theories use
+        two or three prefixes.
+        """
+        out: dict[tuple[str, str], int] = {}
+        for name, f in self.rare_files.items():
+            parts = f.split(os.sep)
+            theory = parts[1] if len(parts) > 2 and parts[0] == "theory" else parts[0]
+            key = (theory, name.split("-")[0])
+            out[key] = out.get(key, 0) + 1
+        return dict(sorted(out.items()))
+
+    def ambiguous_prefixes(self) -> dict[str, list[str]]:
+        """Rule-name prefixes claimed by more than one theory."""
+        owners: dict[str, set[str]] = {}
+        for (theory, prefix) in self.prefix_map():
+            owners.setdefault(prefix, set()).add(theory)
+        return {p: sorted(t) for p, t in sorted(owners.items()) if len(t) > 1}
 
     def unhandled_handwritten(self) -> list[str]:
         return [r for r in self.handwritten if r not in self.handled]
@@ -130,14 +189,40 @@ def _declared(include_dir: str) -> list[str]:
     return [r for r in _EVALUE.findall(text[b:end]) if r not in SENTINELS]
 
 
-def _rare(src: str) -> dict[str, str]:
-    out: dict[str, str] = {}
-    for path in sorted(glob.glob(os.path.join(src, "theory", "*", "rewrites"))):
-        rel = os.path.relpath(path, src)
-        with open(path, encoding="utf-8", errors="ignore") as fh:
-            for name in _RARE.findall(fh.read()):
-                out[rare_to_enum(name)] = rel
-    return out
+def _rare(src: str) -> tuple[dict[str, str], dict[str, str]]:
+    """(enum name -> file, rare name -> file), from every RARE file found.
+
+    Located by content rather than filename: RARE files carry no extension and
+    six different basenames, so a glob on one of them undercounts.
+    """
+    by_enum: dict[str, str] = {}
+    by_name: dict[str, str] = {}
+    for dirpath, dirs, files in os.walk(src):
+        dirs[:] = [d for d in dirs if d != "__pycache__"]
+        for fn in files:
+            if os.path.splitext(fn)[1]:      # RARE files have no extension
+                continue
+            path = os.path.join(dirpath, fn)
+            try:
+                with open(path, encoding="utf-8") as fh:
+                    text = fh.read()
+            except (OSError, UnicodeDecodeError):
+                continue
+            names = _RARE.findall(text)
+            if not names:
+                continue
+            rel = os.path.relpath(path, src)
+            for name in names:
+                by_enum[rare_to_enum(name)] = rel
+                by_name[name] = rel
+    return by_enum, by_name
+
+
+def _markers(include_dir: str) -> dict[str, str]:
+    """enum name -> RARE rule name, from the generated doc comments."""
+    path = os.path.join(include_dir, "cvc5", "cvc5_proof_rule.h")
+    with open(path, encoding="utf-8", errors="ignore") as fh:
+        return {m.group(2): m.group(1) for m in _MARKER.finditer(fh.read())}
 
 
 def _handled(src: str) -> tuple[dict[str, str], set[str]]:
@@ -207,6 +292,8 @@ def scan(root: str) -> RewriteRules:
     if not (os.path.isdir(src) and os.path.isdir(inc)):
         raise SystemExit(f"not a cvc5 checkout: {root!r}")
     handled, unrestricted = _handled(src)
-    return RewriteRules(declared=_declared(inc), rare=_rare(src),
+    by_enum, by_name = _rare(src)
+    return RewriteRules(declared=_declared(inc), rare=by_enum,
                         handled=handled, unrestricted_only=unrestricted,
-                        implemented=_implemented(src))
+                        implemented=_implemented(src),
+                        marker=_markers(inc), rare_files=by_name)

@@ -21,31 +21,26 @@ worth proposing when an invariant we check is one cvc5 could check about itself
 at startup — then the deliverable is the patch and our check gets deleted. See
 [`docs/tooling.md`](tooling.md#d3--where-an-invariant-should-live).
 
-The promises:
+The promises are
+[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md)'s
+— confirmed before filed, a false positive is our bug, declining is an outcome,
+a finding is relative to a version — and are not restated here. What this
+repository adds to them, because the subject is a solver rather than a
+signature:
 
-- **It was confirmed before it was filed, and for kind A that means an input.**
-  Not a code location and an argument — a `.smt2` file, an option set, and the
-  quoted `--check-proofs-complete` failure. A claim that a path is reachable is
-  worth nothing until something reaches it, and the static analysis's job is to
-  tell us *where to look*, not to substitute for looking.
-- **A suggested assertion that fires falsely is our bug.** Exactly as a false
-  positive is. So no assertion is proposed until it has been applied to a cvc5
-  build configured `--assertions` and the regression suite has passed with it in
-  place. An assertion we have not run is a hypothesis, and hypotheses go in
-  `docs/findings.md`, not in a patch.
-- **A false positive is our bug, not yours.** Every check that fires wrongly on
-  cvc5 gets narrowed until it stops, and each narrowing is recorded as what it
-  is — a fact about cvc5 we had got wrong. Our own CI runs the checks over a
-  pinned cvc5 so that a change inventing a false positive fails *this* build
-  before it reaches theirs.
+- **For kind A, confirmed means an input.** Not a code location and an argument
+  — a `.smt2` file, an option set, and the quoted `--check-proofs-complete`
+  failure. A claim that a path is reachable is worth nothing until something
+  reaches it, and the static analysis's job is to tell us *where to look*, not
+  to substitute for looking.
+- **A suggested assertion that fires falsely is a false positive.** So none is
+  proposed until it has been applied to a cvc5 build configured `--assertions`
+  and the regression suite has passed with it in place. An assertion we have not
+  run is a hypothesis, and hypotheses go in [`issues.md`](issues.md), not in a
+  patch.
 - **Severity is reachability.** "This rule has no checker" is a different claim
   from "this rule has no checker and a default-options run in `QF_LIA` emits
   it." We will say which one we mean, every time.
-- **Declining is an outcome.** A finding can end in "won't fix" with a reason,
-  and the check gets a suppression or a `disable` in the policy file. Both beat
-  the same argument every month.
-
-
 
 ## The log
 

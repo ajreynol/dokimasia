@@ -13,6 +13,12 @@ design. Numbers below were measured against cvc5 `16c4001e53`.*
 
 ## Philosophy
 
+The positions we share with anoieu — what we publish, what a finding is worth,
+and why nothing crosses a repository boundary automatically — are stated once,
+for both tools, in
+[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md).
+What follows is particular to this repository.
+
 **Completeness, not soundness.** Not *is this proof step valid*, but *is there a
 path through the solver that produces no proof at all*.
 
@@ -39,9 +45,9 @@ bottleneck is not compute but **feedback latency** — how fast can we find the
 repository that runs in seconds against a checkout. A claim we cannot measure is
 a design note, and lives in [`TODO.md`](TODO.md) as one.
 
-**A false positive is our bug.** Including a retracted one:
+**A false positive is our bug** — including a retracted one:
 [our first headline number was wrong](docs/findings.md#retractions), and the
-retraction is published beside the finding.
+retraction is published beside it.
 
 ## The analyses
 
@@ -217,9 +223,14 @@ the path. Ours happens first.
 | [`docs/coupling.md`](docs/coupling.md) | what we ask of cvc5, and what we parse that could break |
 | [`docs/tooling.md`](docs/tooling.md) | the C++ static-analysis landscape, our design decisions, and the posture toward murxla |
 | [`docs/findings.md`](docs/findings.md) | what a finding is, what we promise about it, and the log — including retractions |
+| [`docs/workflows.md`](docs/workflows.md) | how a candidate is carried to cvc5 and back: the conventions we share with anoieu, and the two prompts |
+| [`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md) | *anoieu's, shared* — the position both tools take on reporting on code they do not own |
 
 ## How this repository is maintained
 
 **Written by an AI agent, under light human supervision.** A human maintainer
-directs the work, reviews it, and decides what is reported upstream. Findings
-are filed by the human, not the agent.
+directs the work, reviews it, and decides what is reported upstream; findings
+are filed by the human, not the agent. The position on that is
+[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md),
+and the workflow for carrying a candidate out and reading the answer is
+[`docs/workflows.md`](docs/workflows.md).

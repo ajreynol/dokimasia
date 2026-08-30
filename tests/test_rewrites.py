@@ -36,8 +36,18 @@ def test_cvc5(root):
     print(f"cvc5 tree at {root}:")
     r = scan(root)
     check("533 ProofRewriteRules", len(r.declared), 533)
-    check("321 come from RARE files", len(r.rare), 321)
+    # RARE files carry six different basenames; discovery is by content, so a
+    # glob on `rewrites` alone undercounts by 118 rules.
+    check("439 come from RARE files", len(r.rare), 439)
+    check("94 are hand-written", len(r.handwritten), 94)
     check("every RARE name has an enum entry", r.rare_without_enum(), [])
+    check("the enum marks every generated entry", len(r.marker), 439)
+    corr = r.correspondence()
+    check("the marker correspondence is exact both ways",
+          (corr["marked_without_file"], corr["file_without_marker"]), ([], []))
+    check("six RARE file basenames", len(r.file_shapes()), 6)
+    check("the ite- prefix is claimed by two theories",
+          r.ambiguous_prefixes(), {"ite": ["booleans", "builtin"]})
     # 53 `case ProofRewriteRule::` labels in isHandledTheoryRewrite
     check("all 53 seam arms are parsed", len(r.handled), 53)
 

@@ -67,6 +67,50 @@ def cmd_gaps(args) -> int:
     return 1 if (hard or smg) else 0
 
 
+def cmd_correspondence(args) -> int:
+    r = scan(args.cvc5)
+    c = r.correspondence()
+    if args.json:
+        print(json.dumps({**c, "file_shapes": r.file_shapes(),
+                          "ambiguous_prefixes": r.ambiguous_prefixes()}, indent=2))
+        return 1 if (c["marked_without_file"] or c["file_without_marker"]) else 0
+
+    print("RARE <-> ProofRewriteRule correspondence\n")
+    print(f"  {len(r.marker)} enum entries carry a generated marker:")
+    print("      /** Auto-generated from RARE rule <name> */")
+    print(f"  {len(r.rare_files)} rules are defined across {len(set(r.rare_files.values()))} files\n")
+    bad = c["marked_without_file"] or c["file_without_marker"]
+    if bad:
+        for n in c["marked_without_file"]:
+            print(f"    marked, but no file defines it: {n}")
+        for n in c["file_without_marker"]:
+            print(f"    defined, but the enum does not mark it: {n}")
+    else:
+        print("  The correspondence is exact in both directions. It holds because")
+        print("  mkrewrites.py *generates* the marker — it is not maintained.\n")
+
+    print("  Where it is nonuniform:\n")
+    print("  1. File names. Six basenames, so a consumer must find RARE files by")
+    print("     content, not by a glob:")
+    for name, n in r.file_shapes().items():
+        print(f"       {name:<30} {n:>4} rules")
+    amb = r.ambiguous_prefixes()
+    print("\n  2. Rule-name prefixes do not determine the owning theory:")
+    for prefix, theories in amb.items():
+        print(f"       '{prefix}-' is claimed by {' and '.join(theories)}")
+    multi = {}
+    for (th, pre) in r.prefix_map():
+        multi.setdefault(th, []).append(pre)
+    for th, pres in sorted(multi.items()):
+        if len(pres) > 1:
+            print(f"       {th} uses {len(pres)} prefixes: {', '.join(sorted(pres))}")
+    print("\n  3. The marker names the rule but not its file, so theory ownership")
+    print("     is not recoverable from the header alone.")
+    print("\n  4. Hand-written entries are identified by the *absence* of a marker,")
+    print(f"     not by one of their own — {len(r.handwritten)} of {len(r.declared)} entries.")
+    return 1 if bad else 0
+
+
 def cmd_baseline(args) -> int:
     r = scan(args.cvc5)
     snap = {"hard_gaps": sorted(r.hard_gaps()),
@@ -115,6 +159,9 @@ def main(argv: list[str] | None = None) -> int:
     g = sub.add_parser("gaps", help="applied, and unprintable")
     g.add_argument("cvc5"); g.add_argument("--json", action="store_true")
     g.set_defaults(func=cmd_gaps)
+    c2 = sub.add_parser("correspondence", help="RARE <-> enum, and its nonuniformity")
+    c2.add_argument("cvc5"); c2.add_argument("--json", action="store_true")
+    c2.set_defaults(func=cmd_correspondence)
     b = sub.add_parser("baseline", help="ratchet the gaps")
     b.add_argument("cvc5"); b.add_argument("--file", default="rewrites-baseline.json")
     b.add_argument("--write", action="store_true"); b.add_argument("--check", action="store_true")

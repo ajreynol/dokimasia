@@ -83,6 +83,14 @@ construction sites, which is more robust anyway, but a naming rule would make
 the correspondence checkable directly and would catch a pass added without a
 declared hole.
 
+### R7b — put the RARE source file in the generated marker
+
+`mkrewrites.py` already emits `/** Auto-generated from RARE rule <name> */` and
+the correspondence it creates is exact. Adding the file — `(theory/booleans/rewrites)`
+— makes a rule's owning theory recoverable from the header, which is what every
+consumer currently reconstructs by scanning two directories. See
+[H11](hygiene.md#h11--the-rare-correspondence-is-stated-not-inferred).
+
 ### R8 — safe mode as a build-time property
 
 `ENABLE_SAFE_MODE` exists and prunes almost nothing of cvc5's own code: five
@@ -109,7 +117,8 @@ wrong number. That is the whole robustness budget, and it is enough.
 | `.github/workflows/*.yml` matrix entries | ci | restructuring the matrix, or moving tester selection into a script |
 | `run_regression.py` tester classes | ci | building tester args somewhere other than the class body |
 | `preprocessing/passes/*` filenames | trust | reorganising the directory |
-| `theory/*/rewrites` RARE files | rewrites | moving or renaming them |
+| RARE files, found by content | rewrites | nothing much — content discovery is why. **Renaming them freely is already safe**, which was not true of our first version |
+| `Auto-generated from RARE rule` markers in `cvc5_proof_rule.h` | rewrites | changing the marker text in `mkrewrites.py` |
 | `d_illegalKinds.insert` blocks in `illegal_checker.cpp`, and theory `LogicException` guards | gates | moving the gate out of a table into scattered checks (**the reverse would help us** — one table would be better) |
 | `#include` graph under `src/` | tcb | nothing much; it is the most robust thing here |
 
