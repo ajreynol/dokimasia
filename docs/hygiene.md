@@ -341,32 +341,23 @@ header.
 
 ### On an auto-compiler for RARE rules
 
-Worth taking seriously and worth being precise about, because "compile RARE
-rules" already describes something cvc5 does. `mkrewrites.py` compiles the 439
-declarative rules into the enum, the rewrite database and their names. The open
-question is the other direction: **could the 94 hand-written rewrites be
-expressed in RARE**, so the whole vocabulary were declarative?
+Worth taking seriously, and worth being precise about what it means — cvc5
+already compiles RARE rules into a rewrite database and a discrimination tree.
 
-Our position: **do not decide this yet — the classification that would decide it
-does not exist.** The useful interim step is to sort the 94 by *why* they are not
-RARE:
+The interesting question is not "compile the rules" but **"can rewrite proof
+reconstruction be made to terminate without a depth bound?"** That is an open
+research problem, and the reasons are set out with citations in
+[`rare-correspondence.md`](rare-correspondence.md): applying one rule spawns
+recursive sub-problems — its preconditions, and the gap between its instantiated
+right-hand side and the target — which are not provably simpler than the goal.
+[FMCAD 2022](https://homepage.divms.uiowa.edu/~ajreynol/fmcad2022.pdf) says so
+outright, which is why the depth limit exists at all.
 
-- rules whose condition is syntactic and could be RARE with no change;
-- rules needing a DSL feature RARE lacks but could gain;
-- rules that compute (`MACRO_*` elaborations, anything calling into a solver),
-  which are not rewrites in RARE's sense at all.
-
-If the first two groups are most of the 94, an auto-compiler is a real target.
-If the third dominates, it is misguided, and the honest move is to say so and
-invest in C1–C2 instead.
-
-The risk worth naming: RARE's value is that a rule is *checkable by
+The risk worth naming separately: RARE's value is that a rule is *checkable by
 construction* and shared with the Eunoia signature. A DSL extended until it can
 express every hand-written rewrite is a general-purpose language, and a
 general-purpose rule is exactly as trustworthy as C++. **Coverage is not the
-goal; sharing a definition with the signature is.** An auto-compiler that
-achieved the first by giving up the second would be a loss disguised as a
-milestone.
+goal; sharing a definition with the signature is.**
 
 
 ---

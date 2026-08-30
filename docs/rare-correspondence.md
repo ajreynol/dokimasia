@@ -15,12 +15,24 @@ and somewhere in `theory_bool_rewriter.cpp` there is C++ that eliminates double
 negation. Nothing links them. The rewriter does not know the rule exists; the
 rule does not know which code implements it.
 
-**This is not an oversight — it is the design.** RARE stands for *rewrites,
-automatically reconstructed*: the correspondence is meant to be **discovered at
-proof time**, by `RewriteDbProofCons` searching the rule database for something
-that explains the rewrite the C++ already performed. Declaring the link would
-defeat the point, which is that the rewriter stays free and the proof layer
-catches up.
+**This is not an oversight — it is the design, and the design is argued for in
+print.** RARE stands for *rewrites, automatically reconstructed*, and the
+approach is set out in [Nötzli et al., FMCAD 2022, *Reconstructing Fine-Grained
+Proofs of Rewrites Using a Domain-Specific
+Language*](https://homepage.divms.uiowa.edu/~ajreynol/fmcad2022.pdf). Its
+opening move is exactly the thing we noticed:
+
+> *"we propose an alternative approach that does not rely on instrumenting the
+> original rewriter. Instead, our approach treats the rewriter as a black
+> box"* — §I
+
+Instrumenting the rewriter is what the paper set out to avoid, because
+*"instrumenting this code to additionally produce proofs makes it even more
+complex and makes it harder to add new rewrite rules."* So the link is absent on
+purpose: the rewriter stays free, and a **post-processing reconstructor**
+searches the rule database for something that explains what the rewriter already
+did. Recording the correspondence would reintroduce the coupling the design
+exists to avoid.
 
 That design has consequences worth stating plainly.
 
@@ -92,34 +104,94 @@ repository keeps finding rotted. **Not worth doing if E1 exists**, because E1
 verifies the correspondence rather than asserting it. Worth doing only as a
 by-product of E4.
 
-### E4 — compile the RARE database, and reframe what for
+### E4 — "compile RARE" — and why this is an open problem
 
-The stretch goal, and worth being careful about what it means.
+**We had this wrong in an earlier draft**, and the correction is the most
+useful thing in this note. We proposed compiling the rule database into a
+syntax-directed matcher so that reconstruction became lookup rather than search,
+and claimed that would remove the budget. Both halves are mistaken.
 
-Generating the **rewriter** from RARE is the ambitious reading: one source, so
-the correspondence holds by construction. The objections are serious — the
-hand-written rewriter is ordered and tuned, RARE matching is purely syntactic,
-and a DSL stretched until it can express the whole rewriter stops being a DSL.
+**Matching is already compiled.** The paper's DSL compiler builds a
+*discrimination tree* indexing every rule's conclusion, and rule conclusions are
+normalised so variables are drawn from a global list left-to-right. Finding
+which rules *might* apply to a term is already an indexed lookup. That is not
+where the cost is.
 
-But there is a smaller, sharper target with most of the value:
+**The search is over proof obligations, not over rules.** Look at what happens
+when a candidate rule fires, in the paper's algorithm `rc(t ≈ s, d)` (Fig. 3,
+lines 14–18). For a rule `p⃗ ≈ q⃗ ⇒ u ≈ v` and a match `t = σ(u)`, it recurses
+**twice**:
 
-> **Compile the RARE database into the reconstruction matcher**, so that finding
-> the rule for a rewrite is syntax-directed rather than searched.
+- `rc(σ(v) ≈ s, d−1)` — the instantiated right-hand side is usually *not*
+  syntactically the target. The remaining gap is a fresh
+  equality-reconstruction problem. cvc5's implementation calls this out in a
+  comment: *"the missing transitivity link is a subgoal to prove"*
+  (`rewrite_db_proof_cons.cpp`).
+- `rc(σ(p) ≈ q, d−1)` for **every precondition** of a `define-cond-rule`. Each
+  is a fresh equality-reconstruction problem of its own.
 
-That does not touch the rewriter at all. What it buys:
+So applying one rule spawns sub-problems of the same kind. **A rule that looks
+trivial can be arbitrarily deep**, because its preconditions and its
+right-hand-side gap are themselves rewriting problems. The paper's own
+`concat-clash` example makes the point: its precondition `|s₁| ≈ |t₁|` *"does
+not require the evaluation of |s₁| and |t₁|. Instead, it just requires some
+proof that they are equal. In practice, we prove the precondition by applying
+additional rewrite rules."*
 
-- **it removes the budget.** Reconstruction today runs under
-  `--proof-rewrite-rcons-rec-limit`, so proof completeness depends on a search
-  succeeding in time ([`i-4`](issues.md)). A compiled matcher either matches or
-  does not, and the answer stops depending on how long we let it look;
-- it makes **F4 disappear as a category**, which makes F2 diagnosable — right
-  now the two are the same trust step;
-- it is the only route we can see to discharging the kernel's sixth obligation
-  ([`kernel.md`](kernel.md)), which we already predicted could not be discharged
-  against a searched reconstruction.
+**And there is no termination guarantee.** The paper says so directly:
 
-That is the version of the auto-compiler idea we would argue for. Generating the
-rewriter is a much larger claim with a much less certain payoff.
+> *"The rationale behind the depth limit on the search is that there is no
+> guarantee that preconditions are simpler than the current equality to be
+> proved, and so there is no guarantee of termination in general."* — §IV-A
+
+That is the whole answer to why `--proof-rewrite-rcons-rec-limit` exists. It is
+not a performance knob bolted onto a decidable procedure; it is what makes a
+possibly-non-terminating search halt. Note `d` is decremented **only** on
+conditional-rule premises and the RHS gap — congruence recurses on subterms
+without decrementing, relying on term size for termination — so the entire depth
+budget is spent on exactly the two sources above.
+
+**Four further reasons a compiled procedure is not close to hand:**
+
+1. **Commutativity is not built in.** *"the matching does not automatically take
+   into consideration the commutativity of operators. Instead, the algorithm
+   relies on the commutativity of operators being expressed as additional
+   rewrite rules."* Any compilation must either enumerate orientations or bake
+   in AC reasoning.
+2. **Some rewriting is not rules at all.** Arithmetic *"boils down to
+   normalizing polynomials"*, handled by a single built-in tactic plus 25
+   ordinary rules. cvc5 today carries a whole family of such tactics —
+   `ARITH_POLY_NORM`, `ACI_NORM`, `ABSORB`, `FLATTEN`, `CONG_EVAL` — which are
+   not RARE rules and never will be.
+3. **Fixed-point rules already trade completeness for speed.** `define-rule*`
+   rules are applied to a fixed point *"without considering possible
+   interleavings of other rules... at the cost of not considering some possible
+   reconstructions. Thus, there is a trade-off, and this feature must be used
+   carefully."*
+4. **Not every rewrite is expressible.** The string rewriter is *"over 3,000
+   lines of C++ code and distinguishes over 200 different rewrite rules.
+   Moreover, not all of those rules can be expressed as a single rewrite rule in
+   RARE."* The database was grown *"on demand to fill in missing subproofs"* —
+   40 string rules, 22 Boolean rules at publication.
+
+**What the paper measured**, and the number that matters most to us: fine-grained
+proofs were reconstructed for **95% of rewrite steps** on the industrial set and
+**92%** on SMT-LIB — but only **20% of industrial benchmarks (5 of 25)** and
+**22% of SMT-LIB proofs containing rewrite steps (5,945 of 26,418)** were
+*fully* fine-grained. A per-step success rate of 92% is a per-proof rate of 22%,
+because one unreconstructed step makes the whole proof coarse. Cost was a
+**3.14× slowdown** overall.
+
+So: **compiling RARE is an open research problem**, and it is the right one to
+be interested in. Removing the depth bound means giving the recursion a
+termination argument that does not exist today — an ordering on
+equality-reconstruction sub-problems under which preconditions and RHS gaps are
+provably smaller. Nothing in the current design provides one, and the paper is
+explicit that none is known.
+
+That is also why this is *the* lever on [`i-4`](issues.md): while reconstruction
+is a bounded search, proof completeness is a function of a budget rather than of
+the code, and no static analysis — ours or anyone's — can discharge it.
 
 ## What we would recommend
 
@@ -128,8 +200,15 @@ rewriter is a much larger claim with a much less certain payoff.
    code.
 2. **E1 next, upstream in cvc5** — the direct test, partial is fine, and it is
    the only thing that catches F1 at all.
-3. **E4 (matcher, not rewriter) as the stretch goal**, argued on removing the
-   budget rather than on unifying the source.
+3. **E4 as research, not engineering.** The tractable sub-question is not
+   "compile the database" but **"can the recursion be given a termination
+   argument?"** — for instance by restricting preconditions to a fragment
+   provably simpler than the goal, which would make the depth bound
+   unnecessary *for rules in that fragment* while leaving the rest as they are.
+   A classification of the 439 rules by whether their preconditions and RHS gaps
+   are structurally decreasing would say how much of the database such a
+   restriction could cover. **That is a static analysis, and it is one we could
+   do.**
 4. **E3 only if E4 happens**, as its output rather than as a discipline.
 
 And regardless of any of it: **`datatypes` and `quantifiers` have no RARE rules

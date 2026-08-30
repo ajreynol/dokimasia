@@ -477,10 +477,20 @@ like in practice.
       Every unresolved indirect call is a recorded assumption, never a pass.
 - [ ] **M7.3** Obligations 2–5 — coverage, admissibility, elaboration,
       agreement — as queries over M1–M5 restricted to the closure.
-- [ ] **M7.4** Obligation 6 — reconstruction termination. Expected outcome: it
-      *cannot* be discharged against today's code (`RW0002`), and the deliverable
-      is a proposal to make reconstruction inside the kernel syntax-directed
-      rather than searched.
+- [ ] **M7.4** Obligation 6 — reconstruction termination. **Cannot be discharged
+      against today's code**, and now for a cited reason rather than a hunch:
+      rewrite reconstruction is a recursive search whose sub-problems — a rule's
+      preconditions, and the gap between its instantiated RHS and the target —
+      are not provably smaller than the goal, so
+      [FMCAD 2022](docs/rare-correspondence.md) bounds it by depth instead.
+      Supplying a termination argument is an open research problem.
+      *(An earlier draft proposed "make reconstruction syntax-directed rather
+      than searched". That was a misreading: matching is already compiled into a
+      discrimination tree; the search is over proof obligations, not rules.)*
+      The tractable sub-question, and a static analysis we could actually do:
+      **classify the 439 RARE rules by whether their preconditions and RHS gaps
+      are structurally decreasing**, which bounds how much of the database a
+      termination-guaranteeing restriction could cover.
 - [ ] **M7.5** The certificate: obligations discharged, assumptions standing,
       and the frontier. A kernel with three honest assumptions beats a green
       check hiding thirty.
