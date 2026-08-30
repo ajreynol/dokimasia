@@ -9,9 +9,53 @@ Its question is **completeness, not soundness**: not *is this proof step valid*,
 but *is there a path through the solver that reaches an inference no proof step
 covers*.
 
-*Status: nothing is written yet. This document and [`TODO.md`](TODO.md) are the
-design. Every number quoted below was measured against cvc5 `16c4001e53` on
-2026-08-30, and each one is a check waiting to be written.*
+*Status: the first subtool is written — [`dokimasia.tcb`](dokimasia/tcb/)
+measures the trusted computing base of cvc5's internal proof checker, and has
+produced the first report, [`tcb-001`](docs/findings/tcb-001.md). The rest is
+design: [`TODO.md`](TODO.md) is the plan, [`docs/hygiene.md`](docs/hygiene.md)
+is the warm-up. Every number quoted below was measured against cvc5
+`16c4001e53` on 2026-08-30.*
+
+## The goal
+
+**cvc5 should have complete proofs, always.**
+
+That is the point of this repository. Everything else in it — the checks, the
+hygiene standard, the TCB measurement, the CI proposals — is an *instrument*
+for that, and should be judged by how much it moves it. When something here
+stops serving it, it should be dropped.
+
+The priority order, so it is not ambiguous:
+
+| | | |
+| --- | --- | --- |
+| **1** | **Complete proofs, always** | the goal. Every unsat answer cvc5 gives comes with a proof that has no holes and `ethos` can check |
+| **2** | **Know exactly how far from it we are** | a ranked census of every remaining hole, and the fraction of answers that are already complete. Without this, "always" is a slogan |
+| **3** | **Close the holes** | each one is a concrete work item for a cvc5 developer, ranked by how often it is hit |
+| **4** | **Find the holes no benchmark reaches** | the corpus cannot prove *always*. This is what static analysis is uniquely for, and it is why this repository is an analyzer |
+| **5** | Keep closed holes closed | regression. Useful, not the point |
+| **6** | Argue a growing fragment is hole-free | the [kernel](#the-stretch-goal-a-kernel-you-can-argue-about). The long game |
+
+Assertions, SARIF uploads and nightly jobs live somewhere below all of this.
+They are worth doing and they are not why this exists.
+
+### How we will know it is working
+
+One number, published per cvc5 release:
+
+> **the completeness rate** — of the unsat answers cvc5 gives under
+> `--safe-mode=safe --produce-proofs`, what fraction come with a proof that has
+> no holes?
+
+and one list: **every distinct hole still being hit, ranked by frequency.**
+
+Neither exists today, and neither needs new analysis to produce — **cvc5 already
+computes them.** `src/smt/proof_final_callback.cpp` registers
+`finalProof::ruleUnhandledEoCount`, `finalProof::theoryRewriteRuleUnhandledEoCount`,
+`finalProof::trustCount`, `finalProof::trustTheoryLemmaCount` and
+`finalProof::minPedanticLevel`, all switched on by `--stats-internal`. The
+instrument is built and nobody has run it across a corpus and published the
+result. That is the first thing to do here, and it is mostly orchestration.
 
 ## The gap this exists to close
 
@@ -202,7 +246,7 @@ Three things stand out already, and each is written up as a task in
 
 ## The analyses
 
-Ten families. Each is a namespace of check codes, each check owns a witness, and
+Eleven families. Each is a namespace of check codes, each check owns a witness, and
 each says something about the pipeline that is true or false rather than
 stylish.
 
@@ -217,6 +261,7 @@ stylish.
 | `ELAB` | **macro elaboration** | for each `MACRO_*` and each granularity mode, is there an expansion, and does it terminate in non-macro rules? |
 | `SEAM` | **the Eunoia seam** | `isHandled` and `isHandledSkolemId` as coverage problems, including their argument-dependent arms |
 | `API` | **proof API contracts** | does a `ProofGenerator` return a proof of what was asked? which proof invariants are enforced only by `Assert`, and so are absent from release builds? |
+| `TCB` | **the checker's dependency surface** ✅ | how much of cvc5 must be right for `--check-proofs` to mean something? what does each dependency edge cost, and is it growing? |
 | `KRN` | **kernel obligations** | see below |
 
 Two of these — the rule ledger's argument/arity column, and severity derived
@@ -225,41 +270,75 @@ from whether a path is reachable rather than merely present — are things
 [anoieu's tracker](https://github.com/ajreynol/anoieu/blob/main/docs/README.md)).
 They are C++ questions. They live here.
 
-## The stretch goal: a verified kernel
+## The stretch goal: a kernel you can argue about
 
-The arc of this project is to stop reporting holes and start certifying their
-absence — to identify a **kernel** of cvc5 carrying the contract
+The arc of this project is to stop reporting holes and start being able to say
+which part of cvc5 is its proof kernel.
 
-> for every input in this fragment, under this configuration: if the kernel
-> answers `unsat`, it emits a proof, every step of which `ethos` can check.
+**This is not a claim about verification tools.** "Verified kernel" here does not
+mean a machine-checked theorem, and treating it that way sets the bar somewhere
+useless — nothing available today verifies a contract like this over cvc5's C++,
+and waiting for something that does means delivering nothing. The goal is softer
+and much more achievable:
 
-Static analysis gets there by turning that sentence into obligations and
-discharging them one at a time. For a configuration *K* (a logic fragment plus
-an option set):
+> **Make it easier to argue what cvc5's proof-producing kernel is.**
 
-1. **Closure** — determine what code *K* can reach: which theories, solvers,
-   preprocessing passes, rewriters. Everything after this is relative to that
-   set, and an unresolved indirect call is an assumption, not a pass.
-2. **Coverage** — every inference site in the closure attaches a proof.
-3. **Admissibility** — every `ProofRule` those sites emit is accepted by the
-   seam, for the arguments they can pass.
-4. **Elaboration** — every `MACRO_*` emitted is expanded at *K*'s granularity.
-5. **Agreement** — *K* names the same solver with proofs on and off, or names
-   the difference.
-6. **Termination of reconstruction** — the budget problem above. Honestly, this
-   one probably cannot be discharged against today's code; it is discharged by
-   *changing* cvc5 so that reconstruction in the kernel is syntax-directed
-   rather than searched.
+An argument, made to a person, that this set of code is what has to be right.
+That goal is *progressive*: it improves by degrees, every degree is worth
+having on its own, and no step is the last one. The axes it improves along:
 
-The output is not a boolean. It is a **certificate**: the obligations
-discharged, the assumptions left standing, and the exact frontier of what would
-have to change to close each one. A kernel with three honest assumptions is
-worth more than a green check that hides thirty.
+| axis | the question | today |
+| --- | --- | --- |
+| **nameable** | can you enumerate the kernel at all? | partly — `--safe-mode=safe` names a configuration, not a set of code |
+| **closed** | does the boundary hold — does nothing inside reach out? | unknown, and [`tcb-001`](docs/findings/tcb-001.md) is one place it does not |
+| **small** | how much is inside? | the internal checker compiles against 41,446 lines, 8.0% of `src/` |
+| **local** | can a reader check one obligation by reading one function? | rarely |
+| **mechanized** | is any part machine-checked? | no, and that is the *last* axis, not the first |
 
-Start small and grow: `QF_UF` at default options is a kernel someone could
-plausibly certify this year, and every theory added is a measurable increment
-rather than an aspiration. `KRN` checks are the obligations; `TODO.md` M6 is the
-plan.
+Progress on any row is real progress. A kernel that is nameable and closed but
+unverified is worth far more than one nobody can point at, and the measure that
+matters is **how long the argument is and how much of it a reader can check** —
+not whether a tool printed `QED`.
+
+### Hygiene comes first, because you cannot bound what you cannot name
+
+Every such argument is made out of entities — inferences, rules, trust steps —
+and is only as sharp as those entities are. If an `InferenceId` is emitted at
+eight places, "the inferences theory X can make" is not an enumerable set, and
+nothing quantified over it means anything.
+
+So the warm-up project is a **proof hygiene standard** for cvc5:
+[`docs/hygiene.md`](docs/hygiene.md). Naming conventions, calling conventions,
+checker registration, and the discipline around inference ids — which are cvc5's
+existing *informal* proof markers, and the natural spine for all of this. Ten
+rules, each with a measurement behind it, most of them ratifying what cvc5
+already does. The chain the whole project runs on:
+
+**hygiene → nameable entities → a drawable boundary → an argument someone can
+check → (eventually, in places) mechanization.**
+
+### Measuring the kernel: the checker's TCB
+
+The internal proof checker is the natural kernel candidate — it is the component
+that decides whether a cvc5 proof is valid — and its value is inversely
+proportional to how much of cvc5 it needs. That is measurable today, so it is
+the first thing this repository actually built:
+
+```bash
+python3 -m dokimasia.tcb measure <cvc5>   # 179 files, 41,446 lines, 8.0% of src/
+python3 -m dokimasia.tcb cuts    <cvc5>   # what each dependency edge costs
+python3 -m dokimasia.tcb why     <cvc5> theory/strings/core_solver.h
+python3 -m dokimasia.tcb baseline <cvc5> --check   # the ratchet, for CI
+```
+
+The first finding came out of it:
+[**`tcb-001`**](docs/findings/tcb-001.md) — 12 of 13 rule checkers are clean,
+but six include the headers of the theory solvers they check, to reach `static`
+helpers parked on the solver classes. The refactoring is mechanical and the
+report names it per site.
+
+That number going down *is* the kernel argument getting shorter. It needs no
+verification tool, no build, and nobody's agreement to start.
 
 ## Two things this repository is
 
@@ -284,14 +363,17 @@ Four kinds, extending anoieu's three:
 | **C** | a change to the pipeline | to the proof infrastructure or to what safe mode promises |
 | **D** | **an assertion** | a patch adding an invariant to cvc5, so the check lives in your tree and not ours |
 
-**Kind D is the one we most want to be right about.** An assertion is not a
-solution — it converts a silent hole into a loud failure and no more — but it is
-enforced on every developer's machine forever, at no infrastructure cost, and
-cvc5's CI already builds `--assertions`. When an invariant we check is one cvc5
-could check about itself at startup, the correct deliverable is the patch, and
-the correct thing to do with our check afterwards is delete it. See
-[`docs/tooling.md`](docs/tooling.md#d3--where-an-invariant-should-live) for
-where each invariant should live.
+**Kind A is what this repository is for.** An incomplete proof, named down to
+the input that produces it, is the only finding that directly serves
+[the goal](#the-goal). The other three are instruments: B and D are ways of
+making a fix stick, C is a way of changing what the pipeline promises. They are
+cheap and worth doing, and none of them is the reason this exists.
+
+A note on D, since it is the most easily overrated: an assertion converts a
+silent hole into a loud failure and no more. It does not close a hole. It is
+worth proposing when an invariant we check is one cvc5 could check about itself
+at startup — then the deliverable is the patch and our check gets deleted. See
+[`docs/tooling.md`](docs/tooling.md#d3--where-an-invariant-should-live).
 
 The promises:
 
