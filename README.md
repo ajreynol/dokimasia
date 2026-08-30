@@ -61,6 +61,8 @@ a witness; each says something about the pipeline that is true or false.
 | ○ | `PP` | **preprocessing coverage** | does every pass either prove its work or declare a `PREPROCESS_*` trust id? |
 | ○ | `ELAB` | **macro elaboration** | is every `MACRO_*` expanded at each granularity, terminating in non-macro rules? |
 | ○ | `SEAM` | **the Eunoia seam** | `isHandled` and `isHandledSkolemId` as coverage problems, including their argument-dependent arms |
+| ◐ | `INFERID` | **inference-id hygiene** | is each `InferenceId` produced at one place, so the control-flow graph is unambiguous? |
+| ○ | `CI` | **is cvc5's proof CI intact?** | do the jobs that guard proof completeness still run, with the flags they need — independently of anyone remembering to keep them? |
 | ○ | `API` | **proof API contracts** | does a `ProofGenerator` return a proof of what was asked? which invariants vanish in a release build? |
 | ○ | `KRN` | **kernel obligations** | see [the stretch goals](docs/kernel.md) |
 
@@ -92,14 +94,30 @@ python3 -m dokimasia.modes check    <cvc5>          # options that escape the pr
 python3 -m dokimasia.modes baseline <cvc5> --check  # ratchet, for CI
 ```
 
-Between them they have produced one report and two candidates:
+**[`dokimasia.inferid`](dokimasia/inferid/)** — whether each `InferenceId` names
+a single program point.
+
+```bash
+python3 -m dokimasia.inferid check <cvc5>          # 51 ids used in more than one place
+python3 -m dokimasia.inferid show  <cvc5> STRINGS_CODE_PROXY
+python3 -m dokimasia.inferid dead  <cvc5>          # 14 declared, produced nowhere
+python3 -m dokimasia.inferid stats <cvc5>
+```
+
+Between them they have produced one report and several candidates:
 
 - **[`tcb-001`](docs/findings/tcb-001.md)** — six proof rule checkers compile
   against the theory solvers they check, to reach `static` helpers parked on the
   solver classes. Mechanical fix, named per site.
 - **`stringLazyPreproc`** declares `no_support = ["proofs"]`, defaults to `true`,
   and is disabled by neither mechanism that enforces safe mode. Either reading is
-  a defect. [Candidate, not a finding](TODO.md#candidate-findings-from-the-design-pass).
+  a defect.
+- **Proof completeness is never named in cvc5's CI.** `--check-proofs-complete`
+  appears nowhere in `.github/` or `test/`; the guarantee rides on an implication
+  inside `setDefaultsPre` that no test asserts.
+
+All [candidates, not findings](TODO.md#candidate-findings-from-the-design-pass),
+until someone confirms them.
 
 ## The name
 

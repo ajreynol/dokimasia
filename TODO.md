@@ -17,7 +17,8 @@ not compute.
 
 | stage | what | latency | status |
 | --- | --- | --- | --- |
-| **A** | **Safe mode does what it says** | seconds, no build | ◐ tooling built, first candidate found |
+| **A** | **Safe mode does what it says** | seconds, no build | ◐ three subtools built, candidates found |
+| **A2** | **Is cvc5's proof CI intact?** | seconds, no build | ○ designed, observations recorded |
 | **B** | **The latent inventory** — holes no input reaches | seconds, no build | needs M1–M5 |
 | **C** | **A safe build that cannot be unsafe** | one build | stretch, tooling exists |
 | **D** | **Fast dynamic signals** — fuzzing, known-hole corpus | minutes | murxla already in cvc5's build |
@@ -42,6 +43,12 @@ that the list is complete or that the guards are exhaustive.
       `set_defaults.cpp` with their guards; renders the per-mode delta (24
       options for safe, 19 for stable); ratchets it against a baseline.
       Tests in `tests/test_modes.py`.
+- [x] **A.1c** ✅ **`dokimasia.inferid`** — the InferenceId contract: an id is
+      produced at exactly one place, so the control-flow graph is unambiguous.
+      **346 of 411 (84%) already comply**; 51 violations, 14 dead markers, and
+      21 inferences emitted with a sentinel id. Ratchets. Tests in
+      `tests/test_inferid.py`. Feeds [`INFER`](#m4--inference-coverage-infer--first-tier-12-checks),
+      which cannot enumerate "the inferences of theory X" until this holds.
 - [x] **A.1b** ✅ **The `no_support` cross-check** (`modes check`). cvc5's option
       definitions carry a machine-readable `no_support` field; 15 options declare
       `no_support = ["proofs"]`. Every one must be off in a safe run. Two
@@ -63,6 +70,53 @@ that the list is complete or that the guards are exhaustive.
 - [ ] **A.5 — drift.** An option or theory added since the pinned revision that
       reaches proof-relevant code and appears on no list. What catches the
       *next* one.
+
+## Stage A2 — is cvc5's proof CI intact?
+
+An **independent** check that the thing currently keeping proofs complete is
+still doing it. CI is the safety net today, and a safety net that quietly stops
+being attached looks exactly like one that is working: every job still passes.
+
+This is static — CI config and the regression runner are just files — so it is
+stage-A latency, and it is the only analysis here whose subject is cvc5's
+*test infrastructure* rather than its solver.
+
+What the configuration says today, at `16c4001e53`:
+
+- **Proof testers run in 2 of ~25 build jobs** — `ubuntu:safe-mode` and
+  `ubuntu:stable-mode` carry `--tester proof --tester cpc`. The flagship
+  `ubuntu:production` job carries neither. That is defensible (proofs are tested
+  in the modes that promise them) and it means proof coverage rests entirely on
+  those two jobs.
+- **`--check-proofs-complete` appears nowhere** in `.github/` or `test/`. The
+  `proof` tester passes `--check-proofs --proof-check=lazy`; completeness is
+  enabled *implicitly*, because in a safe build `setDefaultsPre` turns
+  `checkProofsComplete` on when `checkProofs` is set and no granularity was
+  requested.
+- So the completeness guarantee is a **chain of four links**, none asserted
+  anywhere: the safe-mode job exists → it runs `--tester proof` → the tester
+  passes no `--proof-granularity` → the implication in `setDefaultsPre`
+  survives. Adding a granularity flag to that tester would silently switch
+  completeness testing off, and every job would still pass.
+- **`--proof-check=lazy`** means `ensureClosedWrtInternal` returns early, so
+  **proof closedness is never checked in CI** either (see `API0002`).
+- `exclude_regress: 3-4` — the two heaviest regression levels are excluded from
+  these jobs.
+
+- [ ] **A2.1** Parse `.github/workflows/*.yml` and `test/regress/cli/run_regression.py`
+      into a matrix: job × tester × flags × excluded regression levels.
+- [ ] `CI0001` a build job that promises a proof-bearing mode but runs no proof
+      tester.
+- [ ] `CI0002` **the completeness chain.** Assert each link, and fail if any
+      breaks. The cheapest fix upstream is to pass `--check-proofs-complete`
+      *explicitly* in the proof tester, so the guarantee is named rather than
+      implied — a finding of kind C, and a one-line patch.
+- [ ] `CI0003` a proof tester whose flags disable a check it appears to perform
+      (`--proof-check=lazy` vs closedness).
+- [ ] `CI0004` regression tests excluded, disabled or filtered out of proof
+      testing — and whether the exclusions still have a reason.
+- [ ] `CI0005` drift: a new job, tester or exclusion that changes proof coverage
+      without changing the stated coverage.
 
 ## Stage B — the latent inventory
 
@@ -494,6 +548,8 @@ findings.** Each needs a reproducer or a maintainer's answer before it goes near
 | c-7 | `TODO (wishue #154)`: Minisat with DRAT/LRAT throws no logic exception | `MODE0006` | 3 | already known upstream; track, do not re-file |
 | c-8 | The nightly enforces only via `-warnings-as-errors`; no SARIF upload, no baseline, no PR annotation | `A.1` | — | a process recommendation, not a defect |
 | **c-9** | **`stringLazyPreproc` declares `no_support = ["proofs"]`, defaults to `true`, and is disabled by neither `setDefaultsPre` nor the `SolverEngine` guard — so a default safe-mode run enables a feature cvc5 annotates as having no proof support** | `modes check` ✅ | 2 | two readings, both defects: either safe mode should disable it, or the annotation is stale and strings lazy preprocessing does now have proof support. **Needs a maintainer's answer, not a reproducer** — that is the cheapest way to settle it |
+| **c-11** | **`--check-proofs-complete` appears nowhere in cvc5's CI or regressions.** Completeness is enabled implicitly by `setDefaultsPre` in a safe build; the guarantee is a four-link chain no test asserts, and adding a `--proof-granularity` flag to the `proof` tester would switch it off silently | `CI0002` | 2 | works today. The finding is the fragility, and the fix is a one-line explicit flag |
+| c-12 | 51 `InferenceId`s are produced at more than one site, and 14 are declared but produced nowhere — one of those (`STRINGS_CODE_PROXY`) has a proof-reconstruction case for an inference nothing emits | `inferid check` ✅ | 3 | not defects on their own; they are what makes the `INFER` coverage analysis imprecise |
 | c-10 | `macrosQuantMode` also surfaces from `modes check` | `modes check` ✅ | 3 | almost certainly spurious: its effect is gated by `macrosQuant`, default `false`. A defaults-only check cannot see that gate. Listed so the limitation is visible rather than silently filtered |
 
 ## Open design questions

@@ -42,44 +42,48 @@ That only works if an id means one thing. Below is what the code says today.
 Each rule states the norm, the evidence for it, how it would be checked, and
 what it buys. Measured against cvc5 `16c4001e53`.
 
-### H1 — One id, one emission site
+### H1 — One id, one place
 
-**An `InferenceId` is emitted at exactly one place in the code.**
+**An `InferenceId` is produced at exactly one point in the code.**
 
-*Evidence.* Of 400 ids with at least one non-`case` occurrence, **324 (81%)
-already appear at exactly one site.** The exceptions:
+The rationale is the whole of it: **so the control-flow graph is unambiguous.**
+Seeing an id in a trace, a statistic or a proof should identify one place the
+solver can have been. An id with three production sites identifies three, which
+is to say it identifies none of them — and every claim quantified over "the
+inferences theory X can make" gets correspondingly weaker.
 
-| sites | ids |
+*Evidence.* Measured by [`dokimasia.inferid`](../dokimasia/inferid/):
+
+| production sites | ids |
 | --- | --- |
-| 1 | **324** |
-| 2 | 47 |
-| 3 | 14 |
-| 4 | 7 |
-| 5–8 | 7 |
-| 20 | 1 (`UNKNOWN`) |
+| 1 — contract holds | **346** |
+| 2 | 34 |
+| 3 | 11 |
+| 4–8 | 6 |
+| 0 — dead marker | 14 |
 
-The worst offenders after `UNKNOWN` are `ARITH_NL_T_INIT_REFINE`,
-`ARRAYS_EQ_TAUTOLOGY` and `FP_PREPROCESS` at 8 sites each, `FP_REGISTER_TERM` at
-7, `NONE` at 6.
+**346 of 411 (84%) already satisfy it.** The worst are
+`ARITH_NL_T_INIT_REFINE`, `ARRAYS_EQ_TAUTOLOGY` and `FP_PREPROCESS` at 8 sites
+each. Separately, **21 inferences are emitted with a sentinel id**
+(`UNKNOWN` ×15, `NONE` ×6) — see H2.
 
-*Honest caveat.* "Non-`case` occurrence" approximates "emission site" and is an
-upper bound: some occurrences are comparisons or table entries rather than
-emissions. Separating them properly is a tier-1 (AST) job. The shape of the
-distribution is not in doubt.
-
-*How it is checked.* Tier 0 gets the approximation; a `cvc5-proof-inference-id`
-tidy check gets it exactly, by matching the id argument of the inference-manager
-call sites.
+*What counts as a use.* The tool distinguishes four kinds and only one violates
+the contract: **production** (the id passed as a value — the site the id names),
+against **dispatch** (`case InferenceId::X:`), **comparison** (`== X`) and the
+**definition**. A `case` label consumes an id produced elsewhere; it creates no
+ambiguity about where the inference came from. `--strict` counts every use
+outside the enum, for the stricter reading.
 
 *What it buys.* The id becomes a **key**. "Which inferences can theory X make"
 becomes a set you can enumerate, and "does this inference have a proof" becomes
-a question with one answer instead of eight. This is the single highest-value
-hygiene rule for everything downstream.
+a question with one answer instead of eight. This is the highest-value hygiene
+rule for everything downstream, and at 84% it is a norm to ratify and 51
+exceptions to work through, not a rewrite.
 
-*The realistic ask.* 81% compliance means this is a **norm to ratify and 76
-exceptions to work through**, not a rewrite. Most exceptions are probably one
-inference reached by two code paths, which is exactly the case where splitting
-the id adds information.
+*A sub-case worth its own row.* 14 ids are declared and produced nowhere, and at
+least one — `STRINGS_CODE_PROXY` — is *dispatched on* in
+`strings/infer_proof_cons.cpp` while nothing emits it: a proof reconstruction
+case for an inference the solver does not make.
 
 ### H2 — No anonymous inferences
 
