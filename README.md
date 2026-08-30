@@ -55,10 +55,10 @@ a witness; each says something about the pipeline that is true or false.
 | ✅ | `TCB` | **the checker's dependency surface** | how much of cvc5 must be right for `--check-proofs` to mean anything — and is it growing? |
 | ◐ | `MODE` | **the safe-mode contract** | is anything reachable in safe mode without proof support? what does enabling proofs change about the solver at all? |
 | ✅ | `RULE` | **the rule ledger** | for every `ProofRule`: who produces it, checks it, elaborates it, prints it. The interesting rows are the ones with a hole |
-| ○ | `TRUST` | **the trust census** | every site that can introduce a trust step, keyed by `TrustId`: which are reachable, which are dead, which are unnamed |
+| ✅ | `TRUST` | **the trust census** | every site that can introduce a trust step, keyed by `TrustId`: which are reachable, which are dead, which are unnamed |
 | ○ | `INFER` | **inference coverage** | for each `InferenceId` a theory emits, does its reconstruction have a case, and is a `ProofGenerator` attached? |
 | ○ | `RW` | **rewrite coverage** | can every rewrite the rewriter performs be reconstructed — and which reconstructions depend on a search budget? |
-| ○ | `PP` | **preprocessing coverage** | does every pass either prove its work or declare a `PREPROCESS_*` trust id? |
+| ◐ | `PP` | **preprocessing coverage** | does every pass either prove its work or declare a `PREPROCESS_*` trust id? |
 | ◐ | `ELAB` | **macro elaboration** | is every `MACRO_*` expanded at each granularity, terminating in non-macro rules? |
 | ◐ | `SEAM` | **the Eunoia seam** | `isHandled` and `isHandledSkolemId` as coverage problems, including their argument-dependent arms |
 | ◐ | `INFERID` | **inference-id hygiene** | is each `InferenceId` produced at one place, so the control-flow graph is unambiguous? |
@@ -113,6 +113,15 @@ python3 -m dokimasia.ledger rule  <cvc5> ARITH_POW2_INIT
 python3 -m dokimasia.ledger table <cvc5> --produced-only
 ```
 
+**[`dokimasia.trust`](dokimasia/trust/)** — the census of cvc5's declared holes:
+every `TrustId`, where it is constructed, and the preprocessing correspondence.
+
+```bash
+python3 -m dokimasia.trust census <cvc5>          # 75 ids: 70 live, 4 dead
+python3 -m dokimasia.trust passes <cvc5>          # which passes declare a hole
+python3 -m dokimasia.trust show   <cvc5> THEORY_LEMMA
+```
+
 Between them they have produced one report and several candidates:
 
 - **[`tcb-001`](docs/findings/tcb-001.md)** — six proof rule checkers compile
@@ -125,6 +134,10 @@ Between them they have produced one report and several candidates:
   arith ones sit behind `--arith-exp`, which safe mode disables — so they are
   unrestricted-mode gaps, not contract violations. `SAT_REFUTATION` is the one
   that is not arith.
+- **8 trust steps are built with `TrustId::NONE`** — a hole with no stated
+  reason, so nothing downstream can attribute them.
+- **3 `PREPROCESS_*` trust ids are dead**, including both `bv_to_int` ids: that
+  pass's trust step is attributed to `INT_BLASTER`, from a different file.
 - **Proof completeness is never named in cvc5's CI.** `--check-proofs-complete`
   appears nowhere in `.github/` or `test/`; the guarantee rides on an implication
   inside `setDefaultsPre` that no test asserts.
