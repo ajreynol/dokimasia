@@ -21,41 +21,94 @@ is the warm-up. Every number quoted below was measured against cvc5
 **cvc5 should have complete proofs, always.**
 
 That is the point of this repository. Everything else in it — the checks, the
-hygiene standard, the TCB measurement, the CI proposals — is an *instrument*
-for that, and should be judged by how much it moves it. When something here
-stops serving it, it should be dropped.
+hygiene standard, the TCB measurement, the CI proposals — is an *instrument* for
+that, and should be judged by how much it moves it.
+
+### The operating constraint: agility
+
+Safe mode already has **almost no proof holes on SMT-LIB**. That single fact
+sets the strategy, because it means the obvious approach is the wrong one:
+
+- running a benchmark corpus is a **good oracle** and a **slow, largely
+  exhausted signal**. It is worth doing once for a baseline. It is not where the
+  next hole comes from;
+- the holes that remain are, by definition, the ones **SMT-LIB does not reach**;
+- so the thing to optimize is not compute — it is **feedback latency**. How
+  quickly can we find the *next* hole, and how cheaply can we tell whether a
+  change introduced one?
+
+Ranked by how fast they return an answer, not by how much they cost:
+
+| | signal | latency | finds |
+| --- | --- | --- | --- |
+| **1** | **static analysis** of the pipeline | seconds, no build | holes no input has ever reached — *the ones that are left* |
+| **2** | **safe-mode consistency** — does safe mode do what it says? | seconds, no build | features that escape their own guard |
+| **3** | **build-time pruning** — is the unsafe code even linked? | one build | a whole class of hole, converted into a link error |
+| **4** | **fuzzing** (murxla is already in cvc5's build) | minutes | inputs a fixed corpus does not contain |
+| **5** | **a curated corpus of known holes** | seconds | regressions on holes already reported |
+| **6** | **SMT-LIB census** | hours | the baseline, once |
 
 The priority order, so it is not ambiguous:
 
 | | | |
 | --- | --- | --- |
-| **1** | **Complete proofs, always** | the goal. Every unsat answer cvc5 gives comes with a proof that has no holes and `ethos` can check |
-| **2** | **Know exactly how far from it we are** | a ranked census of every remaining hole, and the fraction of answers that are already complete. Without this, "always" is a slogan |
-| **3** | **Close the holes** | each one is a concrete work item for a cvc5 developer, ranked by how often it is hit |
-| **4** | **Find the holes no benchmark reaches** | the corpus cannot prove *always*. This is what static analysis is uniquely for, and it is why this repository is an analyzer |
+| **1** | **Complete proofs, always** | the goal |
+| **2** | **Find the next hole fast** | latency is the metric. Rows 1–5 above, in that order |
+| **3** | **Close the holes** | each is a concrete work item for a cvc5 developer, with a reproducer |
+| **4** | **Make safe mode true by construction** | not a hand-maintained list that happens to be right — see [below](#the-second-stretch-goal-a-safe-build-that-cannot-be-unsafe) |
 | **5** | Keep closed holes closed | regression. Useful, not the point |
 | **6** | Argue a growing fragment is hole-free | the [kernel](#the-stretch-goal-a-kernel-you-can-argue-about). The long game |
 
-Assertions, SARIF uploads and nightly jobs live somewhere below all of this.
-They are worth doing and they are not why this exists.
+Assertions, SARIF uploads and nightly jobs live below all of this. They are
+worth doing and they are not why this exists.
 
 ### How we will know it is working
 
-One number, published per cvc5 release:
+Two numbers, and neither is "benchmarks passed":
 
-> **the completeness rate** — of the unsat answers cvc5 gives under
-> `--safe-mode=safe --produce-proofs`, what fraction come with a proof that has
-> no holes?
+> **latency** — how long from "a hole exists" to "we can point at it"?
+>
+> **the latent count** — how many holes are reachable that no input has hit?
 
-and one list: **every distinct hole still being hit, ranked by frequency.**
-
-Neither exists today, and neither needs new analysis to produce — **cvc5 already
-computes them.** `src/smt/proof_final_callback.cpp` registers
+cvc5 already instruments the second half of the measurement:
+`src/smt/proof_final_callback.cpp` registers
 `finalProof::ruleUnhandledEoCount`, `finalProof::theoryRewriteRuleUnhandledEoCount`,
 `finalProof::trustCount`, `finalProof::trustTheoryLemmaCount` and
-`finalProof::minPedanticLevel`, all switched on by `--stats-internal`. The
-instrument is built and nobody has run it across a corpus and published the
-result. That is the first thing to do here, and it is mostly orchestration.
+`finalProof::minPedanticLevel`, all switched on by `--stats-internal`. Run once,
+that gives the baseline; the interesting number is the *difference* between what
+static analysis says is reachable and what the corpus actually hit.
+
+## The second stretch goal: a safe build that cannot be unsafe
+
+Safe mode promises "no feature that does not have full proof and model support."
+Today that promise is kept **at runtime**, by `SetDefaults::setDefaultsPre`
+turning things off by name, and by `NoOpTheoryRewriter` throwing
+`SafeLogicException` when a disabled theory is reached anyway. The unsafe code is
+still compiled, still linked, still one missed guard away.
+
+There is already a build-time safe mode — `cvc5_option(ENABLE_SAFE_MODE)` sets
+`-DCVC5_SAFE_MODE` — but it prunes almost nothing of cvc5's own code. **Five
+files in `src/` mention it**, and two of those only reword an error message
+("suggested options only in non-safe builds"). What it genuinely excludes is
+third-party: LibPoly and CoCoA.
+
+So the goal, in the same spirit as the kernel and sharing its tooling:
+
+> **Make the safe build not contain the unsafe code.**
+
+Progressive, exactly like the kernel argument, and with the same measure — the
+dependency closure of the safe binary, which
+[`dokimasia.tcb`](dokimasia/tcb/) already computes. Each feature moved from
+"disabled at runtime" to "not compiled" is a class of proof hole converted into
+a **link error**, which is the cheapest possible latency: the compiler finds it,
+instantly, without an input.
+
+And there is a consistency check available *right now*, statically, with no
+build: **the runtime disable list and the build-time exclusion list must agree.**
+Today they plainly do not — `setDefaultsPre` disables `sep`, `bags`, `ff` and
+`fp`; `CVC5_SAFE_MODE` excludes LibPoly and CoCoA. Every feature that is disabled
+at runtime but present in the safe build is a feature that a missed guard makes
+reachable.
 
 ## The gap this exists to close
 
@@ -207,7 +260,7 @@ Each row is a place a proof can go missing, and each is an analysis family.
 
 Counted against cvc5 `16c4001e53`. These are the inputs to the first checks,
 not findings — a finding is a claim, and claims get reproduced before they are
-filed (see [what we promise](#what-we-promise-about-a-finding)).
+filed (see [what we promise](#what-a-finding-is-and-what-we-promise-about-it)).
 
 | | count | why it matters |
 | --- | --- | --- |

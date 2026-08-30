@@ -1,0 +1,11 @@
+{
+  "seed_set": "proof-checker",
+  "mode": "headers",
+  "seed_files": 17,
+  "tcb_files": 179,
+  "tcb_lines": 41446,
+  "src_files": 1663,
+  "src_lines": 521073,
+  "pct_files": 10.8,
+  "pct_lines": 8.0
+}

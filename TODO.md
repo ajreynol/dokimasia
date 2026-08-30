@@ -7,122 +7,169 @@ Everything here is judged by one question: *does this get cvc5 closer to
 producing a complete proof for everything it solves?* Work that does not is
 either an instrument for work that does, or it should be dropped.
 
-## The route, in five stages
+## The route, ordered by latency
 
-| stage | what | feasible? |
-| --- | --- | --- |
-| **A** | **Measure the gap** — a ranked census of every hole, and the completeness rate | **now.** Needs a build and a corpus. No new analysis: cvc5 already computes it |
-| **B** | **Close the holes that are hit** — a burn-down list for cvc5 developers | after A. The work is cvc5's; the ranking and reproducers are ours |
-| **C** | **Find the holes nothing hits** — static inventory minus the census | needs M1–M5. **This is what an analyzer is uniquely for** |
-| **D** | **Certify a fragment** — argue no hole is reachable in a growing slice | progressive; starts wherever A shows 100% |
-| **E** | Keep it closed — regression, hygiene, assertions | cheap, continuous, not the point |
+Safe mode already has **almost no proof holes on SMT-LIB**. So the corpus is a
+good oracle and a nearly exhausted signal, and the remaining holes are the ones
+it does not reach. The ordering below is by **how fast a stage returns an
+answer**, not by how much it costs — because feedback latency is the bottleneck,
+not compute.
 
-Stage A is first because **"always" is unmeasurable today**, and an unmeasured
-goal cannot be managed. It is also the cheapest thing in this document.
+| stage | what | latency | status |
+| --- | --- | --- | --- |
+| **A** | **Safe mode does what it says** | seconds, no build | ready to start |
+| **B** | **The latent inventory** — holes no input reaches | seconds, no build | needs M1–M5 |
+| **C** | **A safe build that cannot be unsafe** | one build | stretch, tooling exists |
+| **D** | **Fast dynamic signals** — fuzzing, known-hole corpus | minutes | murxla already in cvc5's build |
+| **E** | **The SMT-LIB baseline** | hours, once | needs a build + corpus |
+| **F** | Close holes, certify fragments, keep them closed | ongoing | downstream of all of it |
 
 ---
 
-## Stage A — measure the gap  ← **start here**
+## Stage A — safe mode does what it says
 
-cvc5 already instruments this. `src/smt/proof_final_callback.cpp` registers
-`finalProof::ruleUnhandledEoCount` (per `ProofRule`),
-`finalProof::theoryRewriteRuleUnhandledEoCount` (per `ProofRewriteRule`),
-`finalProof::trustCount` (per `TrustId`),
-`finalProof::trustTheoryLemmaCount` and `finalProof::trustTheoryRewriteCount`
-(per `TheoryId`), `finalProof::minPedanticLevel` and
-`finalProof::totalRuleCount`. All are switched on by `--stats-internal`.
+**Start here.** The fastest signal available: it needs no build and no input,
+and it targets the one configuration that carries the contract.
 
-**Nobody has run this across a corpus and published the result.** That is the
-single highest-value, lowest-effort thing this repository can do, and it is
-mostly orchestration.
+Safe mode's promise — "no feature that does not have full proof and model
+support" — is kept by a **hand-maintained list** in
+`SetDefaults::setDefaultsPre`, backed by `NoOpTheoryRewriter` throwing
+`SafeLogicException` when a disabled theory is reached anyway. Nothing checks
+that the list is complete or that the guards are exhaustive.
 
-- [ ] **A.1 — the census runner.** cvc5 over an SMT-LIB corpus under
-      `--safe-mode=safe --produce-proofs --stats-internal`, harvesting
-      `finalProof::*` per benchmark.
+- [ ] **A.1** Extract the runtime disable list: what `setDefaultsPre` turns off
+      under `SAFE` and `STABLE`, what `incompatibleWithProofs` refuses, and what
+      the `FULL_STRICT` upgrade adds.
+- [ ] **A.2 — the list against the build.** The runtime disable list and the
+      `CVC5_SAFE_MODE` build exclusions must agree. **Today they plainly do
+      not:** runtime disables `sep`, `bags`, `ff`, `fp`; the build excludes
+      LibPoly and CoCoA. Every feature disabled at runtime but present in the
+      safe build is one missed guard from being reachable. This is stage C's
+      work list, produced statically.
+- [ ] **A.3 — guard exhaustiveness.** For each theory safe mode disables, is
+      *every* entry point guarded, or only the rewriter path that
+      `NoOpTheoryRewriter` covers?
+- [ ] **A.4 — the list against reality.** A feature reachable in safe mode with
+      no proof support that is on neither list. The headline check.
+- [ ] **A.5 — drift.** An option or theory added since the pinned revision that
+      reaches proof-relevant code and appears on no list. What catches the
+      *next* one.
 
-      **Use `--stats-internal`, not `--check-proofs-complete`.** The latter
-      *aborts* on the first hole, which is right for CI and wrong for a census:
-      it reports one hole per run instead of all of them. `d_checkProofHoles`
-      is enabled by either, so the statistics are collected without the abort.
+## Stage B — the latent inventory
 
-- [ ] **A.2 — the completeness rate.** A benchmark yields a complete proof iff
-      `finalProof::ruleUnhandledEoCount` is empty (trust steps included: `TRUST`
-      is not handled by the Eunoia printer, which is why it appears there).
-      **The headline number: of unsat answers under safe mode, what fraction
-      come with a complete proof?**
-- [ ] **A.3 — the ranked hole table.** Every distinct hole still being hit, by
-      frequency and by number of distinct benchmarks. Frequency is the ranking
-      that matters: a hole hit by 40% of benchmarks and one hit by a single
-      benchmark are different work items.
-- [ ] **A.4 — per-logic breakdown.** Which logics are *already* complete?
-      **This is as valuable as finding holes** — it says where the contract
-      already holds, and it is where stage D starts. Expect `QF_UF` and
-      `QF_LIA` to be at or near 100%.
-- [ ] **A.5 — per-theory attribution.** `trustTheoryLemmaCount` by `TheoryId`
-      answers "which theory is furthest from complete" directly.
-- [ ] **A.6 — the pedantic distribution.** `minPedanticLevel` is the weakest
-      link in each proof. Its distribution across the corpus says how much of
-      what cvc5 *does* check is checked only nominally.
-- [ ] **A.7 — publish it**, and re-run per cvc5 release so the trend is visible.
+**The corpus cannot prove *always*.** It shows what benchmarks reach; the risk is
+what they do not, and on safe mode that is now essentially all of the remaining
+risk. This is the one thing here nobody else can do:
 
-**Blockers, honestly:** needs a cvc5 build with proofs and a benchmark corpus,
-neither of which is set up here yet. Safe mode disables `sep`, `bags`, `ff` and
-`fp`, so part of any corpus is out of scope — that exclusion is itself a result
-worth reporting.
+> **static hole inventory − what any input has hit = the latent holes.**
 
-## Stage B — close the holes that are hit
+- [ ] **B.1** The static inventory, from [M1–M5](#the-analysis-backlog).
+- [ ] **B.2** Subtract stage D and E results. Publish the difference — the
+      **latent count** is one of the project's two headline numbers.
+- [ ] **B.3** Per latent hole: construct an input that reaches it (promoting it
+      to a real finding), or argue it is unreachable (shrinking the problem).
+- [ ] **B.4** A latent hole that resists both is the most interesting object in
+      the project — it is exactly what neither testing nor analysis settles.
 
-The census turns "complete proofs always" into a burn-down list. The fixes are
-cvc5's work; ours is making each one a well-formed, ranked, reproducible ask.
+## Stage C — a safe build that cannot be unsafe
 
-- [ ] **B.1** Rank by frequency × estimated difficulty.
-- [ ] **B.2** A minimized reproducer per hole, via
+The second stretch goal, in the same spirit as the kernel and sharing its
+tooling. **Make the safe build not contain the unsafe code**, so that a class of
+proof hole becomes a *link error* — the lowest-latency signal there is.
+
+Starting point: `ENABLE_SAFE_MODE` → `-DCVC5_SAFE_MODE` exists, but **five files
+in `src/` mention it** and two only reword an error message. Real exclusions are
+third-party only (LibPoly, CoCoA).
+
+- [ ] **C.1** Measure the safe build's dependency closure with
+      `dokimasia.tcb --seeds ...`, against the default build. Today the
+      difference should be near zero; that gap *is* the goal, quantified.
+- [ ] **C.2** Take stage A.2's list and, feature by feature, move each from
+      "disabled at runtime" to "not compiled." Experimental theories first —
+      they are already cleanly separated by directory.
+- [ ] **C.3** Each move is checkable: the symbol should not be in the safe
+      binary. That is a test, not an argument.
+- [ ] **C.4** Report progress as a ratio: *of the features safe mode disables,
+      how many are absent from the safe build?* Starts near 0.
+- [ ] **C.5** The end state: safe mode's promise is kept by the linker, and
+      `setDefaultsPre`'s list becomes a redundant belt to the build's braces
+      rather than the only thing standing between a user and an unproven
+      inference.
+
+## Stage D — fast dynamic signals
+
+Where new inputs come from, once SMT-LIB is exhausted.
+
+- [ ] **D.1 — fuzzing.** **murxla is already an `ExternalProject` in cvc5's
+      build** (`cmake/fuzzing-murxla.cmake`, pinned at `9ba2583`). Run it with
+      `--safe-mode=safe --produce-proofs --check-proofs-complete` as the oracle:
+      any generated input producing an incomplete proof is a rank-1 finding.
+      This is the highest-yield dynamic work available and most of the
+      infrastructure exists.
+- [ ] **D.2 — targeted synthesis.** Stage B.3 says which fragment a latent hole
+      needs; generate small inputs against that, rather than fuzzing blind.
+- [ ] **D.3 — the known-hole corpus.** A local `holes/` directory: per hole, the
+      `.smt2`, the option set, the expected rule or `TrustId`, and a provenance
+      line. Fast to run, and it is the regression suite for stage F.
+
+### Design decision — no network access on any analysis path
+
+Proof holes get reported as GitHub issues, and that data is worth having. The
+tool will still not fetch it. Three reasons:
+
+1. **Reproducibility.** An analysis whose result depends on *when* it ran is not
+   a measurement. The same cvc5 revision must give the same answer.
+2. **Hermetic CI.** A check that can fail because a network call was slow is a
+   check people switch off.
+3. **The volume does not justify it.** Proof-hole reports arrive at a rate a
+   human handles comfortably. Automating the fetch optimizes the part that is
+   not the bottleneck.
+
+So: `holes/` is populated **by a human**, or by an import script that is invoked
+explicitly, never runs as part of an analysis, and writes files a human reviews
+before they land. Provenance is recorded as text (an issue number), not as a
+live link the tool follows.
+
+*Revisit if* the volume outgrows manual curation, or if we want closed issues to
+auto-retire regression entries. Neither is true now.
+
+## Stage E — the SMT-LIB baseline
+
+Worth doing **once**, for the baseline and to confirm the "almost no holes"
+claim quantitatively. Not a recurring cost.
+
+cvc5 already computes it: `finalProof::ruleUnhandledEoCount`,
+`theoryRewriteRuleUnhandledEoCount`, `trustCount`, `trustTheoryLemmaCount`,
+`minPedanticLevel` — all under `--stats-internal`.
+
+- [ ] **E.1** Corpus run under `--safe-mode=safe --produce-proofs
+      --stats-internal`. **Use `--stats-internal`, not
+      `--check-proofs-complete`**: the latter aborts on the first hole, which is
+      right for CI and wrong for a census.
+- [ ] **E.2** The completeness rate, and the ranked table of holes still hit.
+      Expected to be short — that is the point, and it makes stage B the
+      interesting half.
+- [ ] **E.3 — per-logic breakdown.** Which logics are *already* complete? This
+      is where stage F's fragment certification starts.
+- [ ] **E.4** Re-run per cvc5 release, not per change.
+
+## Stage F — close, certify, keep closed
+
+- [ ] **F.1** Rank found holes by frequency × difficulty; separate "needs a new
+      proof rule" from "needs one line" — most of the value to a cvc5 developer.
+- [ ] **F.2** Minimize every reproducer with
       [`ddsmt`](https://github.com/ddsmt/ddsmt).
-- [ ] **B.3 — find the cheap wins.** Unhandled `ProofRewriteRule`s are often one
-      RARE rule or one signature entry away. Separating "needs a new proof rule"
-      from "needs a line" is most of the value of the ranking.
-- [ ] **B.4** Track holes closed per release. This is the project's actual
-      output metric.
-
-## Stage C — find the holes nothing hits
-
-**The corpus cannot prove *always*.** It shows what benchmarks reach; the risk
-is what they do not. This is where static analysis earns its place, and it is
-the one thing here nobody else can do:
-
-> **static hole inventory − dynamic census = latent holes.**
-
-Those are where the next user bug report comes from, and the reason this
-repository is an analyzer and not a benchmark harness.
-
-- [ ] **C.1** The static inventory: every reachable hole, from M1–M5.
-- [ ] **C.2** Subtract the census. Publish the difference.
-- [ ] **C.3** For each latent hole, either construct an input that reaches it —
-      promoting it to a stage-B item — or argue it is unreachable, which
-      shrinks the problem.
-- [ ] **C.4** Feed C.3's outcome back: a latent hole that resists both is the
-      most interesting object in the project, because it is exactly what neither
-      testing nor analysis currently settles.
-
-## Stage D — certify a fragment
-
-Starts wherever A.4 reports 100%. Progressive, per
-[the kernel section](README.md#the-stretch-goal-a-kernel-you-can-argue-about):
-argue that in this logic, under safe mode, no hole is reachable — then grow the
-fragment. Detail in [M7](#m7--the-kernel-krn--the-stretch-goal).
-
-## Stage E — keep it closed
-
-Regression and prevention. Cheap, continuous, and explicitly not the point:
-[hygiene](#m05--proof-hygiene-the-warm-up), the
-[TCB ratchet](#m0--skeleton-and-the-table-tier-front-end), assertions, CI.
+- [ ] **F.3** Certify a fragment: start wherever E.3 reports 100%, argue no hole
+      is reachable, grow. Detail in [M7](#m7--the-kernel-krn--the-stretch-goal).
+- [ ] **F.4** Regression: the known-hole corpus, the TCB ratchet, hygiene, CI.
+      Cheap, continuous, explicitly not the point.
 
 ---
 
 # The analysis backlog
 
-What stages C and D are built out of. Ordered *within itself* by cost, but all
-of it is downstream of stage A.
+What stages A, B and C are built out of. Ordered *within itself* by cost. M1 is
+the machinery behind stage A; M2–M5 build the latent inventory of stage B.
 
 ---
 
@@ -178,12 +225,13 @@ set, and M4 has nothing to quantify over.
       does not have — its proof docs are 161 lines across five files, with no
       guidance on adding a proof rule or an inference id.
 
-## M1 — the safe-mode contract (`MODE`) — first of the backlog
+## M1 — the safe-mode contract (`MODE`) — machinery for stage A
 
 cvc5 promises that safe mode has "full proof and model support" and implements
 the promise as a hand-maintained list of things safe mode turns off. The whole
-question is whether that list is complete — which is stage C's question asked
-about *configuration* rather than about code paths.
+question is whether that list is complete. This milestone is the machinery
+behind [stage A](#stage-a--safe-mode-does-what-it-says), and its
+output is the work list for [stage C](#stage-c--a-safe-build-that-cannot-be-unsafe).
 
 - [ ] **M1.1** Model safe mode as a configuration: what
       `SetDefaults::setDefaultsPre` disables under `SAFE` and `STABLE`, the
