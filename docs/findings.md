@@ -16,31 +16,32 @@ making a fix stick, C is a way of changing what the pipeline promises. They are
 cheap and worth doing, and none of them is the reason this exists.
 
 A note on D, since it is the most easily overrated: an assertion converts a
-silent hole into a loud failure and no more. It does not close a hole. It is
-worth proposing when an invariant we check is one cvc5 could check about itself
-at startup — then the deliverable is the patch and our check gets deleted. See
+silent hole into a loud failure and no more. It does not close a hole — it
+closes a *check*. That is the shared position *success is the check being
+deleted*, and D is how it happens here: where an invariant we check is one cvc5
+could check about itself at startup, the deliverable is the patch and our check
+goes with it. See
 [`docs/tooling.md`](tooling.md#d3--where-an-invariant-should-live).
 
 The promises are
 [`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md)'s
-— confirmed before filed, a false positive is our bug, declining is an outcome,
-a finding is relative to a version — and are not restated here. What this
-repository adds to them, because the subject is a solver rather than a
+— *publish a candidate, carry a finding*; *a false positive is ours, and so is
+anything we asked them to run*; *presence is not reachability*; *every claim is
+re-checkable without us*; *closing is a verdict* — and are not restated here.
+Two things this repository adds, because the subject is a solver rather than a
 signature:
 
-- **For kind A, confirmed means an input.** Not a code location and an argument
-  — a `.smt2` file, an option set, and the quoted `--check-proofs-complete`
-  failure. A claim that a path is reachable is worth nothing until something
-  reaches it, and the static analysis's job is to tell us *where to look*, not
-  to substitute for looking.
-- **A suggested assertion that fires falsely is a false positive.** So none is
-  proposed until it has been applied to a cvc5 build configured `--assertions`
-  and the regression suite has passed with it in place. An assertion we have not
-  run is a hypothesis, and hypotheses go in [`issues.md`](issues.md), not in a
-  patch.
-- **Severity is reachability.** "This rule has no checker" is a different claim
-  from "this rule has no checker and a default-options run in `QF_LIA` emits
-  it." We will say which one we mean, every time.
+- **Carrying a kind A means an input.** Not a code location and an argument — a
+  `.smt2` file, an option set, and the quoted `--check-proofs-complete` failure.
+  A claim that a path is reachable is worth nothing until something reaches it,
+  and the static analysis's job is to tell us *where to look*, not to substitute
+  for looking. What evidence each rank needs is set out in
+  [`docs/tooling.md`](tooling.md#d5--safe-mode-first-and-the-reproducer-is-the-deliverable).
+- **An assertion is not proposed until it has been run.** The promise is the
+  shared one; the precondition is ours. It is applied to a cvc5 build configured
+  `--assertions` and the regression suite passes with it in place. An assertion
+  we have not run is a hypothesis, and hypotheses go in [`issues.md`](issues.md),
+  not in a patch.
 
 ## The log
 

@@ -3,17 +3,19 @@
 How to work a single candidate with an assistant, from [`issues.md`](issues.md)
 to whoever can settle it and back.
 
-**Little of this is ours to state.** The position — what we publish, what a
-finding is worth, why nothing crosses a repository boundary automatically — is
+**Little of this is ours to state.** The position — what may be published about
+somebody else's code at all — is
 [`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md),
-shared with anoieu outright. The mechanics that implement it — what an agent
-following up a reply may change, the shape a reply takes — are
-[`triage.md`](https://github.com/ajreynol/anoieu/blob/main/docs/triage.md),
+shared with anoieu outright and naming this repository as a dependent. The mechanics that
+implement it — what an agent following up a reply may change, the shape a reply
+takes — are the conventions in
+[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reporting-policy.md#the-conventions),
 written to transfer. Both govern this repository, and neither is restated here.
 
-What follows is the remainder: which of our files fill `triage.md`'s slots,
-where we diverge from it, and the two prompts. It assumes an expert — somebody
-who knows the C++ being looked at.
+What follows is the remainder: which of our files fill the policy's slots, what
+settles a row here, where we diverge, and the two prompts. It assumes an expert
+— somebody who knows the C++ being looked at, which is the audience
+`philosophy.md` says these tools are for.
 
 ## The slots
 
@@ -25,7 +27,7 @@ who knows the C++ being looked at.
 | **re-measuring** | point the command at a cvc5 checkout at the commit the README names |
 | **the regression** | `tests/test_*.py` and the `*-baseline.json` beside them |
 | **the ledger** | [`findings.md`](findings.md) for what was filed and what was retracted; `upstream.md` for the history of a reply, as soon as there is one |
-| **the frame** | `TRIAGE:` and `HUMAN RESPONSE:`, exactly as `triage.md` defines them |
+| **the frame** | `TRIAGE:` and `HUMAN RESPONSE:`, exactly as the policy defines them |
 
 Closing, here, is **moving a row to *Settled*** with what settled it, or to
 *Filed* if it became a finding. Both tables are already in `issues.md`.
@@ -33,12 +35,24 @@ Closing, here, is **moving a row to *Settled*** with what settled it, or to
 Two slots are weak, and are a separate job rather than a caveat: nothing
 restores the cvc5 commit a row was measured against ([`TODO.md`](../TODO.md)'s
 `M0.5` and `A.3`), and a hand-written row has no fingerprint anybody can
-reproduce — so `triage.md`'s *do not add a row by hand* is the one convention
-that does not yet bind.
+reproduce — so the policy's *do not add a row by hand* is the one convention
+that does not yet bind. *Every claim is re-checkable without us* is the position
+behind both, and the one we are furthest from keeping.
+
+## What settles a row
+
+*A reply is triage; an artifact settles it* leaves each tool to name its own
+artifact, and ours is usually an input: a `.smt2` file, its options, and what
+`--check-proofs-complete` says settles a reachability row outright, where no
+argument from the code can. A question about a stale annotation is settled by a
+maintainer's sentence, and a coupling by a merged change. The half worth
+repeating is the negative one — **nobody finding an input settles nothing**, and
+the row stays open.
 
 ## Where we diverge
 
-Three things, named here because the second prompt depends on them.
+Two things, both departures from the policy's mechanics rather than from the
+position, and named here because the second prompt depends on them.
 
 **A row may be a question rather than a defect report.** `i-2` asks whether an
 annotation is stale. So the triage line carries a fourth label, `answered`,
@@ -46,11 +60,6 @@ which anoieu's does not, and such a reply names no branch.
 
 **Not every row names a file and a line.** Some name a mechanism — an option
 that escapes a promise, a fragment no list of kinds can express.
-
-**For most rows the authority is an input, not a branch.** A `.smt2` file, its
-options and what `--check-proofs-complete` says settles a reachability row
-outright. The converse is what matters and is easy to lose: **nobody finding an
-input settles nothing**, and the row stays open.
 
 ## Prompt one: in cvc5
 
@@ -145,7 +154,8 @@ Working in the dokimasia repository:
    points to: a branch, to its end (merged, reworked, reverted, still open), or
    an input, by running it. That outcome counts, not what the triage predicted.
 3. Move only the rows the reply is about, as
-   https://github.com/ajreynol/anoieu/blob/main/docs/triage.md says. A settled
+   https://github.com/ajreynol/anoieu/blob/main/docs/reporting-policy.md#the-conventions
+   says. A settled
    row moves to the Settled table with what settled it; a row that became a
    finding moves to Filed. Rows move and are never deleted, and a row the reply
    is silent about is not touched, reworded or re-sorted.
@@ -166,10 +176,10 @@ settled; leave the row where it is and say what you would need to know.
 
 The first prompt's output is the second's input, and the shape they share is
 defined in another repository — so a change to it lands in three places across
-two repos, all of them or none. Anything this workflow grows that `triage.md`
-does not have goes under *Where we diverge* above; a divergence nobody wrote
-down is drift, and an agent reading a format nobody produces will improvise
-rather than stop.
+two repos, all of them or none — which the policy now says in its own words.
+Anything this workflow grows that the policy does not have goes under *Where we
+diverge* above; a divergence nobody wrote down is drift, and an agent reading a
+format nobody produces will improvise rather than stop.
 
 ## Not yet
 
@@ -179,10 +189,10 @@ the versions — is designed separately; when it lands, the slot table here and
 the URL in prompt one change together.
 
 Issues on our own tracker are anoieu's
-[arrangement](https://github.com/ajreynol/anoieu/blob/main/docs/workflows.md#medium-term-issues-on-our-own-repository)
-under `philosophy.md`'s boundary position, and we follow both rather than
-restate them. One line is ours to draw, and [`findings.md`](findings.md) draws
-it: that asymmetry is about **candidates**. A confirmed kind-A finding — an
+[arrangement](https://github.com/ajreynol/anoieu/blob/main/docs/reporting-policy.md#medium-term-issues-on-our-own-repository)
+under *nothing crosses a repository boundary automatically*, and we follow both
+rather than restate them. One line is ours to draw, and
+[`findings.md`](findings.md) draws it: that asymmetry is about **candidates**. A confirmed kind-A finding — an
 input, an option set, a quoted `--check-proofs-complete` failure — is an
 ordinary bug report, belongs in cvc5's tracker, and is filed there by the human
 who confirmed it.

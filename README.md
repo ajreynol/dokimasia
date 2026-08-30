@@ -11,6 +11,12 @@ job for Eunoia signatures. Signatures are its subject; the C++ is ours.
 *Status: two subtools exist and have produced one report. Everything else is
 design. Numbers below were measured against cvc5 `16c4001e53`.*
 
+> **A quiet run is not a complete proof pipeline.** When a check here reports
+> nothing, that is a fact about the check and not about cvc5. Every analysis in
+> this repository is partial, and the holes that matter are the ones nothing has
+> reached yet — so silence here is not coverage, and nothing downstream should
+> read it as any.
+
 ## Philosophy
 
 The positions we share with anoieu — what we publish, what a finding is worth,
@@ -225,12 +231,14 @@ the path. Ours happens first.
 | [`docs/findings.md`](docs/findings.md) | what a finding is, what we promise about it, and the log — including retractions |
 | [`docs/workflows.md`](docs/workflows.md) | how a candidate is carried to cvc5 and back: the conventions we share with anoieu, and the two prompts |
 | [`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md) | *anoieu's, shared* — the position both tools take on reporting on code they do not own |
+| [`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reporting-policy.md) | *anoieu's, shared* — the conventions our workflow implements, and the shape of a reply |
 
 ## How this repository is maintained
 
 **Written by an AI agent, under light human supervision.** A human maintainer
 directs the work, reviews it, and decides what is reported upstream; findings
-are filed by the human, not the agent. The position on that is
-[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md),
-and the workflow for carrying a candidate out and reading the answer is
+are filed by the human, not the agent. What *light* covers, and why the audience
+is people who know cvc5 well enough to throw a finding out, is stated in
+[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md).
+The workflow for carrying a candidate out and reading the answer is
 [`docs/workflows.md`](docs/workflows.md).

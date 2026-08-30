@@ -3,6 +3,11 @@
 The goal is [**complete proofs, always**](docs/goals.md). This file is the
 route to it. The delivery decisions are in [`docs/tooling.md`](docs/tooling.md).
 
+**This file holds work *we* do.** Anything we are asking cvc5 to act on — a
+defect, a refactoring, a process change — lives in
+[`docs/issues.md`](docs/issues.md), which is the other half of the register.
+Numbered sections in the `docs/` design notes are named arguments, not tasks.
+
 Everything here is judged by one question: *does this get cvc5 closer to
 producing a complete proof for everything it solves?* Work that does not is
 either an instrument for work that does, or it should be dropped.

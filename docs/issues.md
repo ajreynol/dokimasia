@@ -1,8 +1,27 @@
 # Issues
 
-Everything dokimasia currently believes about cvc5, in one place. **These are
-hypotheses, not filed findings** — a finding is confirmed and lives in
-[`findings.md`](findings.md); this is what is waiting for a verdict.
+**Everything we are asking cvc5 to act on.** Defects we believe exist, changes we
+would like made, and process suggestions — one register, one ID space.
+
+## Where work lives
+
+Two registers, split by who acts. Everything else is rationale.
+
+| | holds | ids |
+| --- | --- | --- |
+| [`../TODO.md`](../TODO.md) | **work we do** — tools to build, analyses to run | stages `A`–`F`, backlog `M0`–`M7` |
+| **this file** | **things cvc5 would act on** — defects, asks, process | `i-*` defects, `R*` asks, `p-*` process |
+| everything in `docs/` | **rationale** — why, not what | section names for reference only |
+
+The rule: *if someone is expected to do something about it, it is in one of the
+two registers.* A numbered section in a design document — `H1`–`H11` in
+[`hygiene.md`](hygiene.md), `E1`–`E4` in
+[`rare-correspondence.md`](rare-correspondence.md), `D1`–`D7` in
+[`tooling.md`](tooling.md) — is a named argument, not a task. Where such a
+section implies an action, it has a row here that links back to it.
+
+**These are hypotheses, not filed findings** — a finding is confirmed and lives
+in [`findings.md`](findings.md); this is what is waiting for a verdict.
 
 Ranks, from [`tooling.md`](tooling.md#d5--safe-mode-first-and-the-reproducer-is-the-deliverable):
 **1** an incomplete proof under `--safe-mode=safe` — a contract violation, needs
@@ -40,6 +59,28 @@ Cleanups and unrestricted-mode gaps. Real, but nobody is relying on them.
 | i-12 | **11 `FF_*` rules** are in the public enum and documented, have no registered checker, and nothing produces them — `src/theory/ff` is entirely `#ifdef CVC5_USE_COCOA` | `ledger holes` |
 | i-13 | **Proof closedness is never checked in a default run.** `ensureClosedWrtInternal` returns early unless `--proof-check=eager` or a trace is on, so the `pfgEnsureClosed` calls through the pipeline are inert in the configuration users get | — |
 | i-14 | **`--proof-check=lazy` in CI's proof tester** means closedness is not checked there either | `ci proofs` |
+
+## Open — asks
+
+Changes we would like made. The reasoning for each is in the document named;
+these rows exist so there is one place to see what is outstanding. Kinds are
+from [`findings.md`](findings.md): **B** an adoption, **C** a change to the
+pipeline, **D** an assertion.
+
+| # | ask | kind | why | where argued |
+| --- | --- | --- | --- | --- |
+| **R1** | **emit cvc5's proof registries as JSON** from a build target | C | the highest-leverage ask by a distance: makes our whole table tier exact instead of parsed, and retires most of the fragility below. Three parser bugs in one session are the argument | [coupling](coupling.md#r1--emit-the-tables-cvc5-already-has) |
+| **R2** | pass `--check-proofs-complete` explicitly in the regression proof tester | C | names a guarantee that currently rides on a four-link implication nothing asserts (`i-3`). One line | [coupling](coupling.md#r2--name-the-completeness-guarantee) |
+| **R3** | extract the pure `static` helpers out of solver classes | C | six rule checkers compile against the solvers they check. Filed as `f-1` | [coupling](coupling.md#r3--get-the-theory-solvers-out-of-the-proof-checkers-includes) |
+| **R4** | one `InferenceId`, one production site | C | until an id names one program point, inference coverage cannot be precise (`i-8`) | [coupling](coupling.md#r4--one-inferenceid-one-place) |
+| **R5** | make `no_support` cover defaults, or derive safe mode's list from it | C | the `SolverEngine` guard fires on assignment only, which is how `stringLazyPreproc` gets through (`i-2`) | [coupling](coupling.md#r5--make-nosupport-cover-defaults) |
+| **R6** | declare which seam refusals are *by design* | C | we infer "macro or trust step, so intended" from naming and elaboration — a heuristic that already needed one correction | [coupling](coupling.md#r6--declare-what-the-seam-is-supposed-to-reject) |
+| **R7** | make the pass↔`TrustId` correspondence derivable, and fix `BV_GUASS` | C | `i-11` | [coupling](coupling.md#r7--make-the-passtrustid-correspondence-derivable) |
+| **R7b** | put the RARE source file in the generated marker | C | makes a rule's owning theory recoverable from the header instead of by scanning two directories (`i-16`) | [coupling](coupling.md#r7b--put-the-rare-source-file-in-the-generated-marker) |
+| **R8** | make safe mode prune code at build time | C | `CVC5_SAFE_MODE` prunes almost nothing today; each feature moved from runtime-disabled to not-compiled turns a class of hole into a link error | [coupling](coupling.md#r8--safe-mode-as-a-build-time-property) |
+| **R9** | **test each RARE rule against the rewriter** — instantiate the match, rewrite, compare to the target | C | the only thing that catches a rule that *misstates* the rewrite, which today fails silently forever (`i-17`). Belongs upstream, beside the rewriter. Partial is fine | [rare-correspondence E1](rare-correspondence.md#e1--instantiate-each-rare-rule-and-run-the-rewriter) |
+| **R10** | adopt the proof hygiene standard, or rule on it | B | eleven rules, most ratifying existing practice; the contested ones are `H1`, `H5`, `H6` | [hygiene](hygiene.md) |
+| **R11** | run our checks in cvc5 CI, and upload SARIF | B | `p-1`; the ledger and mode ratchets run in seconds and need no baseline | [tooling](tooling.md#d1--three-artifacts-by-what-each-question-needs) |
 
 ## Process
 
