@@ -57,7 +57,7 @@ a witness; each says something about the pipeline that is true or false.
 | ✅ | `RULE` | **the rule ledger** | for every `ProofRule`: who produces it, checks it, elaborates it, prints it. The interesting rows are the ones with a hole |
 | ✅ | `TRUST` | **the trust census** | every site that can introduce a trust step, keyed by `TrustId`: which are reachable, which are dead, which are unnamed |
 | ○ | `INFER` | **inference coverage** | for each `InferenceId` a theory emits, does its reconstruction have a case, and is a `ProofGenerator` attached? |
-| ○ | `RW` | **rewrite coverage** | can every rewrite the rewriter performs be reconstructed — and which reconstructions depend on a search budget? |
+| ✅ | `RW` | **rewrite coverage** | can every rewrite the rewriter performs be reconstructed — and which reconstructions depend on a search budget? |
 | ◐ | `PP` | **preprocessing coverage** | does every pass either prove its work or declare a `PREPROCESS_*` trust id? |
 | ◐ | `ELAB` | **macro elaboration** | is every `MACRO_*` expanded at each granularity, terminating in non-macro rules? |
 | ◐ | `SEAM` | **the Eunoia seam** | `isHandled` and `isHandledSkolemId` as coverage problems, including their argument-dependent arms |
@@ -132,6 +132,14 @@ python3 -m dokimasia.ci matrix  <cvc5>            # job x tester
 python3 -m dokimasia.ci testers <cvc5>            # what each tester passes
 ```
 
+**[`dokimasia.rewrites`](dokimasia/rewrites/)** — coverage of the 533-rule
+rewrite vocabulary at the Eunoia seam.
+
+```bash
+python3 -m dokimasia.rewrites coverage <cvc5>     # RARE vs hand-written vs applied
+python3 -m dokimasia.rewrites gaps     <cvc5>     # applied, and unprintable
+```
+
 Between them they have produced one report and several candidates:
 
 - **[`tcb-001`](docs/findings/tcb-001.md)** — six proof rule checkers compile
@@ -148,6 +156,10 @@ Between them they have produced one report and several candidates:
   reason, so nothing downstream can attribute them.
 - **3 `PREPROCESS_*` trust ids are dead**, including both `bv_to_int` ids: that
   pass's trust step is attributed to `INT_BLASTER`, from a different file.
+- **Safe mode is *stricter* at the Eunoia seam than the default.** Three
+  rewrites — `ARITH_POW_ELIM`, `ARRAYS_SELECT_CONST`, `LAMBDA_ELIM` — are
+  accepted by `isHandledTheoryRewrite` only when `safeMode == UNRESTRICTED`,
+  and all three are implemented by a rewriter.
 - **Proof completeness is never named in cvc5's CI.** `--check-proofs-complete`
   appears nowhere; in a safe build `setDefaultsPre` turns it on as a side effect
   of `--check-proofs`. Four links hold and nothing asserts any of them — 4 of 22
@@ -178,6 +190,7 @@ the path. Ours happens first.
 | [`docs/pipeline.md`](docs/pipeline.md) | the stages of proof production and where each leaks |
 | [`docs/kernel.md`](docs/kernel.md) | the two stretch goals: a kernel you can argue about, and a safe build that cannot be unsafe |
 | [`docs/hygiene.md`](docs/hygiene.md) | proof hygiene for cvc5 — ten rules, each with a measurement |
+| [`docs/coupling.md`](docs/coupling.md) | what we ask of cvc5, and what we parse that could break |
 | [`docs/tooling.md`](docs/tooling.md) | the C++ static-analysis landscape, our design decisions, and the posture toward murxla |
 | [`docs/findings.md`](docs/findings.md) | what a finding is, what we promise about it, and the log — including retractions |
 

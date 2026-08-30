@@ -422,7 +422,12 @@ CodeQL earn their place.
       argument.
 - [ ] `ELAB0003` per granularity mode, which rules survive to the final proof —
       the honest answer to what `--proof-granularity` buys.
-- [ ] `RW0001` a `ProofRewriteRule` with no RARE rule and no reconstruction.
+- [x] **M5.1** ✅ **`dokimasia.rewrites`** — 533 rules: 321 RARE, 212
+      hand-written, 93 applicable via `rewriteViaRule`, 53 accepted by the seam.
+      **40 gaps** (38 macro, 2 hard) plus **3 safe-mode gaps**. Tests in
+      `tests/test_rewrites.py`.
+- [x] `RW0001` ✅ a `ProofRewriteRule` with no RARE rule and no reconstruction:
+      119 declared, not RARE, and implemented by no rewriter.
 - [ ] `RW0002` **budget-dependent completeness.** `proof_post_processor_dsl.cpp`
       reconstructs under `--proof-rewrite-rcons-rec-limit` (default 5) and
       `-step-limit`; on failure the macro step *remains*. Report every rewrite
@@ -567,6 +572,9 @@ findings.** Each needs a reproducer or a maintainer's answer before it goes near
 | **c-14** | **8 trust steps are constructed with `TrustId::NONE`** — a declared hole with no stated reason, in `prop/`, `rewriter/`, `smt/`, `proof/` and `theory/strings`. Nothing downstream can attribute them | `TRUST0003` ✅ | 3 | may be deliberate where the caller supplies a reason another way. Each site needs one look |
 | **c-15** | **3 `PREPROCESS_*` trust ids are dead**: `PREPROCESS_BV_TO_INT`, `PREPROCESS_BV_TO_INT_LEMMA`, `PREPROCESS_BITVECTOR_EAGER_ATOMS` — mentioned nowhere outside `trust_id.{h,cpp}`. The bv-to-int pass's trust step is `INT_BLASTER`, constructed in `theory/bv/int_blaster.cpp` | `PP0002` ✅ | 3 | cleanup. Either the ids should go or the pass should use them |
 | c-16 | **The pass↔trust-id correspondence is not checkable by name.** 7 ids are not derivable from their pass filename, including `PREPROCESS_BV_GUASS` — a misspelling of Gauss | `PP0001` ✅ | 3 | the tool works around it by matching construction sites instead. The naming is still worth fixing, and the typo certainly is |
+| **c-17** | **Safe mode is stricter at the Eunoia seam than the default.** `isHandledTheoryRewrite` accepts `ARITH_POW_ELIM`, `ARRAYS_SELECT_CONST` and `LAMBDA_ELIM` only when `safeMode == UNRESTRICTED`; all three are implemented by a rewriter. If one is applied under `--safe-mode=safe`, the step cannot be printed | `rewrites gaps` ✅ | 2 | probably gated: lambdas need `ufHoExp`, `POW` needs `arithExp`, constant arrays need `arraysExp` — all disabled by safe mode. **Needs the option gate to settle**, which is exactly the machinery we do not have |
+| c-18 | **2 hard rewrite gaps**: `ARRAYS_EQ_RANGE_EXPAND` and `DT_MATCH_ELIM` are applied by a rewriter, refused by the seam, and have no macro to expand into | `rewrites gaps` ✅ | 3 | arrays `eqrange` and datatypes `match` are both plausibly expert-gated; same caveat |
+| c-19 | **38 macro rewrite gaps** rely on elaboration succeeding, and elaboration runs under `--proof-rewrite-rcons-rec-limit`. When it fails the macro step stays | `RW0002` | 2 | the budget-dependence is c-3 restated with a count |
 | **c-13** | **14 `ProofRule`s the solver emits cannot be printed by the Eunoia seam**: 4 `ARITH_POW2_*`, 9 `ARITH_TRANS_*`, and `SAT_REFUTATION`. The `ARITH_POW2_*` ones are *also* registered via `registerTrustedChecker` at level 1, so they are weakly checked and unprintable at once | `SEAM0001` ✅ | 3 | verified by hand: all 13 arith rules are behind `--arith-exp`, whose kinds `illegal_checker` rejects outright when it is off — and safe mode sets it off. So these are unrestricted-mode gaps. `SAT_REFUTATION` is the one that needs a separate answer |
 | **c-11** | **`--check-proofs-complete` appears nowhere in cvc5's CI or regressions.** Completeness is enabled implicitly by `setDefaultsPre` in a safe build; the guarantee is a four-link chain no test asserts, and adding a `--proof-granularity` flag to the `proof` tester would switch it off silently | `CI0002` | 2 | works today. The finding is the fragility, and the fix is a one-line explicit flag |
 | c-12 | 51 `InferenceId`s are produced at more than one site, and 14 are declared but produced nowhere — one of those (`STRINGS_CODE_PROXY`) has a proof-reconstruction case for an inference nothing emits | `inferid check` ✅ | 3 | not defects on their own; they are what makes the `INFER` coverage analysis imprecise |

@@ -1,0 +1,13 @@
+{
+  "hard_gaps": [
+    "ARRAYS_EQ_RANGE_EXPAND",
+    "DT_MATCH_ELIM"
+  ],
+  "macro_gap_count": 38,
+  "safe_mode_gaps": [
+    "ARITH_POW_ELIM",
+    "ARRAYS_SELECT_CONST",
+    "LAMBDA_ELIM"
+  ],
+  "seam_handles": 53
+}

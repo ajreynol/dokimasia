@@ -124,6 +124,18 @@ class Ledger:
         return [r for r in self.rows() if r.produced]
 
 
+def _strip_comments(text: str) -> str:
+    """Remove C++ comments.
+
+    Block comments need DOTALL; line comments must *not* have it, or `//.*`
+    eats the rest of the string. Doing both in one alternation under re.S was a
+    real bug here: any switch arm whose body opened with a `//` comment looked
+    empty, so it was read as a fallthrough and its labels were silently lost.
+    """
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
+    return re.sub(r"//[^\n]*", "", text)
+
+
 def _declared(include_dir: str) -> tuple[list[str], list[str]]:
     """(ProofRule names, ProofRewriteRule names) from the public header."""
     path = os.path.join(include_dir, "cvc5", "cvc5_proof_rule.h")
@@ -146,9 +158,12 @@ def _parse_is_handled(src: str) -> dict[str, str]:
     path = os.path.join(src, "proof", "eo", "eo_printer.cpp")
     with open(path, encoding="utf-8", errors="ignore") as fh:
         text = fh.read()
-    start = text.find("bool EoPrinter::isHandled")
-    if start < 0:
+    # `bool EoPrinter::isHandled` is a prefix of `...isHandledTheoryRewrite`,
+    # so anchor on the full signature rather than the prefix.
+    m = re.search(r"^bool EoPrinter::isHandled\(", text, re.M)
+    if m is None:
         return {}
+    start = m.start()
     # the function ends at the first line-start '}' after it
     end = text.find("\n}\n", start)
     body = text[start:end if end > 0 else len(text)]
@@ -161,7 +176,7 @@ def _parse_is_handled(src: str) -> dict[str, str]:
         nxt = marks[i + 1][1] if i + 1 < len(marks) else len(body)
         between = body[e:nxt]
         pending.append(name)
-        stripped = re.sub(r"//.*|/\*.*?\*/", "", between, flags=re.S).strip()
+        stripped = _strip_comments(between).strip()
         if not stripped:
             continue                      # empty: falls through to the next label
         verdict = "always" if re.match(r"^return\s+true\s*;", stripped) else "conditional"
