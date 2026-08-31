@@ -46,7 +46,10 @@ LANG_BY_EXT = {
     ".py": "python", ".md": "markdown", ".json": "json", ".sh": "shell",
     ".toml": "toml", ".cfg": "config", ".txt": "text",
 }
-SKIP_DIRS = {".git", "__pycache__", ".venv", "node_modules"}
+SKIP_DIRS = {".git", "__pycache__", ".venv", "node_modules",
+             # research notes, not part of the analyzer -- counting them would
+             # inflate the prose figure this audit exists to keep honest
+             "tools"}
 
 
 @dataclass
