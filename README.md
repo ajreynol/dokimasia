@@ -199,6 +199,26 @@ Between them they have produced one report and several candidates:
 All [candidates, not findings](docs/issues.md),
 until someone confirms them.
 
+## Auditing ourselves
+
+We ask cvc5 how much of itself its proof checker depends on; it is only fair to
+answer the same question here. `scripts/audit_loc` partitions this repository by
+analysis, by role and by language.
+
+```bash
+scripts/audit_loc                # by analysis
+scripts/audit_loc --by role      # engine / cli / tests / docs
+scripts/audit_loc --by language
+scripts/audit_loc --files --json
+```
+
+Lines are split into **code**, **comment**, **prose** and **data**, because a
+bare total would hide the thing worth watching: the engines run at 29% comment
+and the CLIs at 4%, which is roughly right — the reasoning belongs where the
+analysis is, and a formatter should not need explaining. It also shows the
+implementation is about half presentation, and that tests sit at 0.22× the
+implementation, which is lower than it should be.
+
 ## Working an issue with an assistant
 
 A second, plainer workflow, modelled on anoieu's `check_anoieu`. It is not the

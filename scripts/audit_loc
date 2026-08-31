@@ -1,0 +1,303 @@
+#!/usr/bin/env python3
+"""audit_loc -- how big is dokimasia, and where does the weight sit?
+
+We ask cvc5 how much of itself its proof checker depends on. It is only fair to
+be able to answer the same question about this repository, and the answer is
+also a design check: an analysis whose engine is larger than the thing it
+measures is probably doing too much.
+
+    scripts/audit_loc                # by analysis, the default view
+    scripts/audit_loc --by role      # engine / cli / tests / docs / ...
+    scripts/audit_loc --by language  # python / markdown / shell / json
+    scripts/audit_loc --files        # every file
+    scripts/audit_loc --json
+
+Lines are split into **code**, **comment** and **blank**. The split matters here
+because this repository deliberately carries a high comment ratio -- the reason
+a check exists, and what its number does not mean, is the part that stops it
+being misread -- and a bare line count would hide that.
+"""
+
+from __future__ import annotations
+
+import argparse
+import io
+import json
+import os
+import sys
+import tokenize
+from dataclasses import dataclass, field
+
+
+def _lines(text: str) -> list[str]:
+    """File lines, without the phantom empty element a trailing newline adds.
+
+    `"a\n".split("\n")` is `["a", ""]`; counting that second element made every
+    file one blank line longer than it is.
+    """
+    lines = text.split("\n")
+    if lines and lines[-1] == "":
+        lines.pop()
+    return lines
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+LANG_BY_EXT = {
+    ".py": "python", ".md": "markdown", ".json": "json", ".sh": "shell",
+    ".toml": "toml", ".cfg": "config", ".txt": "text",
+}
+SKIP_DIRS = {".git", "__pycache__", ".venv", "node_modules"}
+
+
+@dataclass
+class Count:
+    files: int = 0
+    code: int = 0
+    comment: int = 0
+    blank: int = 0
+    prose: int = 0        # markdown: neither code nor comment
+    data: int = 0         # json baselines: neither, and not written by hand
+
+    @property
+    def total(self) -> int:
+        return self.code + self.comment + self.blank + self.prose + self.data
+
+    @property
+    def comment_pct(self) -> float | None:
+        """Comment share of the *source*. None where there is no source."""
+        src = self.code + self.comment
+        return (100 * self.comment / src) if src else None
+
+    def add(self, other: "Count") -> None:
+        self.files += other.files
+        self.code += other.code
+        self.comment += other.comment
+        self.blank += other.blank
+        self.prose += other.prose
+        self.data += other.data
+
+
+@dataclass
+class FileInfo:
+    path: str
+    language: str
+    analysis: str
+    role: str
+    count: Count = field(default_factory=Count)
+
+
+def _classify_python(text: str) -> Count:
+    """Code / comment / blank for Python, using the tokenizer.
+
+    Docstrings count as comment: they are the explanation, and in this
+    repository they carry most of it. A regex would miss them, and miss `#`
+    inside a string besides.
+    """
+    c = Count(files=1)
+    comment_lines: set[int] = set()
+    code_lines: set[int] = set()
+    try:
+        toks = list(tokenize.generate_tokens(io.StringIO(text).readline))
+    except (tokenize.TokenError, IndentationError, SyntaxError):
+        toks = []
+    for tok in toks:
+        if tok.type == tokenize.COMMENT:
+            comment_lines.add(tok.start[0])
+        elif tok.type == tokenize.STRING and tok.line.lstrip().startswith(
+                ("'''", '"""', "r'''", 'r"""')):
+            comment_lines.update(range(tok.start[0], tok.end[0] + 1))
+        elif tok.type not in (tokenize.NL, tokenize.NEWLINE, tokenize.INDENT,
+                              tokenize.DEDENT, tokenize.ENDMARKER):
+            code_lines.update(range(tok.start[0], tok.end[0] + 1))
+    for n, line in enumerate(_lines(text), 1):
+        if not line.strip():
+            c.blank += 1
+        elif n in code_lines:
+            # code wins: `x = 1  # why` is a line of code that explains itself,
+            # not a comment. Counting it as comment inflates the ratio the
+            # table is meant to make honest.
+            c.code += 1
+        elif n in comment_lines:
+            c.comment += 1
+        else:
+            c.code += 1
+    return c
+
+
+def _classify_hash(text: str) -> Count:
+    """Shell and other `#`-commented languages."""
+    c = Count(files=1)
+    for line in _lines(text):
+        s = line.strip()
+        if not s:
+            c.blank += 1
+        elif s.startswith("#"):
+            c.comment += 1
+        else:
+            c.code += 1
+    return c
+
+
+def _classify_data(text: str) -> Count:
+    """Generated JSON: counted, but never confused with something written."""
+    c = Count(files=1)
+    for line in _lines(text):
+        if line.strip():
+            c.data += 1
+        else:
+            c.blank += 1
+    return c
+
+
+def _classify_markdown(text: str) -> Count:
+    """Prose is `code`; a fenced block is too. Only blanks are separated.
+
+    Splitting markdown into code and comment would be inventing a distinction
+    the format does not have.
+    """
+    c = Count(files=1)
+    for line in _lines(text):
+        if line.strip():
+            c.prose += 1
+        else:
+            c.blank += 1
+    return c
+
+
+def _language_of(path: str) -> str:
+    ext = os.path.splitext(path)[1]
+    if ext in LANG_BY_EXT:
+        return LANG_BY_EXT[ext]
+    # extensionless files: read the shebang
+    try:
+        with open(path, encoding="utf-8", errors="ignore") as fh:
+            first = fh.readline()
+    except OSError:
+        return "other"
+    if first.startswith("#!"):
+        if "python" in first:
+            return "python"
+        if "bash" in first or "sh" in first:
+            return "shell"
+    return "other"
+
+
+def _attribute(rel: str) -> tuple[str, str]:
+    """(analysis, role) for a repository-relative path."""
+    parts = rel.split(os.sep)
+    if parts[0] == "dokimasia":
+        if len(parts) == 2:                       # dokimasia/sanity.py
+            return "(shared)", "engine"
+        analysis = parts[1]
+        role = "cli" if parts[-1] == "__main__.py" else "engine"
+        return analysis, role
+    if parts[0] == "tests":
+        name = os.path.splitext(parts[-1])[0]
+        return (name[5:] if name.startswith("test_") else "(shared)"), "tests"
+    if parts[0] == "docs":
+        return "(docs)", "docs"
+    if parts[0] == "scripts":
+        return "(scripts)", "scripts"
+    if rel.endswith("-baseline.json"):
+        return rel.split("-")[0], "baseline"
+    return "(root)", "docs" if rel.endswith(".md") else "other"
+
+
+def collect(root: str) -> list[FileInfo]:
+    out: list[FileInfo] = []
+    for dirpath, dirs, files in os.walk(root):
+        dirs[:] = [d for d in dirs if d not in SKIP_DIRS]
+        for fn in sorted(files):
+            path = os.path.join(dirpath, fn)
+            rel = os.path.relpath(path, root)
+            if rel.startswith(".") or fn.endswith((".pyc", ".swp")):
+                continue
+            lang = _language_of(path)
+            if lang == "other":
+                continue
+            try:
+                with open(path, encoding="utf-8") as fh:
+                    text = fh.read()
+            except (OSError, UnicodeDecodeError):
+                continue
+            if lang == "python":
+                c = _classify_python(text)
+            elif lang in ("shell", "toml", "config"):
+                c = _classify_hash(text)
+            elif lang == "json":
+                c = _classify_data(text)
+            else:
+                c = _classify_markdown(text)
+            analysis, role = _attribute(rel)
+            out.append(FileInfo(rel, lang, analysis, role, c))
+    return out
+
+
+def _table(title: str, groups: dict[str, Count]) -> None:
+    total = Count()
+    for c in groups.values():
+        total.add(c)
+    print(f"{title}\n")
+    print(f"  {'':<18}{'files':>6}{'code':>7}{'comment':>9}{'prose':>7}"
+          f"{'data':>6}{'blank':>7}{'total':>8}   comment%")
+    rows = sorted(groups.items(), key=lambda kv: -kv[1].total) + [("TOTAL", total)]
+    for name, c in rows:
+        pct = c.comment_pct
+        pcts = f"{pct:>10.0f}%" if pct is not None else f"{'—':>11}"
+        print(f"  {name:<18}{c.files:>6}{c.code:>7}{c.comment:>9}{c.prose:>7}"
+              f"{c.data:>6}{c.blank:>7}{c.total:>8}{pcts}")
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(prog="scripts/audit_loc",
+                                 description="How big is dokimasia, by analysis, "
+                                             "role and language?")
+    ap.add_argument("--by", choices=("analysis", "role", "language"),
+                    default="analysis")
+    ap.add_argument("--files", action="store_true", help="every file")
+    ap.add_argument("--json", action="store_true")
+    ap.add_argument("--root", default=ROOT)
+    args = ap.parse_args(argv)
+
+    infos = collect(args.root)
+    if not infos:
+        print("audit_loc: found no files -- is --root a dokimasia checkout?",
+              file=sys.stderr)
+        return 2
+
+    if args.json:
+        print(json.dumps({
+            "files": [{"path": i.path, "language": i.language,
+                       "analysis": i.analysis, "role": i.role,
+                       "code": i.count.code, "comment": i.count.comment,
+                       "prose": i.count.prose, "data": i.count.data,
+                       "blank": i.count.blank} for i in infos],
+        }, indent=2))
+        return 0
+
+    if args.files:
+        print(f"  {'file':<44}{'lang':<10}{'code':>6}{'comment':>9}")
+        for i in sorted(infos, key=lambda i: -i.count.code):
+            print(f"  {i.path:<44}{i.language:<10}{i.count.code:>6}{i.count.comment:>9}")
+        print()
+
+    key = {"analysis": lambda i: i.analysis,
+           "role": lambda i: i.role,
+           "language": lambda i: i.language}[args.by]
+    groups: dict[str, Count] = {}
+    for i in infos:
+        groups.setdefault(key(i), Count()).add(i.count)
+    _table(f"dokimasia by {args.by}", groups)
+
+    # the engine/test ratio is the number worth watching
+    eng = sum(i.count.code for i in infos if i.role in ("engine", "cli"))
+    tst = sum(i.count.code for i in infos if i.role == "tests")
+    doc = sum(i.count.prose for i in infos if i.role == "docs")
+    print()
+    print(f"  implementation {eng} code lines, tests {tst} "
+          f"({tst / eng:.2f}x), prose {doc} lines ({doc / eng:.1f}x)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
