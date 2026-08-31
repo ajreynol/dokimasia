@@ -50,6 +50,7 @@ a witness; each says something about the pipeline that is true or false.
 | ○ | `API` | **proof API contracts** | does a `ProofGenerator` return a proof of what was asked? which invariants vanish in a release build? |
 | ✅ | `GATE` | **option gates** | which option must be on for a term kind — and so a rule — to occur, so severity can be computed instead of guessed |
 | ✅ | `FRAG` | **the supported fragment** | which term kinds may appear per theory under safe mode — and do the three enforcement mechanisms actually cover it? |
+| ✅ | `SIG` | **signature agreement** | do the rules and skolems cvc5 can print exist in the Eunoia signature, and does its own documentation match? |
 | ○ | `KRN` | **kernel obligations** | see [the stretch goals](docs/kernel.md) |
 
 Two of these — the ledger's arity column, and severity derived from reachability
@@ -134,6 +135,14 @@ supports, per theory, and whether it is enforced. Generates
 python3 -m dokimasia.fragment theories <cvc5>     # 352 kinds over 14 theories
 python3 -m dokimasia.fragment check    <cvc5>     # is the fragment enforced?
 python3 -m dokimasia.fragment doc      <cvc5> --out docs/fragment.md
+```
+
+**[`dokimasia.signature`](dokimasia/signature/)** — does the Eunoia signature
+agree with cvc5's own account of a rule?
+
+```bash
+python3 -m dokimasia.signature rules   <cvc5>     # 0 printable rules undeclared
+python3 -m dokimasia.signature skolems <cvc5>     # 24 constructed but unprintable
 ```
 
 **[`dokimasia.gates`](dokimasia/gates/)** — the machinery the other tools kept

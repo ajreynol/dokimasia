@@ -21,6 +21,7 @@ with a `baseline --check` ratchet. What each answers is in its group below.
 | `modes` | what safe and stable mode change about the defaults |
 | `gates` | which option legalises each term kind, and so each rewrite rule |
 | `fragment` | the supported fragment per theory, and whether it is enforced |
+| `signature` | whether the Eunoia signature agrees with cvc5's account of a rule |
 | `ci` | whether cvc5's proof testing is still attached |
 
 ## What the analysis is for
@@ -736,6 +737,12 @@ In order. Everything above that is not on this list is context, not a queue.
   log is in [`issues.md`](docs/issues.md#settled).
 
 ## Deliberately not doing
+
+- **Alethe.** Not on the critical production path and **not available in safe
+  mode**, so it cannot bear on the contract. A shallow look found the shape one
+  would expect — the post-processor carries a `d_reasonForConversionFailure`,
+  and deliberately emits holes for `BV_BITBLAST_STEP` on `udiv`/`urem`/shifts
+  ("no checking for those yet in Carcara or Isabelle"). Recorded, not pursued.
 
 - **Fuzzing.** [murxla's job](docs/tooling.md#posture-toward-murxla); we are
   white box and our value is the holes an input-driven tool cannot reach.
