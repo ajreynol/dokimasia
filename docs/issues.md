@@ -67,6 +67,28 @@ these rows exist so there is one place to see what is outstanding. Kinds are
 from [`findings.md`](findings.md): **B** an adoption, **C** a change to the
 pipeline, **D** an assertion.
 
+### Which ask moves which metric
+
+The [analysis groups](../TODO.md#what-the-analysis-is-for) each carry numbers we
+watch. If you are a cvc5 developer wondering where effort would show up, this is
+the map. **R1 and R2 are the two we would ask for first** — R2 is a one-line
+change, R1 is the one that makes everything else exact.
+
+| ask | moves | from → to |
+| --- | --- | --- |
+| **R1** emit the registries as JSON | *all of G1–G4* | inferred → exact. Retires most of our fragility and several asks below |
+| **R2** name `--check-proofs-complete` in the tester | G4 completeness chain | 0 of 4 links asserted → 4 |
+| **R3** extract helpers out of solver classes | G2 checker TCB | 41,446 lines → smaller, and 1 of 13 checkers over-scoped → 0 |
+| **R4** one `InferenceId`, one site | G3 nameability | 84% single-site → 100% |
+| **R5** `no_support` covers defaults | G4 contract | 1 option escaping → 0 |
+| **R6** declare intentional seam refusals | G1 hole census | 14 gaps *inferred* → 14 gaps *stated* |
+| **R7** derivable pass↔trust-id names | G3 nameability | correspondence checkable only by construction site → by name |
+| **R7b** RARE file in the marker | G3 nameability | theory recoverable by scanning two directories → from the header |
+| **R8** safe mode prunes at build time | G4 contract | features disabled at runtime → absent from the binary |
+| **R9** test each RARE rule against the rewriter | G5 determinacy | a rule that misstates the rewrite fails silently → is caught |
+| **R10** rule on the hygiene standard | G3 nameability | eleven proposals open → decided, either way |
+| **R11** run our ratchets in CI | all groups | measured when we remember → measured on every push |
+
 | # | ask | kind | why | where argued |
 | --- | --- | --- | --- | --- |
 | **R1** | **emit cvc5's proof registries as JSON** from a build target | C | the highest-leverage ask by a distance: makes our whole table tier exact instead of parsed, and retires most of the fragility below. Three parser bugs in one session are the argument | [coupling](coupling.md#r1--emit-the-tables-cvc5-already-has) |

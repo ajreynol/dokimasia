@@ -192,7 +192,7 @@ the path. Ours happens first.
 
 | | |
 | --- | --- |
-| [`TODO.md`](TODO.md) | the route to the goal, ordered by feedback latency |
+| [`TODO.md`](TODO.md) | what the analysis is for: five metric groups, what each aims at, and the next four things |
 | [`docs/goals.md`](docs/goals.md) | the stance, the goal, the agility constraint, and how we would know it is working |
 | [`docs/contract.md`](docs/contract.md) | what cvc5 promises, where, and the three ways completeness breaks |
 | [`docs/pipeline.md`](docs/pipeline.md) | the stages of proof production and where each leaks |

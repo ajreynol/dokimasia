@@ -41,7 +41,7 @@ time. R1 makes several of the asks below unnecessary rather than merely easier.
 build, `setDefaultsPre` enables it as a side effect of `--check-proofs`, so
 completeness is tested through a four-link chain nothing asserts. Passing the
 flag explicitly in the `proof` tester costs one line and makes the guarantee
-visible. See [`CI0002`](../TODO.md#stage-a2--is-cvc5s-proof-ci-intact).
+visible. See [`CI0002`](issues.md).
 
 ### R3 — get the theory solvers out of the proof checker's includes
 

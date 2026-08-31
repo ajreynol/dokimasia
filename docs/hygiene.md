@@ -170,7 +170,7 @@ is countable, and forces a *named* `TrustId` rather than a generic one.
 
 *What it buys.* Three things, in increasing order of value: reviewers see it;
 the census in
-[`TODO.md` M3](../TODO.md#m3--the-trust-census-trust-pp) becomes exact rather
+[`TODO.md` M3](../TODO.md#g3--can-we-quantify-over-the-entities-at-all) becomes exact rather
 than inferred; and the number of proofless inferences becomes a metric that can
 be watched going down.
 
