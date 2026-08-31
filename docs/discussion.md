@@ -20,6 +20,49 @@ answered can still be closed by a fact.
 
 Ids are allocated once, in order, and are never reused. Newest topic first.
 
+## D3 — a link into anoieu is the one link nothing checks
+
+**To:** anoieu
+**Kind:** request
+**Status:** open
+**Opened:** 2026-08-31, at anoieu `441b562`
+**Settles when:** the checker resolves an absolute link into anoieu against the
+anoieu it is running from, or says why it should not.
+
+`check_links` skips any target beginning with `http`, which is right for the
+open web and wrong for exactly one case: a link into anoieu. Ten of ours were
+dead, and had been since the documents moved. `docs/philosophy.md` is now
+`docs/reports/reporting-policy.md`, and what we linked to as
+`docs/reporting-policy.md` — the conventions — is now
+`docs/reports/reporting-workflow.md`. Both old paths 404, so nothing was
+silently wrong; but the name `reporting-policy.md` still exists and now means
+the other document, so a reader repairing these by nearest name has a decent
+chance of landing on the wrong one. We have repaired all ten and checked the
+three anchors by hand, and the note in `reporting-policy.md` that records our
+links as stale and unfiled can come down.
+
+The check needs no network and no dependency, because the checker already holds
+both roots: HOME, the anoieu it is running out of, and ROOT, the repository
+under test. For a target matching `github.com/ajreynol/anoieu/blob/<ref>/<path>`,
+resolve `<path>` under HOME. It would have failed the first run after the move
+with ten named links, which is the same fact your document already carries as an
+errand for a person. Resolving the fragment as well is one more regex and would
+cover the case ours happened to survive.
+
+Two things to decide with it. A `<ref>` that is not the branch the run is
+checking should be skipped rather than guessed at — a link naming a tag or a
+commit is a link to a version, and resolving it against whatever is checked out
+would be a different claim. And this check is only safe pinned: unpinned, one
+rename in anoieu turns every member red overnight with no commit anywhere near
+them, which is D2 and a fair reason to decline this one until that is settled.
+Pinned, the same rename arrives as a list of links to fix at the moment somebody
+bumps, which is the moment they can be fixed. The two go together, and if only
+one is worth doing it is D2.
+
+The narrower shape — only links into anoieu, resolved offline — is not a
+compromise we regret. anoieu is the repository that reorganizes, and it is the
+one every member links into.
+
 ## D2 — the joining step pins nothing, and every member runs it
 
 **To:** anoieu
@@ -63,6 +106,14 @@ as nobody looks, and announcing a change before it lands stops being a courtesy
 and becomes the mechanism that gets anyone to move. We would rather have that
 problem than the one where a member's build is green because of an afternoon in
 somebody else's repository.
+
+**Added the same day.** `reporting-workflow.md` already says this, about the
+other tool: each repository pins a version of the analyzer and a new check
+reaches it only when somebody there bumps, because the analyzer's release
+cadence is not allowed to break other people's builds. That is the argument
+above, already yours. The policy checker is the one piece of anoieu that every
+member runs, and the one with no pin — so this may be an omission in the joining
+page rather than a position you have to take.
 
 ## D1 — a child project's own documentation reads as a broken link
 

@@ -24,7 +24,7 @@ design. Numbers below were measured against cvc5 `16c4001e53`.*
 
 Why this question and not another is [`docs/goals.md`](docs/goals.md); what we
 will and will not publish about somebody else's code is
-[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md),
+[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md),
 shared with anoieu.
 
 ## The analyses
@@ -272,8 +272,8 @@ the path. Ours happens first.
 | [`docs/tooling.md`](docs/tooling.md) | the C++ static-analysis landscape, our design decisions, and the posture toward murxla |
 | [`docs/findings.md`](docs/findings.md) | what a finding is, what we promise about it, and the log — including retractions |
 | [`docs/workflows.md`](docs/workflows.md) | how a candidate is carried to cvc5 and back: the conventions we share with anoieu, and the two prompts |
-| [`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md) | *anoieu's, shared* — the position both tools take on reporting on code they do not own |
-| [`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reporting-policy.md) | *anoieu's, shared* — the conventions our workflow implements, and the shape of a reply |
+| [`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md) | *anoieu's, shared* — the position both tools take on reporting on code they do not own |
+| [`reporting-workflow.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-workflow.md) | *anoieu's, shared* — the conventions our workflow implements, and the shape of a reply |
 
 ## How this repository is maintained
 
@@ -290,6 +290,6 @@ when somebody here decides it does.
 directs the work, reviews it, and decides what is reported upstream; findings
 are filed by the human, not the agent. What *light* covers, and why the audience
 is people who know cvc5 well enough to throw a finding out, is stated in
-[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md).
+[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md).
 The workflow for carrying a candidate out and reading the answer is
 [`docs/workflows.md`](docs/workflows.md).

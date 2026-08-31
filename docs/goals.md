@@ -28,7 +28,7 @@ a design note, and lives in [`TODO.md`](../TODO.md) as one.
 What we will and will not say about somebody else's code — silence is never
 evidence, a false positive is ours, an artifact settles a finding — is the
 position shared with anoieu in
-[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md),
+[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md),
 and is not restated here.
 
 ## The operating constraint: agility

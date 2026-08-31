@@ -24,7 +24,7 @@ goes with it. See
 [`docs/tooling.md`](tooling.md#d3--where-an-invariant-should-live).
 
 The promises are
-[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md)'s
+[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)'s
 — *publish a candidate, carry a finding*; *a false positive is ours, and so is
 anything we asked them to run*; *presence is not reachability*; *every claim is
 re-checkable without us*; *closing is a verdict* — and are not restated here.

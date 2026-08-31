@@ -5,17 +5,17 @@ to whoever can settle it and back.
 
 **Little of this is ours to state.** The position — what may be published about
 somebody else's code at all — is
-[`philosophy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/philosophy.md),
+[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md),
 shared with anoieu outright and naming this repository as a dependent. The mechanics that
 implement it — what an agent following up a reply may change, the shape a reply
 takes — are the conventions in
-[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reporting-policy.md#the-conventions),
+[`reporting-workflow.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-workflow.md#the-conventions),
 written to transfer. Both govern this repository, and neither is restated here.
 
 What follows is the remainder: which of our files fill the policy's slots, what
 settles a row here, where we diverge, and the two prompts. It assumes an expert
 — somebody who knows the C++ being looked at, which is the audience
-`philosophy.md` says these tools are for.
+`reporting-policy.md` says these tools are for.
 
 ## The slots
 
@@ -154,7 +154,7 @@ Working in the dokimasia repository:
    points to: a branch, to its end (merged, reworked, reverted, still open), or
    an input, by running it. That outcome counts, not what the triage predicted.
 3. Move only the rows the reply is about, as
-   https://github.com/ajreynol/anoieu/blob/main/docs/reporting-policy.md#the-conventions
+   https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-workflow.md#the-conventions
    says. A settled
    row moves to the Settled table with what settled it; a row that became a
    finding moves to Filed. Rows move and are never deleted, and a row the reply
@@ -189,7 +189,7 @@ the versions — is designed separately; when it lands, the slot table here and
 the URL in prompt one change together.
 
 Issues on our own tracker are anoieu's
-[arrangement](https://github.com/ajreynol/anoieu/blob/main/docs/reporting-policy.md#medium-term-issues-on-our-own-repository)
+[arrangement](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-workflow.md#medium-term-issues-on-our-own-repository)
 under *nothing crosses a repository boundary automatically*, and we follow both
 rather than restate them. One line is ours to draw, and
 [`findings.md`](findings.md) draws it: that asymmetry is about **candidates**. A confirmed kind-A finding — an
