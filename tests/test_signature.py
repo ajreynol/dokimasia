@@ -31,6 +31,23 @@ def test_latex():
     check("variadic args", _arg_count(r"F_1, \dots, F_n"), -1)
 
 
+def test_checker(root):
+    from dokimasia.signature.checker import agrees, scan_checkers
+    print("checker-implied arity:")
+    c = scan_checkers(root)
+    check("SUBS: the checker reads a third argument the docs omit",
+          (c["SUBS"].arguments, "args[2] indexed" in c["SUBS"].evidence),
+          (">=3", True))
+    # `size() > 0` is a bound of 1, not 0
+    check("a strict inequality bounds at N+1", c["SUBS"].premises, ">=1")
+    check("an exact assertion is taken as exact", c["RESOLUTION"].arguments, 2)
+    check("a documented count is consistent with a weaker checker bound",
+          agrees(4, ">=3"), True)
+    check("a documented count below the checker bound disagrees",
+          agrees(2, ">=3"), False)
+    check("no evidence yields no verdict", agrees(2, None), None)
+
+
 def test_cvc5(root):
     print(f"cvc5 tree at {root}:")
     s = scan(root)
@@ -53,6 +70,8 @@ if __name__ == "__main__":
     test_latex()
     root = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("CVC5")
     if root and os.path.isdir(root):
+        print()
+        test_checker(root)
         print()
         test_cvc5(root)
     print()

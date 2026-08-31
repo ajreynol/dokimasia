@@ -143,6 +143,7 @@ agree with cvc5's own account of a rule?
 ```bash
 python3 -m dokimasia.signature rules   <cvc5>     # 0 printable rules undeclared
 python3 -m dokimasia.signature skolems <cvc5>     # 24 constructed but unprintable
+python3 -m dokimasia.signature checker <cvc5>     # documented arity vs what the checker enforces
 ```
 
 **[`dokimasia.gates`](dokimasia/gates/)** — the machinery the other tools kept

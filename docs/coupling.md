@@ -91,6 +91,14 @@ the correspondence it creates is exact. Adding the file — `(theory/booleans/re
 consumer currently reconstructs by scanning two directories. See
 [H11](hygiene.md#h11--the-rare-correspondence-is-stated-not-inferred).
 
+### R7c — state a rule's arity in a structured field
+
+`SkolemId` documents "Number of skolem indices: ``N``" and is checkable
+mechanically; `ProofRule` states arity only inside LaTeX prose, and comparing it
+to the checker took five rounds of parser work to get from 10 apparent
+disagreements down to the one real one. The same structured field on proof rules
+would make `RULE0010` a two-line check instead of a research project.
+
 ### R8 — safe mode as a build-time property
 
 `ENABLE_SAFE_MODE` exists and prunes almost nothing of cvc5's own code: five

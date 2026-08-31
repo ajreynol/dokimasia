@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 
+from .checker import agrees, scan_checkers
 from .compare import printed_name, scan
 
 ARITY_CAVEAT = """
@@ -85,6 +86,42 @@ def cmd_skolems(args) -> int:
     return 1 if up else 0
 
 
+def cmd_checker(args) -> int:
+    """Documented arity vs the arity the checker actually enforces."""
+    s = scan(args.cvc5)
+    c = scan_checkers(args.cvc5)
+    bad = []
+    for r, (dp, da) in sorted(s.doc.items()):
+        a = c.get(r)
+        if a and (agrees(dp, a.premises) is False or agrees(da, a.arguments) is False):
+            bad.append((r, dp, da, a))
+    if args.json:
+        print(json.dumps([{"rule": r, "doc_premises": str(dp), "doc_args": str(da),
+                           "checker_premises": str(a.premises),
+                           "checker_args": str(a.arguments),
+                           "evidence": a.evidence, "file": a.file}
+                          for r, dp, da, a in bad], indent=2))
+        return 1 if bad else 0
+    print("Does the documentation match the checker that enforces it?\n")
+    print(f"  {len(s.doc)} rules with a parseable `\\inferrule`")
+    print(f"  {len(c)} rules where the checker reveals an arity")
+    print(f"  {len([r for r in s.doc if r in c])} comparable\n")
+    if not bad:
+        print("  No disagreements.")
+        return 0
+    for r, dp, da, a in bad:
+        print(f"  {r}")
+        print(f"    documented   premises={dp}  arguments={da}")
+        print(f"    checker      premises={a.premises}  arguments={a.arguments}")
+        print(f"    evidence     {', '.join(a.evidence)}")
+        print(f"    in           {a.file}")
+    print()
+    print("  The checker is the authority here: it is the code that decides what")
+    print("  is accepted. A documented arity narrower than the checker's means")
+    print("  the documentation omits something the rule really takes.")
+    return 1
+
+
 def cmd_arity(args) -> int:
     s = scan(args.cvc5)
     m = s.mismatches()
@@ -106,6 +143,7 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     for name, fn, helptext in (("rules", cmd_rules, "printable rules vs the signature"),
                                ("skolems", cmd_skolems, "SkolemId coverage"),
+                               ("checker", cmd_checker, "documented vs enforced arity"),
                                ("arity", cmd_arity, "documented vs signature arity")):
         q = sub.add_parser(name, help=helptext)
         q.add_argument("cvc5"); q.add_argument("--json", action="store_true")

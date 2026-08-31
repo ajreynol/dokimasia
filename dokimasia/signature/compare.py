@@ -103,7 +103,12 @@ class Signature:
             if n not in self.sig or r not in self.doc:
                 continue
             d, s = self.doc[r], self.sig[n]
-            if d[0] != s[0] or d[1] != s[1]:
+            da = d[1]
+            if isinstance(da, tuple):
+                da_ok = s[1] in da or (da[1] <= s[1] <= da[0])
+            else:
+                da_ok = da == s[1]
+            if d[0] != s[0] or not da_ok:
                 out.append((r, n, d, s))
         return out
 
@@ -198,9 +203,25 @@ def _arg_count(text: str) -> int:
     if t in ("-", ""):
         return 0
     parts = _split_top(t)
-    if any("\\dots" in p or "\\ldots" in p for p in parts):
-        return -1                     # variadic argument list
-    return len(parts)
+    # An ellipsis *inside* one argument -- `(F_1 \land \dots \land F_n), i` --
+    # describes that argument's shape. Only a bare ellipsis standing between
+    # arguments means the list itself is variadic. Same bug as premises had.
+    if any(p.strip() in ("\\dots", "\\ldots", "...") for p in parts):
+        return -1
+    # `id t_1 \dots t_n` -- one comma-part whose items are space-separated with
+    # an ellipsis between them. DSL_REWRITE is the only rule written this way.
+    # A *bracketed* or connective-joined part -- `(F_1 \land \dots \land F_n)` --
+    # is one argument describing its own shape, not a list.
+    if len(parts) == 1:
+        only = parts[0].strip()
+        bracketed = only.startswith("(")
+        connective = any(c in only for c in ("\\land", "\\wedge", "\\lor",
+                                             "\\vee", "\\cdot"))
+        if not bracketed and not connective and re.search(r"\S\s+\\l?dots\s+\S", only):
+            return -1
+    optional = sum(1 for p in parts if p.strip().endswith("?"))
+    n = len(parts)
+    return (n, n - optional) if optional else n
 
 
 def _field(body: str, key: str) -> str | None:
