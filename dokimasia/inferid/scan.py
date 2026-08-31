@@ -26,6 +26,12 @@ import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
+from ..sanity import expect
+
+
+def expect_list(xs, n, what, anchor):
+    expect(len(xs), n, what, anchor)
+    return xs
 
 _ENUM_HEADER = os.path.join("theory", "inference_id.h")
 _ENUM_IMPL = os.path.join("theory", "inference_id.cpp")
@@ -118,7 +124,9 @@ def _declared(src: str) -> list[str]:
         return []
     end = text.find("\n};", start)
     body = text[start:end]
-    return _MEMBER.findall(body)
+    names = _MEMBER.findall(body)
+    return expect_list(names, 300, "InferenceId enum members",
+                       "`enum class InferenceId` in theory/inference_id.h")
 
 
 def scan(src: str, include_tests: bool = False) -> InferenceIds:

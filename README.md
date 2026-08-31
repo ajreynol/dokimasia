@@ -40,7 +40,7 @@ a witness; each says something about the pipeline that is true or false.
 | ◐ | `MODE` | **the safe-mode contract** | is anything reachable in safe mode without proof support? what does enabling proofs change about the solver at all? |
 | ✅ | `RULE` | **the rule ledger** | for every `ProofRule`: who produces it, checks it, elaborates it, prints it. The interesting rows are the ones with a hole |
 | ✅ | `TRUST` | **the trust census** | every site that can introduce a trust step, keyed by `TrustId`: which are reachable, which are dead, which are unnamed |
-| ○ | `INFER` | **inference coverage** | for each `InferenceId` a theory emits, does its reconstruction have a case, and is a `ProofGenerator` attached? |
+| ✅ | `INFER` | **inference coverage** | for each `InferenceId` a theory emits, does its reconstruction have a case, and is a `ProofGenerator` attached? |
 | ✅ | `RW` | **rewrite coverage** | can every rewrite the rewriter performs be reconstructed — and which reconstructions depend on a search budget? |
 | ◐ | `PP` | **preprocessing coverage** | does every pass either prove its work or declare a `PREPROCESS_*` trust id? |
 | ◐ | `ELAB` | **macro elaboration** | is every `MACRO_*` expanded at each granularity, terminating in non-macro rules? |
@@ -137,6 +137,14 @@ python3 -m dokimasia.fragment check    <cvc5>     # is the fragment enforced?
 python3 -m dokimasia.fragment doc      <cvc5> --out docs/fragment.md
 ```
 
+**[`dokimasia.infer`](dokimasia/infer/)** — does every inference a theory makes
+have a proof reconstruction? The completeness core.
+
+```bash
+python3 -m dokimasia.infer coverage  <cvc5>          # per theory
+python3 -m dokimasia.infer unhandled <cvc5> strings  # the ids that fall through
+```
+
 **[`dokimasia.signature`](dokimasia/signature/)** — does the Eunoia signature
 agree with cvc5's own account of a rule?
 
@@ -178,6 +186,10 @@ Between them they have produced one report and several candidates:
   gate analysis blocks two of them in safe mode — but **`LAMBDA_ELIM` comes back
   open**: its arm fires on `Kind::LAMBDA`, which nothing gates. That is the
   strongest safe-mode candidate this repository has produced.
+- **79 inferences fall through to a trust step by construction.** Their theory
+  has an `InferProofCons`, its default case builds a `TRUST` step, and the
+  switch does not name them — strings covers 78% of what it emits, datatypes
+  42%, sets 22%.
 - **Proof completeness is never named in cvc5's CI.** `--check-proofs-complete`
   appears nowhere; in a safe build `setDefaultsPre` turns it on as a side effect
   of `--check-proofs`. Four links hold and nothing asserts any of them — 4 of 22

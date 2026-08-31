@@ -11,6 +11,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from dokimasia.ledger.build import Row, _parse_is_handled, build  # noqa: E402
 
+from dokimasia import sanity  # noqa: E402
+
 FAILURES = []
 
 
@@ -22,6 +24,9 @@ def check(label, got, want):
 
 
 def test_is_handled_parsing():
+    # a synthetic fixture is smaller than any real tree; the size
+    # thresholds describe cvc5, not a five-line stand-in for it
+    sanity.set_enabled(False)
     print("isHandled parsing (C fallthrough):")
     with tempfile.TemporaryDirectory() as tmp:
         d = os.path.join(tmp, "proof", "eo")
@@ -52,6 +57,8 @@ bool EoPrinter::isHandled(const Options& opts, const ProofNode* pfn)
     check("an arm that computes its answer is conditional",
           got.get("B_COND"), "conditional")
     check("a rule absent from the switch is not listed", "C_MISSING" in got, False)
+
+    sanity.set_enabled(True)
 
 
 def test_classification():

@@ -23,6 +23,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
+from ..sanity import expect
 
 _CHECK_FN = re.compile(r"\w+::checkInternal\s*\(")
 _IF_RULE = re.compile(r"\b(?:else\s+)?if\s*\(\s*id\s*==\s*ProofRule::([A-Z][A-Z0-9_]*)\s*\)")
@@ -124,6 +125,8 @@ def scan_checkers(root: str) -> dict[str, Arity]:
                 p, pe = _shape(inner, "children")
                 a, ae = _shape(inner, "args")
                 out.setdefault(name, Arity(name, rel, p, a, pe + ae))
+    expect(len(out), 100, "rules with checker arity evidence",
+           "`checkInternal` in the theory proof_checker.cpp files")
     return out
 
 

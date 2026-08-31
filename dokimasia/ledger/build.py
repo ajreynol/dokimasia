@@ -28,6 +28,7 @@ import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
+from ..sanity import expect
 
 _EVALUE = re.compile(r"EVALUE\(([A-Z][A-Z0-9_]*)\)")
 _REGISTER = re.compile(
@@ -183,6 +184,8 @@ def _parse_is_handled(src: str) -> dict[str, str]:
         for p in pending:
             out[p] = verdict
         pending = []
+    expect(len(out), 100, "case labels in EoPrinter::isHandled",
+           "the `bool EoPrinter::isHandled(` definition in proof/eo/eo_printer.cpp")
     return out
 
 

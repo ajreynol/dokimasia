@@ -32,6 +32,7 @@ import glob
 import os
 import re
 from dataclasses import dataclass, field
+from ..sanity import expect
 
 _KIND_BLOCK = re.compile(r"^\[\[kinds\]\](.*?)(?=^\[\[|\Z)", re.M | re.S)
 _NAME = re.compile(r'^\s*name\s*=\s*"([A-Z][A-Z0-9_]*)"', re.M)
@@ -148,6 +149,8 @@ def _kinds(src: str, f: Fragment) -> None:
             ty = _TYPE.search(block)
             if nm:
                 f.kinds[nm.group(1)] = (theory, ty.group(1) if ty else "?")
+    expect(len(f.kinds), 300, "term kinds",
+           "the `[[kinds]]` blocks in theory/*/kinds.toml")
 
 
 def scan(root: str) -> Fragment:

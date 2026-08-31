@@ -22,6 +22,7 @@ with a `baseline --check` ratchet. What each answers is in its group below.
 | `gates` | which option legalises each term kind, and so each rewrite rule |
 | `fragment` | the supported fragment per theory, and whether it is enforced |
 | `signature` | whether the Eunoia signature agrees with cvc5's account of a rule |
+| `infer` | whether every inference a theory makes has a proof reconstruction |
 | `ci` | whether cvc5's proof testing is still attached |
 
 ## What the analysis is for

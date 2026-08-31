@@ -28,6 +28,7 @@ import glob
 import os
 import re
 from dataclasses import dataclass, field
+from ..sanity import expect
 
 _DECL = re.compile(r"\(declare-rule\s+([^\s()]+)\s*\((.*?)\)\s*(.*?)(?=\n\(|\Z)", re.S)
 _EVALUE_DOC = re.compile(
@@ -258,6 +259,8 @@ def _parse_signature(root: str) -> dict[str, tuple[object, int]]:
                 prem = _sexprs(pm) if pm is not None else 0
             am = _field(body, ":args")
             out[name] = (prem, _sexprs(am) if am is not None else 0)
+    expect(len(out), 500, "declare-rule forms in the Eunoia signature",
+           "`(declare-rule ...)` under proofs/eo/")
     return out
 
 

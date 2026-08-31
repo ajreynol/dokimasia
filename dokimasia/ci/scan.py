@@ -18,6 +18,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
+from ..sanity import expect
 
 #: Testers whose purpose is to exercise proof production.
 PROOF_TESTERS = frozenset({"proof", "cpc", "lfsc", "alethe", "unsat-core"})
@@ -157,6 +158,8 @@ def _parse_testers(path: str) -> tuple[dict[str, Tester], list[str]]:
         testers[name] = Tester(name=name, flags=flags, line=line)
     dm = re.search(r"g_default_testers\s*=\s*\[(.*?)\]", text, re.S)
     defaults = re.findall(r'"([a-z-]+)"', dm.group(1)) if dm else []
+    expect(len(testers), 5, "testers in run_regression.py",
+           "`super().__init__(\"<name>\")` in the Tester subclasses")
     return testers, defaults
 
 

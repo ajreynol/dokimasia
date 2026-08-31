@@ -31,6 +31,7 @@ import glob
 import os
 import re
 from dataclasses import dataclass, field
+from ..sanity import expect
 
 _EVALUE = re.compile(r"EVALUE\(([A-Z][A-Z0-9_]*)\)")
 _RARE = re.compile(r"^\(define-(?:cond-)?rule\*?\s+([A-Za-z0-9_.\-]+)", re.M)
@@ -257,6 +258,8 @@ def _handled(src: str) -> tuple[dict[str, str], set[str]]:
             if restricted:
                 unrestricted.add(p)
         pending = []
+    expect(len(out), 40, "arms in isHandledTheoryRewrite",
+           "the `bool EoPrinter::isHandledTheoryRewrite` definition")
     return out, unrestricted
 
 

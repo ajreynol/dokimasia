@@ -20,6 +20,7 @@ import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
+from ..sanity import expect
 
 _USE = re.compile(r"(?:(case)\s+|(==|!=)\s*)?\bTrustId::([A-Z][A-Z0-9_]*)")
 _MEMBER = re.compile(r"^\s*([A-Z][A-Z0-9_]*)\s*(?:=[^,\n]*)?,?\s*(?://.*)?$", re.M)
@@ -128,7 +129,10 @@ def _declared(src: str) -> list[str]:
         text = fh.read()
     start = text.find("enum class TrustId")
     end = text.find("\n};", start)
-    return _MEMBER.findall(text[start:end]) if start >= 0 else []
+    names = _MEMBER.findall(text[start:end]) if start >= 0 else []
+    expect(len(names), 50, "TrustId enum members",
+           "`enum class TrustId` in proof/trust_id.h")
+    return names
 
 
 def census(root: str) -> Census:

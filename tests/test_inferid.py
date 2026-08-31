@@ -11,6 +11,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from dokimasia.inferid.scan import SENTINELS, scan  # noqa: E402
 
+from dokimasia import sanity  # noqa: E402
+
 FAILURES = []
 
 
@@ -22,6 +24,9 @@ def check(label, got, want):
 
 
 def test_synthetic():
+    # a synthetic fixture is smaller than any real tree; the size
+    # thresholds describe cvc5, not a five-line stand-in for it
+    sanity.set_enabled(False)
     print("synthetic tree:")
     with tempfile.TemporaryDirectory() as tmp:
         src = os.path.join(tmp, "src")
@@ -55,6 +60,8 @@ def test_synthetic():
         check("an id nothing produces is dead", m.unused(), ["A_DEAD"])
         check("sentinels are excluded from violations",
               all(i not in SENTINELS for i, _ in m.violations()), True)
+
+    sanity.set_enabled(True)
 
 
 def test_cvc5(root):

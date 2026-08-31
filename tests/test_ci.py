@@ -11,6 +11,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from dokimasia.ci.scan import scan  # noqa: E402
 
+from dokimasia import sanity  # noqa: E402
+
 FAILURES = []
 
 
@@ -22,6 +24,9 @@ def check(label, got, want):
 
 
 def test_synthetic():
+    # a synthetic fixture is smaller than any real tree; the size
+    # thresholds describe cvc5, not a five-line stand-in for it
+    sanity.set_enabled(False)
     print("synthetic tree:")
     with tempfile.TemporaryDirectory() as tmp:
         wf = os.path.join(tmp, ".github", "workflows")
@@ -80,6 +85,8 @@ PARSER.add_argument("--not-a-tester-flag")
     chain = m.completeness_chain()
     check("four links hold", sum(1 for _, ok, _ in chain if ok), 4)
     check("the last link -- naming completeness -- does not", chain[-1][1], False)
+
+    sanity.set_enabled(True)
 
 
 def test_cvc5(root):

@@ -31,6 +31,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
+from ..sanity import expect
 
 MACROS = (
     "SET_AND_NOTIFY_IF_NOT_USER_VAL_SYM",
@@ -190,6 +191,8 @@ def parse_set_defaults(src: str) -> list[OptionChange]:
         if ";" in line:
             pending = ""
         i += 1
+    expect(len(changes), 100, "option changes in set_defaults.cpp",
+           "the SET_AND_NOTIFY* macro calls in smt/set_defaults.cpp")
     return changes
 
 
