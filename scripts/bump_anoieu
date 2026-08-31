@@ -1,0 +1,230 @@
+#!/usr/bin/env python3
+"""bump_anoieu -- move the pin on anoieu, whose policy this repository follows.
+
+CI here runs anoieu's policy checker, so anoieu is a dependency of this build in
+the ordinary sense: a change made over there turns this build red or green
+without anybody touching a file in this repository. That has already happened
+once in both directions. So the commit we check against is pinned in
+`tools/deps.lock`, and moving it is a decision somebody takes. This is the
+command that takes it.
+
+    scripts/bump_anoieu             # move the pin to the tip of the tracked ref
+    scripts/bump_anoieu --check     # the check at the pinned commit, as CI runs it
+    scripts/bump_anoieu --show      # what is pinned, what is upstream, what is between
+    scripts/bump_anoieu --force     # move the pin even though the check fails
+
+The pin moves only onto a commit the check passes at, unless --force says
+otherwise: a lock naming a version we never passed against is worse than no lock
+at all. When the check fails, its output is the point of the run -- the pin
+stays where it is, which is the version CI keeps testing, and the failures are
+what to fix before trying again.
+
+**A checkout on this machine, if there is one.** `tools/deps.local.json` is
+untracked and true only here. It says where anoieu already lives:
+
+    {"anoieu": {"path": "~/anoieu"}}
+
+Given one, the checker is read straight out of it and nothing is fetched, which
+makes the loop between changing a policy there and seeing what it says about
+this repository about a second long. That checkout is somebody's working tree:
+it is never written to, never checked out, and never fetched into, so what runs
+is whatever it happens to be at and every run says which commit that was.
+`--no-local` ignores the file and goes to the network.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+MANIFEST = os.path.join(ROOT, "tools", "deps.json")
+LOCK = os.path.join(ROOT, "tools", "deps.lock")
+LOCAL = os.path.join(ROOT, "tools", "deps.local.json")
+#: Where the joining page's CI step puts its clone, so a fetch here and a fetch
+#: in CI leave the same thing in the same place.
+CLONE = "/tmp/anoieu"
+NAME = "anoieu"
+CHECKER = os.path.join("tools", "policy_check.py")
+
+
+def load(path: str, default=None):
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+    except FileNotFoundError:
+        if default is None:
+            sys.exit(f"bump_anoieu: {path} does not exist")
+        return default
+
+
+def git(*args: str, cwd: str | None = None, check: bool = True) -> str:
+    out = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True)
+    if check and out.returncode:
+        sys.exit(f"bump_anoieu: git {' '.join(args)} failed\n{out.stderr.strip()}")
+    return out.stdout.strip()
+
+
+def local_checkout() -> str:
+    """The checkout named in `tools/deps.local.json`, if the file names one."""
+    path = os.path.expanduser(load(LOCAL, {}).get(NAME, {}).get("path", ""))
+    if not path:
+        return ""
+    if not os.path.isdir(os.path.join(path, ".git")):
+        sys.exit(f"bump_anoieu: deps.local.json names {path}, which is not a checkout")
+    return path
+
+
+def describe(path: str) -> tuple[str, str, bool]:
+    """The commit a checkout is at, its date, and whether anything is uncommitted."""
+    return (git("rev-parse", "HEAD", cwd=path),
+            git("show", "-s", "--format=%cs", "HEAD", cwd=path),
+            bool(git("status", "--porcelain", cwd=path)))
+
+
+def tip(dep: dict) -> str:
+    """The commit the tracked ref points at right now, asked of the remote."""
+    out = git("ls-remote", dep["url"], dep["ref"])
+    if not out:
+        sys.exit(f"bump_anoieu: {dep['url']} has no {dep['ref']}")
+    return out.split()[0]
+
+
+def fetch(dep: dict, rev: str) -> str:
+    """One commit of anoieu at CLONE. Shallow: the checker reads text and builds
+    nothing, so there is no history worth carrying."""
+    if os.path.exists(CLONE):
+        if not os.path.isdir(os.path.join(CLONE, ".git")):
+            sys.exit(f"bump_anoieu: {CLONE} exists and is not a clone; move it")
+        shutil.rmtree(CLONE)
+    os.makedirs(CLONE)
+    git("init", "-q", CLONE)
+    git("fetch", "-q", "--depth", "1", dep["url"], rev, cwd=CLONE)
+    git("checkout", "-q", "--detach", "FETCH_HEAD", cwd=CLONE)
+    return CLONE
+
+
+def run_check(path: str) -> int:
+    """anoieu's checker, read from `path`, run against this repository."""
+    checker = os.path.join(path, CHECKER)
+    if not os.path.exists(checker):
+        sys.exit(f"bump_anoieu: {path} carries no {CHECKER}")
+    # Flushed, so that what this script said stays above what the checker says
+    # when the run is piped into something rather than read on a terminal.
+    print(flush=True)
+    return subprocess.run([sys.executable, checker, "--root", ROOT]).returncode
+
+
+def write_lock(dep: dict, commit: str, date: str) -> None:
+    data = load(LOCK)
+    data[NAME] = {"ref": dep["ref"], "commit": commit, "date": date}
+    with open(LOCK, "w", encoding="utf-8") as fh:
+        json.dump(data, fh, indent=2)
+        fh.write("\n")
+
+
+def show(dep: dict, pinned: dict, local: str) -> int:
+    print(f"pinned  {pinned['commit'][:10]}  {pinned['date']}  ({pinned['ref']})")
+    if local:
+        commit, date, dirty = describe(local)
+        dirt = "  uncommitted changes" if dirty else ""
+        print(f"local   {commit[:10]}  {date}  {local}{dirt}")
+    else:
+        print(f"local   none -- name a checkout in {os.path.relpath(LOCAL, ROOT)} "
+              "to run the check without fetching")
+    head = tip(dep)
+    print(f"remote  {head[:10]}  {dep['url']} {dep['ref']}")
+    if head == pinned["commit"]:
+        print(f"\nthe pin is at the tip of {dep['ref']}")
+        return 0
+    print(f"\nthe pin is behind {dep['ref']}; scripts/bump_anoieu moves it")
+    # What landed between, when a checkout here already has both commits. Never
+    # fetched for: reading somebody's clone is free, changing it is not ours.
+    if local:
+        between = git("log", "--oneline", f"{pinned['commit']}..HEAD",
+                      cwd=local, check=False)
+        if between:
+            print()
+            print(between)
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(
+        description="move the pin on anoieu, whose policy this repository follows")
+    ap.add_argument("--check", action="store_true",
+                    help="run the check at the pinned commit, as CI does")
+    ap.add_argument("--show", action="store_true",
+                    help="what is pinned, what is upstream, and what is between")
+    ap.add_argument("--force", action="store_true",
+                    help="move the pin even though the check fails")
+    ap.add_argument("--no-local", action="store_true",
+                    help="ignore tools/deps.local.json and fetch a copy")
+    args = ap.parse_args()
+
+    dep = load(MANIFEST)[NAME]
+    pinned = load(LOCK)[NAME]
+    local = "" if args.no_local else local_checkout()
+
+    if args.show:
+        return show(dep, pinned, local)
+
+    if args.check:
+        if local:
+            commit, _date, dirty = describe(local)
+            at = "the pinned commit" if commit == pinned["commit"] \
+                else f"not the pinned {pinned['commit'][:10]}"
+            dirt = ", with uncommitted changes" if dirty else ""
+            print(f"-- {local} at {commit[:10]}, {at}{dirt}")
+        else:
+            local = fetch(dep, pinned["commit"])
+            print(f"-- anoieu {pinned['commit'][:10]} ({pinned['date']}), at {local}")
+        return run_check(local)
+
+    # A bump. The new commit comes from the checkout here if there is one, and
+    # from the tip of the tracked ref otherwise.
+    if local:
+        commit, date, dirty = describe(local)
+        origin = local
+        if dirty:
+            print(f"-- {local} has uncommitted changes; a pin names a commit, "
+                  "so they are not part of what is about to be checked")
+        if commit != tip(dep):
+            print(f"-- {commit[:10]} is not the tip of {dep['url']} {dep['ref']}; "
+                  "CI fetches the pin by commit, so it has to be pushed")
+        path = local
+    else:
+        commit = tip(dep)
+        path = fetch(dep, commit)
+        _, date, _ = describe(path)
+        origin = f"{dep['url']} {dep['ref']}"
+
+    if commit == pinned["commit"]:
+        print(f"-- already pinned at {commit[:10]} ({date}); checking anyway")
+    else:
+        print(f"-- {pinned['commit'][:10]} ({pinned['date']}) -> {commit[:10]} "
+              f"({date}), from {origin}")
+
+    rc = run_check(path)
+    if rc and not args.force:
+        print(f"\n-- the check fails at {commit[:10]}, so the pin stays at "
+              f"{pinned['commit'][:10]}, which is the version CI tests")
+        print("   fix what it reports and run this again, or --force to move anyway")
+        return rc
+    if commit == pinned["commit"]:
+        print(f"\n-- the pin is unchanged at {commit[:10]}")
+        return rc
+    write_lock(dep, commit, date)
+    verdict = "though the check fails" if rc else "and the check passes"
+    print(f"\n-- tools/deps.lock now pins {commit[:10]} ({date}), {verdict}")
+    print("   stage it: git add tools/deps.lock")
+    return rc if args.force else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

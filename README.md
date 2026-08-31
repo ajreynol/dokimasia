@@ -280,6 +280,11 @@ the path. Ours happens first.
 This repository is part of the **Eunoia ecosystem** and follows its shared
 repository policy, kept by [anoieu](https://github.com/ajreynol/anoieu) in
 [`docs/policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/policy.md).
+CI checks that claim against a pinned commit of anoieu, recorded in
+[`tools/deps.lock`](tools/deps.lock) and moved by
+[`scripts/bump_anoieu`](scripts/bump_anoieu), which will not move it onto a
+version this repository does not pass at — so the policy we are held to changes
+when somebody here decides it does.
 
 **Written by an AI agent, under light human supervision.** A human maintainer
 directs the work, reviews it, and decides what is reported upstream; findings

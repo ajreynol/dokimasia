@@ -1,0 +1,8 @@
+{
+  "_comment": "Written by scripts/bump_anoieu. The commit of anoieu this repository is checked against, and the one CI fetches. Moved by a run, not by hand.",
+  "anoieu": {
+    "ref": "main",
+    "commit": "441b5629fb8c13ec61fb741ce584f723fd421d61",
+    "date": "2026-08-31"
+  }
+}

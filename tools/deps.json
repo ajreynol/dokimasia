@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "What this build depends on: fetched by the run that needs it, never",
+    "committed. One entry today. anoieu owns the policy this repository",
+    "declares it follows, and its checker is what CI runs, so it is a",
+    "dependency of the build in the ordinary sense.",
+    "",
+    "A `ref` is a choice, not a fact: it says which branch we intend to",
+    "track. Which commit of that branch we are actually checked against is",
+    "tools/deps.lock, moved by scripts/bump_anoieu and never by hand.",
+    "",
+    "No `paths` entry, unlike anoieu's own manifest: the whole repository is",
+    "a few hundred kilobytes of text and a shallow clone of it is cheaper",
+    "than the sparse-checkout machinery that would narrow it."
+  ],
+  "anoieu": {
+    "url": "https://github.com/ajreynol/anoieu.git",
+    "ref": "main",
+    "reads": "tools/policy_check.py, and the policy document it implements"
+  }
+}

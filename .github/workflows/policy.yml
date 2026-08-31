@@ -7,7 +7,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # The step the joining page gives, with the commit pinned: tools/deps.lock
+      # says which anoieu we are checked against, and scripts/bump_anoieu moves
+      # it. Deviating from the step as written is raised with anoieu as D2.
       - name: this repository still matches the Eunoia policy
         run: |
+          commit=$(python3 -c "import json; print(json.load(open('tools/deps.lock'))['anoieu']['commit'])")
           git clone --depth 1 https://github.com/ajreynol/anoieu /tmp/anoieu
+          git -C /tmp/anoieu fetch --depth 1 origin "$commit"
+          git -C /tmp/anoieu checkout --detach FETCH_HEAD
           python3 /tmp/anoieu/tools/policy_check.py --root .
