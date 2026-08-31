@@ -63,8 +63,10 @@ that escapes a promise, a fragment no list of kinds can express.
 
 ## Prompt one: in cvc5
 
-Fixed text; the id and the branch are the only things that change. Paste it in a
-checkout of cvc5, with whatever assistant you already work with.
+Fixed text; the id and the branch are the only things that change.
+[`scripts/check_dokimasia`](../scripts/check_dokimasia) runs it in a cvc5
+checkout and fills both in. Where the script and this document disagree, this
+document is right.
 
 ```text
 dokimasia is a static analyzer for the proof-production code of cvc5. It asks
@@ -73,19 +75,33 @@ something against this project. The report is at
 
   https://github.com/ajreynol/dokimasia/blob/main/docs/issues.md
 
-Find the row whose id is ID. It names what we believe and the command that
-produced it; the analysis that command belongs to is described in the table at
-the top of that repository's README. Some rows name a file and a line, others a
-mechanism and no single site. Treat the row as a claim about this project and
-nothing more: it does not tell you what kind of problem to expect, and you
-should not assume one. Its "what would settle it" column says what we are
-asking for, and sometimes that is an answer rather than a change.
+Start there: it says what a row is, what the "found by" column names, and what
+each row would take to settle.
 
-Working on branch BRANCH, and only on what the row names:
+Find the row whose id is ID, and address that row only.
+-- or, for the sweep form --
+Address every open row. Work from the ids; the file is curated by hand and rows
+move. Rows may share a cause -- say so, and still rule on each in its own
+block. Answering ten rows with one sentence is not doing this.
+
+A row names what we believe and the command that produced it; the analysis that
+command belongs to is described in the table at the top of that repository's
+README. Some rows name a file and a line, others a mechanism and no single
+site. Treat a row as a claim about this project and nothing more: it does not
+tell you what kind of problem to expect, and you should not assume one. Its
+"what would settle it" column says what we are asking for, and sometimes that
+is an answer rather than a change.
+
+Work on branch BRANCH, creating it if it is not there. Commit to it locally and
+push nothing -- pushing, and any pull request, are the maintainer's. An
+uncommitted change is not a fix; the commit is what dokimasia reads. Keep
+dokimasia-response.md out of it: the reply is for us, not for your history.
+
+One row at a time, and only what the rows name:
 
 1. Decide whether the claim is true by reading the code, not by trusting the
    row. Some of what dokimasia reports is wrong, and one of its headline
-   numbers has already been retracted.
+   numbers has already been retracted. Say which build you ran, if you ran one.
 2. If it is true and it is a defect, make the smallest change that fixes it,
    and say in one sentence what a reader of that code would see differently.
 3. If the row asks a question, answer it. An answer with a reason is a complete
@@ -101,22 +117,27 @@ Working on branch BRANCH, and only on what the row names:
 
 Do not fix other things you notice on the way; each is reported separately. Do
 not summarize the analyzer's other results anywhere: a check that reports
-nothing is not evidence that anything is complete.
+nothing is not evidence that anything is complete. Touch no issue tracker --
+not ours, not yours, not anybody's. Everything that reaches a person who did
+not ask for it is sent by a person.
 
-Then draft a reply for a maintainer of this project to review and send. It is
-your triage and not a resolution -- you are proposing something that has not
-been reviewed, and what happened will be settled by the branch, by an input, or
-by a maintainer's word. Draft it as
+Then draft a reply for a maintainer of this project to review and send, in
+dokimasia-response.md at the repository root, appending and leaving any block
+already there. One per row:
 
   ## ID -- <what the row claims> -- <where, if the row names a site>
 
-  TRIAGE: triaged as fixed | not a defect | answered | cannot tell, on branch
-  BRANCH -- or with no branch, if nothing was changed -- pending review. <What
-  you changed, what you answered, or why you changed nothing.>
+  TRIAGE: fixed | not a defect | answered | cannot tell, on branch BRANCH -- or
+  with no branch, if nothing was changed -- pending review. <What you changed,
+  what you answered, or why you changed nothing.>
+
+  OBSERVED, NOT ACTED ON: <optional -- anything true you found and left alone.>
 
   HUMAN RESPONSE:
 
-and leave the sending to them.
+It is your triage and not a resolution: you are proposing something nobody has
+reviewed, and what happened will be settled by the branch, by an input, or by a
+maintainer's word.
 
 Leave HUMAN RESPONSE: empty. It is the maintainer's, and the two labels exist
 to keep what you concluded apart from what a person decided. If they ask you to
@@ -125,14 +146,28 @@ itself and not a description of it, say plainly that you are writing in their
 place and it will be read under their name, and change it as many times as they
 ask until they say it says what they mean. Writing that field and summarising
 it back is the one thing this shape exists to prevent.
+
+End with two sections. FEEDBACK TO DOKIMASIA: blunt is useful -- where the time
+went and what would have made it fast; what a row should have carried, and
+anything here that was unclear or untrue; what else is worth looking for that
+dokimasia does not do.
+
+Then WHAT THIS NEEDS FROM YOU: name BRANCH, say nothing is pushed, and say
+dokimasia sees none of this until somebody pushes it and sends back where to
+look. A merge is not needed to settle a row; a branch somebody can fetch is.
+Then list every row you are declining and ask them to confirm each -- not
+fixing something is a decision somebody signs, silence is not a signature, and
+unconfirmed it is reported as "cannot tell".
 ```
 
 ## Prompt two: the follow-up, here
 
-For an assistant working in a checkout of **dokimasia**. The only thing that
-changes between uses is a link — to the branch, the pull request, or wherever
-the triage was written down. It points at where the answer will be, not at the
-answer.
+For an assistant working in a checkout of **dokimasia**.
+[`scripts/process_dokimasia`](../scripts/process_dokimasia) runs it here. This
+document is written around a link — to the branch, the pull request, or wherever
+the triage was written down — and the script around a checkout it has already
+resolved. Below the opening the text is the same, and where it is not, this
+document is right.
 
 ```text
 A project we reported something to has responded:
@@ -144,32 +179,61 @@ quickly and on our word. What follows HUMAN RESPONSE: is a maintainer's
 decision. Where the two differ the decision is what counts, and a reply
 carrying only a triage is a proposal rather than a result.
 
+Process the block about ID and only that one; leave any others alone.
+-- or, for every block --
+Process every block in it, one at a time, leaving the record consistent after
+each so that stopping partway is safe. Blocks may share a cause; each still
+gets its own answer.
+
 Working in the dokimasia repository:
 
-1. Find the row or rows in docs/issues.md that the reply is about.
-2. Establish what actually happened. Re-run the command the row's "found by"
-   column names against a cvc5 checkout at the commit the README says the
-   numbers were measured at -- and say so if you cannot get that commit, rather
-   than quietly measuring a different one. Then follow whatever the reply
-   points to: a branch, to its end (merged, reworked, reverted, still open), or
-   an input, by running it. That outcome counts, not what the triage predicted.
+1. Find the row or rows in docs/issues.md that the reply is about, by id. A row
+   is in scope because the reply names it, open or not -- a reply disputing a
+   verdict names a row that was already settled.
+2. Establish what actually happened, which is not what the triage predicted.
+   Re-run the command the row's "found by" column names against a cvc5 checkout
+   at the commit the README says the numbers were measured at -- and say so if
+   you cannot get that commit, rather than quietly measuring a different one.
+   Then follow whatever the reply points to: a branch, to its end (merged,
+   reworked, reverted, still open), or an input, by running it. Look at the
+   branch rather than taking it -- a branch level with main, or a change left
+   uncommitted, is not a fix. That outcome counts, not what the triage
+   predicted.
 3. Move only the rows the reply is about, as
    https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-workflow.md#the-conventions
-   says. A settled
-   row moves to the Settled table with what settled it; a row that became a
-   finding moves to Filed. Rows move and are never deleted, and a row the reply
-   is silent about is not touched, reworded or re-sorted.
+   says. A settled row moves to the Settled table with what settled it; a row
+   that became a finding moves to Filed. Rows move and are never deleted, and a
+   row the reply is silent about is not touched, reworded or re-sorted.
 4. If our analysis was wrong, the check is what needs changing rather than the
    row: narrow it, add the case that would have caught the mistake to tests/
    and to that tool's baseline JSON, and record what we had wrongly assumed
    under Retractions in docs/findings.md.
 5. Write what happened in `docs/upstream.md`, creating it if this is the first
    entry.
+6. Read FEEDBACK TO DOKIMASIA and any OBSERVED, NOT ACTED ON. Act on what
+   concerns the report or the checks. What concerns the prompts goes to
+   docs/postmortem.md with its evidence and then to me: a person approves every
+   prompt edit, and each round should leave them shorter and more procedural,
+   so a proposal that adds says what it removes, and technical detail belongs
+   in the documents a prompt links to rather than in the prompt.
 
-Leave everything staged, and say what you decided and why -- the action you
-took, not a summary of what you read. Come back to me only if you disagree with
-how the reply classified the resolution, or you cannot tell whether the row is
-settled; leave the row where it is and say what you would need to know.
+7. Write a postmortem entry for this run, whether or not anything changed.
+-- or, with --no-postm --
+7. Decide whether this earned a postmortem entry. It did if handling the reply
+   changed how dokimasia works -- a check, the report, a prompt. If nothing
+   here changed, say so and write nothing.
+
+   Entries go at the top of docs/postmortem.md, in the shape that file sets out
+   -- short, and only what happened and what the workflow learned; the
+   reasoning at length belongs in `docs/upstream.md`. Update "Where the
+   workflow stands" in the same file if this round changed what is outstanding.
+
+Leave everything staged, and commit nothing -- the diff is the review, and it
+is somebody else's to approve. Touch no issue tracker, here or anywhere. Say
+what you decided and why: the action you took, not a summary of what you read.
+Come back to me only if you disagree with how the reply classified the
+resolution, or you cannot tell whether the row is settled; leave the row where
+it is and say what you would need to know.
 ```
 
 ### Keeping them in step
@@ -180,6 +244,22 @@ two repos, all of them or none — which the policy now says in its own words.
 Anything this workflow grows that the policy does not have goes under *Where we
 diverge* above; a divergence nobody wrote down is drift, and an agent reading a
 format nobody produces will improvise rather than stop.
+
+The scripts hold a copy of both prompts so that nobody has to paste one, and a
+copy that has drifted is worse than no copy: the drift is invisible from the
+side that matters, which is somebody in cvc5 reading a prompt they were sent.
+[`tests/test_workflow.py`](../tests/test_workflow.py) compares what each script
+prints under `--show-prompt` against the blocks above, in every form either can
+take, and fails when they disagree. The two lines each script fills in — the
+scope and the branch — are what the scripts are *for*, and are the only thing
+the comparison lets differ.
+
+### The postmortem
+
+Step 7 writes to [`postmortem.md`](postmortem.md): what a round of this taught
+us about the workflow, as opposed to what it settled about cvc5. The second
+belongs in `docs/upstream.md`, and the separation is anoieu's — the two files
+answer different questions, and a log that answers both answers neither.
 
 ## Not yet
 

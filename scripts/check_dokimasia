@@ -1,0 +1,200 @@
+#!/usr/bin/env bash
+# check_dokimasia -- answer dokimasia's rows, from inside cvc5.
+#
+# Run it in a checkout of cvc5, which is the only project dokimasia reports on.
+# It starts an assistant with the outbound prompt from docs/workflows.md, which
+# is the fixed text every reported row gets:
+#
+#   check_dokimasia               # sweep: every open row
+#   check_dokimasia i-4           # one row, by its id
+#   check_dokimasia --codex i-4   # ... with codex instead of claude
+#
+# The canonical prompt is docs/workflows.md in the dokimasia repository, under
+# "Prompt one: in cvc5". The copy below is that text with the scope line and the
+# branch filled in; if the two disagree, the document is the one that is right,
+# and tests/test_workflow.py fails until they agree again.
+#
+# Nothing here touches an issue tracker and nothing is sent anywhere: the
+# assistant writes a draft into dokimasia-response.md for a maintainer to
+# review. It prints the checkout's path, so a pasted transcript carries it.
+
+set -euo pipefail
+
+AGENT=claude
+PRINT=0
+SHOW=0
+BRANCH=""
+ID=""
+
+usage() {
+  cat >&2 <<'USAGE'
+usage: check_dokimasia [--codex] [--branch NAME] [--print] [--show-prompt] [ID]
+
+  ID              a dokimasia row id, as it appears in docs/issues.md (i-4).
+                  Omitted, the prompt sweeps every open row.
+  --codex         run codex instead of claude
+  --branch NAME   the branch to work on (default: dokimasia-findings, or
+                  dokimasia-ID)
+  --print         run non-interactively and print the result
+  --show-prompt   print the prompt and exit, running nothing
+
+Run it in the root of a cvc5 checkout. --show-prompt runs anywhere: it reads
+nothing and depends on nothing, so the text is the same everywhere.
+USAGE
+  exit 2
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --codex) AGENT=codex; shift ;;
+    --claude) AGENT=claude; shift ;;
+    --branch) BRANCH="${2:-}"; [ -n "$BRANCH" ] || usage; shift 2 ;;
+    --print) PRINT=1; shift ;;
+    --show-prompt) SHOW=1; shift ;;
+    -h|--help) usage ;;
+    -*) echo "check_dokimasia: unknown option $1" >&2; usage ;;
+    *) [ -z "$ID" ] || { echo "check_dokimasia: one id at a time" >&2; usage; }
+       ID="$1"; shift ;;
+  esac
+done
+
+if [ -n "$ID" ]; then
+  SCOPE="Find the row whose id is $ID, and address that row only."
+  : "${BRANCH:=dokimasia-$ID}"
+else
+  SCOPE="Address every open row. Work from the ids; the file is curated by hand and rows
+move. Rows may share a cause -- say so, and still rule on each in its own
+block. Answering ten rows with one sentence is not doing this."
+  : "${BRANCH:=dokimasia-findings}"
+fi
+
+read -r -d '' PROMPT <<PROMPT_END || true
+dokimasia is a static analyzer for the proof-production code of cvc5. It asks
+whether a path through the solver can produce no proof at all. It has reported
+something against this project. The report is at
+
+  https://github.com/ajreynol/dokimasia/blob/main/docs/issues.md
+
+Start there: it says what a row is, what the "found by" column names, and what
+each row would take to settle.
+
+$SCOPE
+
+A row names what we believe and the command that produced it; the analysis that
+command belongs to is described in the table at the top of that repository's
+README. Some rows name a file and a line, others a mechanism and no single
+site. Treat a row as a claim about this project and nothing more: it does not
+tell you what kind of problem to expect, and you should not assume one. Its
+"what would settle it" column says what we are asking for, and sometimes that
+is an answer rather than a change.
+
+Work on branch $BRANCH, creating it if it is not there. Commit to it locally and
+push nothing -- pushing, and any pull request, are the maintainer's. An
+uncommitted change is not a fix; the commit is what dokimasia reads. Keep
+dokimasia-response.md out of it: the reply is for us, not for your history.
+
+One row at a time, and only what the rows name:
+
+1. Decide whether the claim is true by reading the code, not by trusting the
+   row. Some of what dokimasia reports is wrong, and one of its headline
+   numbers has already been retracted. Say which build you ran, if you ran one.
+2. If it is true and it is a defect, make the smallest change that fixes it,
+   and say in one sentence what a reader of that code would see differently.
+3. If the row asks a question, answer it. An answer with a reason is a complete
+   outcome and needs no change to any file.
+4. If the claim is that some path can produce no proof, say what you know about
+   whether that path is reachable. An input that reaches it -- a .smt2 file,
+   the options it needs, and what --check-proofs-complete says -- settles the
+   row outright. Not finding one settles nothing, and should be reported as
+   what it is.
+5. If the claim is not true, or you cannot tell, change nothing and say why. "I
+   cannot tell" is the honest answer when you do not already know what that
+   code was meant to guarantee, and it is more useful than a guess.
+
+Do not fix other things you notice on the way; each is reported separately. Do
+not summarize the analyzer's other results anywhere: a check that reports
+nothing is not evidence that anything is complete. Touch no issue tracker --
+not ours, not yours, not anybody's. Everything that reaches a person who did
+not ask for it is sent by a person.
+
+Then draft a reply for a maintainer of this project to review and send, in
+dokimasia-response.md at the repository root, appending and leaving any block
+already there. One per row:
+
+  ## ID -- <what the row claims> -- <where, if the row names a site>
+
+  TRIAGE: fixed | not a defect | answered | cannot tell, on branch $BRANCH -- or
+  with no branch, if nothing was changed -- pending review. <What you changed,
+  what you answered, or why you changed nothing.>
+
+  OBSERVED, NOT ACTED ON: <optional -- anything true you found and left alone.>
+
+  HUMAN RESPONSE:
+
+It is your triage and not a resolution: you are proposing something nobody has
+reviewed, and what happened will be settled by the branch, by an input, or by a
+maintainer's word.
+
+Leave HUMAN RESPONSE: empty. It is the maintainer's, and the two labels exist
+to keep what you concluded apart from what a person decided. If they ask you to
+write it instead, do -- but then quote the field back to them exactly, the text
+itself and not a description of it, say plainly that you are writing in their
+place and it will be read under their name, and change it as many times as they
+ask until they say it says what they mean. Writing that field and summarising
+it back is the one thing this shape exists to prevent.
+
+End with two sections. FEEDBACK TO DOKIMASIA: blunt is useful -- where the time
+went and what would have made it fast; what a row should have carried, and
+anything here that was unclear or untrue; what else is worth looking for that
+dokimasia does not do.
+
+Then WHAT THIS NEEDS FROM YOU: name $BRANCH, say nothing is pushed, and say
+dokimasia sees none of this until somebody pushes it and sends back where to
+look. A merge is not needed to settle a row; a branch somebody can fetch is.
+Then list every row you are declining and ask them to confirm each -- not
+fixing something is a decision somebody signs, silence is not a signature, and
+unconfirmed it is reported as "cannot tell".
+PROMPT_END
+
+# Printing the prompt reads nothing and runs nothing, so it happens before the
+# checkout is inspected: the text is a property of this repository, not of
+# wherever you are standing.
+if [ "$SHOW" = 1 ]; then printf '%s\n' "$PROMPT"; exit 0; fi
+
+# -- must be cvc5. Checked two ways, as check_cvc5_issue does: the remote says
+#    so, or the tree looks like it. Every instruction above assumes cvc5's
+#    layout and would be nonsense anywhere else.
+if ! ROOT=$(git rev-parse --show-toplevel 2>/dev/null); then
+  echo "check_dokimasia: not in a git repository." >&2
+  echo "                 Run this in the root of a cvc5 checkout." >&2
+  exit 2
+fi
+is_cvc5=0
+case "$(git -C "$ROOT" remote get-url origin 2>/dev/null || true)" in
+  *cvc5/cvc5*|*cvc5.git*|*/cvc5) is_cvc5=1 ;;
+esac
+if [ "$is_cvc5" = 0 ] &&
+   [ -f "$ROOT/configure.sh" ] &&
+   [ -d "$ROOT/src/theory" ] &&
+   [ -f "$ROOT/include/cvc5/cvc5_proof_rule.h" ]; then
+  is_cvc5=1
+fi
+if [ "$is_cvc5" = 0 ]; then
+  echo "check_dokimasia: $ROOT does not look like a cvc5 checkout." >&2
+  echo "                 Expected a cvc5 origin remote, or configure.sh," >&2
+  echo "                 src/theory/ and include/cvc5/cvc5_proof_rule.h." >&2
+  exit 2
+fi
+
+command -v "$AGENT" >/dev/null 2>&1 || {
+  echo "check_dokimasia: $AGENT is not on PATH" >&2; exit 127; }
+
+echo "-- check_dokimasia: cvc5 ($ROOT)" >&2
+echo "   ${ID:-every open row}, on branch $BRANCH, via $AGENT" >&2
+
+cd "$ROOT"
+if [ "$AGENT" = codex ]; then
+  if [ "$PRINT" = 1 ]; then exec codex exec "$PROMPT"; else exec codex "$PROMPT"; fi
+else
+  if [ "$PRINT" = 1 ]; then exec claude -p "$PROMPT"; else exec claude "$PROMPT"; fi
+fi

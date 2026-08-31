@@ -219,11 +219,36 @@ analysis is, and a formatter should not need explaining. It also shows the
 implementation is about half presentation, and that tests sit at 0.22× the
 implementation, which is lower than it should be.
 
+## Carrying a row to cvc5, and reading the answer
+
+Two scripts, mirroring anoieu's `check_anoieu` and `process_anoieu`, because
+cvc5 is the only project we report on and the protocol is the ecosystem's
+rather than ours. The first runs in a cvc5 checkout and drafts a reply there;
+the second runs here and reads it.
+
+```bash
+scripts/check_dokimasia i-4              # in cvc5: answer one row
+scripts/check_dokimasia                  # in cvc5: sweep every open row
+scripts/process_dokimasia i-4            # here: read what came back
+scripts/process_dokimasia --status       # what became of the branch; no agent
+scripts/process_dokimasia --dry-run      # what it would do; no agent
+```
+
+Both prompts are defined in [`docs/workflows.md`](docs/workflows.md) and the
+scripts hold a copy, so `tests/test_workflow.py` fails when the two disagree —
+a drifted copy is invisible from the side that matters, which is somebody in
+cvc5 reading a prompt they were sent. Nothing is pushed and no tracker is
+touched: `TRIAGE:` is an assistant's reading, `HUMAN RESPONSE:` is a
+maintainer's decision, and a person carries anything that crosses between the
+two repositories. What a round teaches us about the workflow goes in
+[`docs/postmortem.md`](docs/postmortem.md); what it settles about cvc5 goes in
+the register.
+
 ## Working an issue with an assistant
 
-A second, plainer workflow, modelled on anoieu's `check_anoieu`. It is not the
-research agenda: it starts an assistant inside a cvc5 checkout, points it at an
-issue, and asks it to triage and fix.
+A different workflow, and a plainer one: it is not about our rows at all. It
+starts an assistant inside a cvc5 checkout, points it at an issue from cvc5's
+own tracker, and asks it to triage and fix.
 
 ```bash
 scripts/check_cvc5_issue --issue 12884       # one issue
@@ -271,7 +296,8 @@ the path. Ours happens first.
 | [`docs/coupling.md`](docs/coupling.md) | what we ask of cvc5, and what we parse that could break |
 | [`docs/tooling.md`](docs/tooling.md) | the C++ static-analysis landscape, our design decisions, and the posture toward murxla |
 | [`docs/findings.md`](docs/findings.md) | what a finding is, what we promise about it, and the log — including retractions |
-| [`docs/workflows.md`](docs/workflows.md) | how a candidate is carried to cvc5 and back: the conventions we share with anoieu, and the two prompts |
+| [`docs/workflows.md`](docs/workflows.md) | how a candidate is carried to cvc5 and back: the conventions we share with anoieu, the two prompts, and the two scripts that run them |
+| [`docs/postmortem.md`](docs/postmortem.md) | what a round of that taught us about the workflow itself — one entry per reply worked |
 | [`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md) | *anoieu's, shared* — the position both tools take on reporting on code they do not own |
 | [`reporting-workflow.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-workflow.md) | *anoieu's, shared* — the conventions our workflow implements, and the shape of a reply |
 

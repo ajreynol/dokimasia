@@ -28,7 +28,8 @@ behind it.
 | --- | --- |
 | [`findings.md`](findings.md) | what a finding is, what we promise about it, and the log — including retractions |
 | [`findings/`](findings/) | one file per filed finding; today that is [`tcb-001.md`](findings/tcb-001.md) |
-| [`workflows.md`](workflows.md) | how a candidate is carried to cvc5 and back: the conventions we share with anoieu, and the two prompts |
+| [`workflows.md`](workflows.md) | how a candidate is carried to cvc5 and back: the conventions we share with anoieu, the two prompts, and the two scripts that run them |
+| [`postmortem.md`](postmortem.md) | what working a reply taught us about the workflow itself, as opposed to what it settled about cvc5 |
 | [`discussion.md`](discussion.md) | the standing channel to the rest of the ecosystem, and the gate on responding to it |
 
 ## Generated, and the landscape

@@ -1,0 +1,335 @@
+#!/usr/bin/env bash
+# process_dokimasia -- read cvc5's reply to our rows, from inside dokimasia.
+#
+# The other half of check_dokimasia. That one runs in cvc5 and leaves a draft
+# reply there; this one runs here, reads that reply, works out what actually
+# happened, and updates the record.
+#
+#   process_dokimasia                      # every block in the reply
+#   process_dokimasia i-4                  # one row, by its id
+#   process_dokimasia ~/cvc5 i-4           # ... with an explicit checkout
+#   process_dokimasia --link URL i-4       # ... a branch or PR instead of a checkout
+#   process_dokimasia --no-postm i-4       # ... letting the agent decide on a postmortem
+#   process_dokimasia --status             # what became of the branch; no agent
+#   process_dokimasia --dry-run            # what this would do; no agent
+#
+# cvc5 is the only project dokimasia reports on, so there is nothing to name:
+# the checkout is found from tools/deps.local.json (its cvc5 entry, untracked
+# and true only of this machine), then $DOKIMASIA_CVC5, then ~/cvc5. A path
+# given on the command line is used as it stands, and an argument that looks
+# like a URL is taken as the link instead.
+#
+# The canonical prompt is docs/workflows.md, under "Prompt two: the follow-up,
+# here"; that one is written around a link, this one around a checkout unless
+# --link says otherwise. If they disagree about anything else, the document is
+# right, and tests/test_workflow.py fails until they agree again.
+#
+# It prints the resolved path, so a pasted transcript carries it.
+
+set -euo pipefail
+
+HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+DOKIMASIA=$(dirname "$HERE")
+LOCAL="$DOKIMASIA/tools/deps.local.json"
+
+AGENT=claude
+PRINT=0
+SHOW=0
+DRY=0
+STATUS=0
+POSTM=1
+BRANCH=""
+LINK=""
+DIR=""
+ID=""
+
+usage() {
+  cat >&2 <<'USAGE'
+usage: process_dokimasia [--status | --dry-run | --show-prompt]
+                        [--codex] [--print] [--no-postm] [--branch NAME]
+                        [--link URL] [DIR] [ID]
+
+  DIR             the cvc5 checkout. Omitted, it is found from
+                  tools/deps.local.json, then $DOKIMASIA_CVC5, then ~/cvc5
+  ID              a dokimasia row id (i-4). Omitted, every block in the reply
+  --link URL      a branch, a pull request, or wherever the triage was written
+                  down, instead of a checkout. This is the document's own form
+  --codex         run codex instead of claude
+  --branch NAME   the branch check_dokimasia worked on (default:
+                  dokimasia-findings, or dokimasia-ID); only --status reads it
+  --status        report what became of that branch and stop. Runs git in the
+                  cvc5 checkout and no assistant anywhere
+  --dry-run       say what would be done, and do none of it
+  --no-postm      let the agent decide whether this run earned an entry in
+                  docs/postmortem.md. By default an entry is written whatever
+                  it concludes
+  --print         run non-interactively and print the result
+  --show-prompt   print the prompt and exit, running nothing
+USAGE
+  exit 2
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --codex) AGENT=codex; shift ;;
+    --claude) AGENT=claude; shift ;;
+    --print) PRINT=1; shift ;;
+    --show-prompt) SHOW=1; shift ;;
+    --dry-run) DRY=1; shift ;;
+    --status) STATUS=1; shift ;;
+    --no-postm) POSTM=0; shift ;;
+    --branch) BRANCH="${2:-}"; [ -n "$BRANCH" ] || usage; shift 2 ;;
+    --link) LINK="${2:-}"; [ -n "$LINK" ] || usage; shift 2 ;;
+    -h|--help) usage ;;
+    -*) echo "process_dokimasia: unknown option $1" >&2; usage ;;
+    http://*|https://*) LINK="$1"; shift ;;
+    *) if [ -d "$1" ] && [ -z "$DIR" ]; then DIR="$1";
+       elif [ -z "$ID" ]; then ID="$1";
+       else echo "process_dokimasia: too many arguments" >&2; usage; fi; shift ;;
+  esac
+done
+: "${BRANCH:=dokimasia-${ID:-findings}}"
+
+# -- the checkout. One customer, so this is a lookup and not a resolver: an
+#    explicit path, the machine-local file, the environment, then the obvious
+#    place. Each is reported, because a run that measured the wrong tree is
+#    worth catching in the first line rather than the last.
+resolve_dir() {
+  local p
+  if [ -n "$DIR" ]; then printf 'the command line\n%s\n' "$(cd "$DIR" && pwd)"; return; fi
+  if [ -f "$LOCAL" ]; then
+    p=$(python3 -c "
+import json, os, sys
+try:
+    e = json.load(open('$LOCAL')).get('cvc5', {})
+except (OSError, ValueError):
+    sys.exit(0)
+print(os.path.expanduser(e.get('path', '')))" 2>/dev/null) || p=""
+    if [ -n "$p" ] && [ -d "$p" ]; then
+      printf '%s\n%s\n' "${LOCAL#$DOKIMASIA/}" "$(cd "$p" && pwd)"; return
+    fi
+    if [ -n "$p" ]; then
+      echo "process_dokimasia: ${LOCAL#$DOKIMASIA/} names $p, which is not a directory" >&2
+      return 1
+    fi
+  fi
+  if [ -n "${DOKIMASIA_CVC5:-}" ] && [ -d "$DOKIMASIA_CVC5" ]; then
+    printf '$DOKIMASIA_CVC5\n%s\n' "$(cd "$DOKIMASIA_CVC5" && pwd)"; return
+  fi
+  if [ -d "$HOME/cvc5" ]; then printf '~/cvc5\n%s\n' "$HOME/cvc5"; return; fi
+  { echo "process_dokimasia: no cvc5 checkout found."
+    echo "   Give one as an argument, add a cvc5 entry to ${LOCAL#$DOKIMASIA/},"
+    echo "   set \$DOKIMASIA_CVC5, or check one out at ~/cvc5."
+    echo "   With no checkout at all, --link URL points at the reply instead."; } >&2
+  return 1
+}
+
+RESOLVED_BY=""
+if [ -z "$LINK" ] || [ "$STATUS" = 1 ]; then
+  RESOLUTION=$(resolve_dir) || exit 2
+  RESOLVED_BY=${RESOLUTION%%$'\n'*}
+  DIR=${RESOLUTION#*$'\n'}
+fi
+
+# -- the reply, if it is there. Bounded to two levels: the file is meant to be
+#    at the root, and walking a whole cvc5 checkout to find out otherwise is not
+#    a trade worth making.
+find_reply() {
+  local d="$1"
+  if [ -f "$d/dokimasia-response.md" ]; then printf '%s\n' "$d/dokimasia-response.md"; return 0; fi
+  find "$d" -maxdepth 2 -type f -name '*.md' -not -path '*/.git/*' \
+    -exec grep -l 'HUMAN RESPONSE:' {} + 2>/dev/null | head -1
+}
+
+describe_reply() {
+  local reply blocks waiting
+  reply=$(find_reply "$1")
+  if [ -z "$reply" ]; then
+    echo "   reply      none found -- looked for dokimasia-response.md, and for"
+    echo "              HUMAN RESPONSE: in *.md within two levels"
+    return 1
+  fi
+  blocks=$(grep -c '^## ' "$reply" 2>/dev/null || echo 0)
+  waiting=$(grep -c 'HUMAN RESPONSE: *$' "$reply" 2>/dev/null || echo 0)
+  echo "   reply      ${reply#$1/}  -- $blocks block(s), $waiting awaiting a human"
+  return 0
+}
+
+# -- --status: what became of the branch check_dokimasia was told to work on. No
+#    assistant is involved and nothing is written: this is git, reported.
+if [ "$STATUS" = 1 ]; then
+  git -C "$DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1 || {
+    echo "process_dokimasia: $DIR is not a git repository" >&2; exit 2; }
+  CURRENT=$(git -C "$DIR" branch --show-current 2>/dev/null || true)
+  echo "-- cvc5: $DIR  (from $RESOLVED_BY)"
+  echo "   checked out ${CURRENT:-(detached HEAD)}; asking after $BRANCH"
+
+  WHERE=""
+  git -C "$DIR" show-ref --verify --quiet "refs/heads/$BRANCH" && WHERE="local"
+  git -C "$DIR" show-ref --verify --quiet "refs/remotes/origin/$BRANCH" \
+    && WHERE="${WHERE:+$WHERE and }origin"
+  if [ -z "$WHERE" ]; then
+    echo "   branch     $BRANCH is not here -- nothing has been answered on it,"
+    echo "              or it was answered somewhere else"
+  else
+    REF="$BRANCH"
+    git -C "$DIR" show-ref --verify --quiet "refs/heads/$BRANCH" || REF="origin/$BRANCH"
+    BASE=$(git -C "$DIR" symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null || true)
+    if [ -z "$BASE" ]; then
+      for c in origin/main origin/master main master; do
+        git -C "$DIR" rev-parse --verify --quiet "$c" >/dev/null 2>&1 && { BASE="$c"; break; }
+      done
+    fi
+    echo "   branch     $BRANCH ($WHERE)"
+    if [ -n "$BASE" ]; then
+      AHEAD=$(git -C "$DIR" rev-list --count "$BASE..$REF" 2>/dev/null || echo "?")
+      if git -C "$DIR" merge-base --is-ancestor "$REF" "$BASE" 2>/dev/null; then
+        echo "              merged into $BASE"
+      else
+        echo "              $AHEAD commit(s) $BASE does not have"
+      fi
+      git -C "$DIR" log --oneline --no-decorate -10 "$BASE..$REF" 2>/dev/null \
+        | sed 's/^/                /'
+    else
+      git -C "$DIR" log --oneline --no-decorate -10 "$REF" 2>/dev/null \
+        | sed 's/^/                /'
+    fi
+  fi
+  describe_reply "$DIR" || true
+  echo "   git status"
+  git -C "$DIR" status --short --branch | sed 's/^/                /'
+  exit 0
+fi
+
+# The opening is the one place this differs from the document by design: it says
+# "paste a link", and by here a checkout has usually already been resolved.
+if [ -n "$LINK" ]; then
+  OPENING="A project we reported something to has responded:
+
+  $LINK"
+else
+  OPENING="A project we reported something to has responded. Their checkout:
+
+  $DIR
+
+Find the reply. Most likely dokimasia-response.md at that repository's root, but
+what identifies it is blocks headed by a row id carrying TRIAGE: and HUMAN
+RESPONSE: fields. If there are none, stop and say so rather than inferring the
+outcome from the repository's state."
+fi
+
+if [ -n "$ID" ]; then
+  SCOPE="Process the block about $ID and only that one; leave any others alone."
+else
+  SCOPE="Process every block in it, one at a time, leaving the record consistent after
+each so that stopping partway is safe. Blocks may share a cause; each still
+gets its own answer."
+fi
+
+# The one part of the prompt --no-postm changes; both forms are in the document.
+if [ "$POSTM" = 1 ]; then
+  POSTM_STEP='7. Write a postmortem entry for this run, whether or not anything changed.'
+else
+  POSTM_STEP='7. Decide whether this earned a postmortem entry. It did if handling the reply
+   changed how dokimasia works -- a check, the report, a prompt. If nothing
+   here changed, say so and write nothing.'
+fi
+
+read -r -d '' PROMPT <<PROMPT_END || true
+$OPENING
+
+Read it as two things. What follows TRIAGE: is an assistant's reading, made
+quickly and on our word. What follows HUMAN RESPONSE: is a maintainer's
+decision. Where the two differ the decision is what counts, and a reply
+carrying only a triage is a proposal rather than a result.
+
+$SCOPE
+
+Working in the dokimasia repository:
+
+1. Find the row or rows in docs/issues.md that the reply is about, by id. A row
+   is in scope because the reply names it, open or not -- a reply disputing a
+   verdict names a row that was already settled.
+2. Establish what actually happened, which is not what the triage predicted.
+   Re-run the command the row's "found by" column names against a cvc5 checkout
+   at the commit the README says the numbers were measured at -- and say so if
+   you cannot get that commit, rather than quietly measuring a different one.
+   Then follow whatever the reply points to: a branch, to its end (merged,
+   reworked, reverted, still open), or an input, by running it. Look at the
+   branch rather than taking it -- a branch level with main, or a change left
+   uncommitted, is not a fix. That outcome counts, not what the triage
+   predicted.
+3. Move only the rows the reply is about, as
+   https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-workflow.md#the-conventions
+   says. A settled row moves to the Settled table with what settled it; a row
+   that became a finding moves to Filed. Rows move and are never deleted, and a
+   row the reply is silent about is not touched, reworded or re-sorted.
+4. If our analysis was wrong, the check is what needs changing rather than the
+   row: narrow it, add the case that would have caught the mistake to tests/
+   and to that tool's baseline JSON, and record what we had wrongly assumed
+   under Retractions in docs/findings.md.
+5. Write what happened in \`docs/upstream.md\`, creating it if this is the first
+   entry.
+6. Read FEEDBACK TO DOKIMASIA and any OBSERVED, NOT ACTED ON. Act on what
+   concerns the report or the checks. What concerns the prompts goes to
+   docs/postmortem.md with its evidence and then to me: a person approves every
+   prompt edit, and each round should leave them shorter and more procedural,
+   so a proposal that adds says what it removes, and technical detail belongs
+   in the documents a prompt links to rather than in the prompt.
+
+$POSTM_STEP
+
+   Entries go at the top of docs/postmortem.md, in the shape that file sets out
+   -- short, and only what happened and what the workflow learned; the
+   reasoning at length belongs in \`docs/upstream.md\`. Update "Where the
+   workflow stands" in the same file if this round changed what is outstanding.
+
+Leave everything staged, and commit nothing -- the diff is the review, and it
+is somebody else's to approve. Touch no issue tracker, here or anywhere. Say
+what you decided and why: the action you took, not a summary of what you read.
+Come back to me only if you disagree with how the reply classified the
+resolution, or you cannot tell whether the row is settled; leave the row where
+it is and say what you would need to know.
+PROMPT_END
+
+if [ "$SHOW" = 1 ]; then printf '%s\n' "$PROMPT"; exit 0; fi
+
+if [ "$AGENT" = codex ]; then
+  RUN=$([ "$PRINT" = 1 ] && echo "codex exec" || echo "codex")
+else
+  RUN=$([ "$PRINT" = 1 ] && echo "claude -p" || echo "claude")
+fi
+
+if [ "$DRY" = 1 ]; then
+  echo "-- process_dokimasia, dry run: nothing below is run"
+  if [ -n "$LINK" ]; then
+    echo "   reply at   $LINK"
+  else
+    echo "   directory  $DIR  (from $RESOLVED_BY)"
+    describe_reply "$DIR" || true
+  fi
+  echo "   dokimasia  $DOKIMASIA"
+  echo "   scope      ${ID:-every block in the reply}"
+  echo "   postmortem $([ "$POSTM" = 1 ] && echo "an entry is written" || echo "the agent decides")"
+  command -v "$AGENT" >/dev/null 2>&1 \
+    && echo "   agent      $(command -v "$AGENT")" \
+    || echo "   agent      $AGENT is NOT on PATH; the real run would stop here"
+  echo "   would run  cd $DOKIMASIA && $RUN '<the prompt, ${#PROMPT} characters>'"
+  echo "              the assistant reads the reply and edits docs/ and tests/ here,"
+  echo "              leaving everything staged and committing nothing"
+  echo "   the prompt is --show-prompt; the branch's state is --status"
+  exit 0
+fi
+
+command -v "$AGENT" >/dev/null 2>&1 || {
+  echo "process_dokimasia: $AGENT is not on PATH" >&2; exit 127; }
+
+echo "-- process_dokimasia: ${LINK:-$DIR}" >&2
+echo "   ${ID:-every block in the reply}, working in $DOKIMASIA, via $AGENT" >&2
+
+cd "$DOKIMASIA"
+if [ "$AGENT" = codex ]; then
+  if [ "$PRINT" = 1 ]; then exec codex exec "$PROMPT"; else exec codex "$PROMPT"; fi
+else
+  if [ "$PRINT" = 1 ]; then exec claude -p "$PROMPT"; else exec claude "$PROMPT"; fi
+fi

@@ -20,6 +20,66 @@ answered can still be closed by a fact.
 
 Ids are allocated once, in order, and are never reused. Newest topic first.
 
+## D4 — the check/process protocol is implemented twice now
+
+**To:** anoieu
+**Kind:** request
+**Status:** open
+**Opened:** 2026-08-31, at anoieu `441b562`
+**Settles when:** anoieu says whether the shared parts of the protocol become
+something a member fetches, or stay something each member copies.
+
+We have built our half of the bug-reporting loop: `scripts/check_dokimasia` and
+`scripts/process_dokimasia`, the prompts they carry defined in our own
+`workflows.md`, and a postmortem log with the shape yours sets out. It works,
+and it took an afternoon, because we read your two scripts and wrote ours from
+them. That is the point of this topic: the second implementation of a protocol
+is the moment to ask whether it should have been one.
+
+**What is actually shared.** The reply format — blocks headed by an id, with
+`TRIAGE:`, `OBSERVED, NOT ACTED ON:` and `HUMAN RESPONSE:`, closing with
+feedback and what the round needs from a person. Finding the reply file in
+somebody else's checkout. Reporting what became of the branch, which is pure
+git and identical in both. The check that a script's copy of a prompt has not
+drifted from the document that defines it. The postmortem's one-block-per-run
+shape. **What is not shared**: the prompts themselves, because the subjects
+differ; the register format; and what settles a row, which each tool has to
+name for itself. The line between those two lists is already drawn in
+`reporting-workflow.md` — the prose is shared and the mechanics were copied,
+which is the wrong way round.
+
+**Our recommendation is not a new repository, yet.** The mechanism to share
+code across the ecosystem already exists and we are already using it: we pin a
+commit of anoieu and fetch it, which is how CI runs `policy_check.py` here. A
+shared implementation can live in anoieu's `tools/` and reach a member the same
+way, with no new repository, no packaging, and no second thing to pin. A repo
+of its own buys isolation that is worth paying for when there is a third
+consumer, and we would be the second.
+
+**The smallest piece worth doing first is the drift check.** Both repositories
+now carry the same sixty lines — pull the fenced prompt out of a document,
+resolve the "-- or, ... --" alternatives, run the script with `--show-prompt`,
+diff — and ours is a copy of yours, so the two will drift in exactly the way
+the check exists to prevent. It is also the only piece that is purely about the
+shared format and touches nothing either tool owns. The branch-state reporter
+and the reply finder are the next two, in that order.
+
+**The ambitious version, and why we are not asking for it.** A shared tool for
+managing internal issues — ids, the register, rows moving between open, settled
+and filed — would fix a format for both of us before there is evidence that
+either format is right. Yours is generated and ours is curated by hand, and we
+know at least two of our slots are weak. Better to let the *prose* converge
+first, which `reporting-workflow.md` is already doing, and share code only
+where two implementations have turned out identical. That is a test we can
+apply per piece rather than a decision to take once.
+
+**Two things we changed on the way in, so they are not surprises.** Our triage
+line carries a fourth label, `answered`, because a row of ours may be a
+question rather than a defect report, and such a reply names no branch. And our
+postmortem is written on every run by default rather than when the run changed
+something: we took the conclusion your own document records instead of
+repeating the experiment that reached it.
+
 ## D3 — a link into anoieu is the one link nothing checks
 
 **To:** anoieu
