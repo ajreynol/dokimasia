@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+# check_cvc5_issue -- triage a cvc5 issue with an assistant, from inside cvc5.
+#
+# This is the plain workflow, not the research agenda. It starts an assistant in
+# a cvc5 checkout, points it at an issue, and asks it to triage and fix:
+#
+#   check_cvc5_issue --issue 12345      # one issue
+#   check_cvc5_issue --all              # a sample of open issues
+#   check_cvc5_issue --all --sample 5   # ... a smaller one
+#   check_cvc5_issue --codex --issue 12345
+#
+# It is interactive on purpose. The assistant is told to finish by asking what
+# to do next, so this is a conversation rather than a one-shot: the first answer
+# is a triage, and the useful part is usually what follows it.
+#
+# This script makes no network calls. It builds a prompt and hands it to an
+# assistant; whatever the assistant then reads is the assistant's business, in a
+# session a person is driving. Nothing here shells out to a tracker, so the
+# script's behaviour does not depend on what github says today, and a run with
+# --show-prompt is reproducible anywhere.
+
+set -euo pipefail
+
+AGENT=claude
+PRINT=0
+SHOW=0
+ALL=0
+SAMPLE=10
+ISSUE=""
+BRANCH=""
+
+usage() {
+  cat >&2 <<'USAGE'
+usage: check_cvc5_issue [--codex] [--branch NAME] [--print] [--show-prompt]
+                        (--issue N | --all [--sample N])
+
+  --issue N       the cvc5 issue to triage and fix
+  --all           triage a sample of open issues instead of one
+  --sample N      how many to sample with --all (default 10)
+  --codex         run codex instead of claude
+  --branch NAME   branch to work on (default: issue-N, or issue-triage)
+  --print         run non-interactively and print the result
+  --show-prompt   print the prompt and exit, running nothing
+
+Run it in the root of a cvc5 checkout.
+USAGE
+  exit 2
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --codex) AGENT=codex; shift ;;
+    --claude) AGENT=claude; shift ;;
+    --issue) ISSUE="${2:-}"; [ -n "$ISSUE" ] || usage; shift 2 ;;
+    --all) ALL=1; shift ;;
+    --sample) SAMPLE="${2:-}"; [ -n "$SAMPLE" ] || usage; shift 2 ;;
+    --branch) BRANCH="${2:-}"; [ -n "$BRANCH" ] || usage; shift 2 ;;
+    --print) PRINT=1; shift ;;
+    --show-prompt) SHOW=1; shift ;;
+    -h|--help) usage ;;
+    *) echo "check_cvc5_issue: unexpected argument $1" >&2; usage ;;
+  esac
+done
+
+[ "$ALL" = 1 ] || [ -n "$ISSUE" ] || {
+  echo "check_cvc5_issue: give --issue N or --all" >&2; usage; }
+[ "$ALL" = 0 ] || [ -z "$ISSUE" ] || {
+  echo "check_cvc5_issue: --issue and --all are exclusive" >&2; usage; }
+case "$ISSUE" in ''|*[!0-9]*) [ -z "$ISSUE" ] || {
+  echo "check_cvc5_issue: --issue takes a number, got '$ISSUE'" >&2; exit 2; };; esac
+
+# --- must be cvc5 ------------------------------------------------------------
+# Checked two ways: the remote says cvc5, or the tree looks like it. Either is
+# enough; neither being true is an error, because every instruction below
+# assumes cvc5's layout and would be nonsense elsewhere.
+if ! ROOT=$(git rev-parse --show-toplevel 2>/dev/null); then
+  echo "check_cvc5_issue: not in a git repository." >&2
+  echo "                  Run this in the root of a cvc5 checkout." >&2
+  exit 2
+fi
+
+is_cvc5=0
+case "$(git -C "$ROOT" remote get-url origin 2>/dev/null || true)" in
+  *cvc5/cvc5*|*cvc5.git*|*/cvc5) is_cvc5=1 ;;
+esac
+if [ "$is_cvc5" = 0 ] &&
+   [ -f "$ROOT/configure.sh" ] &&
+   [ -d "$ROOT/src/theory" ] &&
+   [ -f "$ROOT/include/cvc5/cvc5_proof_rule.h" ]; then
+  is_cvc5=1
+fi
+if [ "$is_cvc5" = 0 ]; then
+  echo "check_cvc5_issue: $ROOT does not look like a cvc5 checkout." >&2
+  echo "                  Expected a cvc5 origin remote, or configure.sh," >&2
+  echo "                  src/theory/ and include/cvc5/cvc5_proof_rule.h." >&2
+  exit 2
+fi
+
+# --- scope -------------------------------------------------------------------
+if [ "$ALL" = 1 ]; then
+  : "${BRANCH:=issue-triage}"
+  SCOPE="Triage a sample of $SAMPLE open issues from cvc5's tracker:
+
+  https://github.com/cvc5/cvc5/issues
+
+Choose them yourself. Prefer issues that look tractable and recently active, and
+say which you picked and why -- the choice is part of the triage. They are
+unrelated: each gets its own verdict and its own block in the report, and
+answering all of them with one paragraph is not doing this. If one turns out to
+be much larger than the others, say so and triage it without fixing it."
+else
+  : "${BRANCH:=issue-$ISSUE}"
+  SCOPE="Triage and, if you can, fix cvc5 issue #$ISSUE:
+
+  https://github.com/cvc5/cvc5/issues/$ISSUE"
+fi
+
+read -r -d '' PROMPT <<PROMPT_END || true
+You are working in a checkout of cvc5, the SMT solver, at $ROOT.
+
+$SCOPE
+
+Work on branch $BRANCH. For each issue:
+
+1. **Read it, and reproduce it before believing it.** An issue is a report, not
+   a diagnosis. Build or run whatever is needed to see the behaviour yourself,
+   and say what you ran. If it does not reproduce, that is a result -- say so
+   and stop there.
+2. **Fix it if the fix is clear and small.** The smallest change that resolves
+   it, plus a regression test if cvc5's suite has a natural place for one. If
+   the fix is large, or it turns on a design decision that is not yours to make,
+   do not guess: describe what you would do and why you stopped.
+3. **If you cannot tell, change nothing and say why.** "I cannot tell" is the
+   honest answer when the issue is underspecified or you cannot reproduce it.
+
+Do not fix anything else you notice, do not touch the issue tracker, and do not
+post anything anywhere. Nothing here is sent: a person reviews this and decides.
+
+If you have something worth a maintainer's time, append a block to
+cvc5-issue-triage.md at the root of this repository, leaving any block already
+there alone:
+
+  ## #<number> -- <title>
+
+  TRIAGE: fixed | not reproducible | needs a decision | cannot tell,
+  on branch $BRANCH, pending review.
+  <What you did, what you ran, and what a user would see differently.>
+
+  HUMAN RESPONSE:
+
+Leave HUMAN RESPONSE empty. It is the maintainer's, and the two labels keep what
+you concluded apart from what a person decided. If they ask you to fill it in,
+do, but quote it back verbatim first and say plainly that it will be read under
+their name.
+
+**Finish by asking what to do next.** Do not treat your first answer as the end
+of the task: say what you found, what you are unsure about, and what you would
+do with another instruction. The useful part of this workflow is the second
+turn, not the first.
+PROMPT_END
+
+if [ "$SHOW" = 1 ]; then printf '%s\n' "$PROMPT"; exit 0; fi
+
+command -v "$AGENT" >/dev/null 2>&1 || {
+  echo "check_cvc5_issue: $AGENT is not on PATH" >&2; exit 127; }
+
+echo "-- check_cvc5_issue: cvc5 ($ROOT)" >&2
+if [ "$ALL" = 1 ]; then
+  echo "   a sample of $SAMPLE open issues, on branch $BRANCH, via $AGENT" >&2
+else
+  echo "   issue #$ISSUE, on branch $BRANCH, via $AGENT" >&2
+fi
+
+cd "$ROOT"
+if [ "$AGENT" = codex ]; then
+  if [ "$PRINT" = 1 ]; then exec codex exec "$PROMPT"; else exec codex "$PROMPT"; fi
+else
+  if [ "$PRINT" = 1 ]; then exec claude -p "$PROMPT"; else exec claude "$PROMPT"; fi
+fi

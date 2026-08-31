@@ -187,6 +187,34 @@ Between them they have produced one report and several candidates:
 All [candidates, not findings](docs/issues.md),
 until someone confirms them.
 
+## Working an issue with an assistant
+
+A second, plainer workflow, modelled on anoieu's `check_anoieu`. It is not the
+research agenda: it starts an assistant inside a cvc5 checkout, points it at an
+issue, and asks it to triage and fix.
+
+```bash
+scripts/check_cvc5_issue --issue 12884       # one issue
+scripts/check_cvc5_issue --all --sample 5    # a sample the assistant picks
+scripts/check_cvc5_issue --codex --issue 12884
+scripts/check_cvc5_issue --issue 12884 --show-prompt   # print it, run nothing
+```
+
+Run it in the root of a cvc5 checkout; it refuses to run anywhere else. It is
+interactive on purpose — the assistant is told to finish by asking what to do
+next, because the useful part is usually the second turn. Where there is
+something worth a maintainer's time it appends a `TRIAGE:` / `HUMAN RESPONSE:`
+block to `cvc5-issue-triage.md`, and `HUMAN RESPONSE` stays empty: it is the
+maintainer's, and the two labels keep what an assistant concluded apart from
+what a person decided.
+
+**The script makes no network calls.** It builds a prompt and hands it to an
+assistant; whatever the assistant then reads is the assistant's business, in a
+session a person is driving. Nothing here shells out to a tracker, so a run with
+`--show-prompt` gives the same answer anywhere, and the script's behaviour does
+not depend on what the tracker says today. With `--all` the assistant picks the
+sample and is asked to say why — the choice is part of the triage.
+
 ## The name
 
 **δοκιμασία** was the scrutiny every official-elect in classical Athens
