@@ -163,7 +163,7 @@ Working in the dokimasia repository:
    row: narrow it, add the case that would have caught the mistake to tests/
    and to that tool's baseline JSON, and record what we had wrongly assumed
    under Retractions in docs/findings.md.
-5. Write what happened in docs/upstream.md, creating it if this is the first
+5. Write what happened in `docs/upstream.md`, creating it if this is the first
    entry.
 
 Leave everything staged, and say what you decided and why -- the action you

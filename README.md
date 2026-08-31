@@ -277,6 +277,10 @@ the path. Ours happens first.
 
 ## How this repository is maintained
 
+This repository is part of the **Eunoia ecosystem** and follows its shared
+repository policy, kept by [anoieu](https://github.com/ajreynol/anoieu) in
+[`docs/policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/policy.md).
+
 **Written by an AI agent, under light human supervision.** A human maintainer
 directs the work, reviews it, and decides what is reported upstream; findings
 are filed by the human, not the agent. What *light* covers, and why the audience
