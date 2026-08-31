@@ -155,7 +155,7 @@ So the kernel's specification, stated as a list of obligations, is:
 | **K4** | evaluation, and the 56 `eo::` builtins | `evaluate` **295 lines**, literal and list operations **1,009 lines** |
 | **K5** | evaluation of user `program`s, and its termination | `evaluateProgramApp` / `evaluateProgramInternal` — **111 lines**, plus 248 programs |
 | **K6** | what a proof *is*, and what makes one valid | `Kind::PROOF`, `(pf F)`, and the rule registry in `state.cpp` |
-| **K7** | what the signature's 620 rules **mean**, w.r.t. an SMT-LIB semantics | **nothing states this anywhere** |
+| **K7** | what the signature's rules **mean**, w.r.t. an SMT-LIB semantics | `Cpc/SmtModel.lean` in [Logos](logos.md) — **1,602 lines, and it did not exist a year ago** |
 
 The striking thing is how small K2 and K3 are. The type system and the matcher —
 the two pieces that decide whether a rule application is legitimate — are **466
@@ -167,13 +167,23 @@ K1–K6 are engineering: a specification of an existing 14,000-line program.
 Large, finite, and carrying no research risk — with the one exception of K5's
 termination question, which is genuinely open and is discussed below.
 
-**K7 is the research risk and it should be named early.** There is no mechanized
-SMT-LIB semantics to discharge the rules against. Partial ones exist for
-fragments. A kernel that is verified w.r.t. K1–K6 gives you *relative
-soundness* — "if the signature's rules are sound, ethos only accepts valid
-proofs" — which is genuinely worth having and is what every checker in this
-space actually delivers, but it is not the whole claim and should never be
-stated as though it were.
+**K7 was the research risk, and it is the one that has been retired.** Verifying
+K1–K6 alone buys *relative soundness* — "if the signature's rules are sound, the
+checker only accepts valid proofs" — which is what most checkers in this space
+deliver and is not the whole claim. Discharging K7 needs a mechanized SMT-LIB
+semantics, and the honest position a year ago was that no such thing existed.
+
+[Logos](logos.md) has one. `Cpc/SmtModel.lean` is 1,602 lines of standalone
+model semantics for SMT-LIB — standalone in the strong sense that it never
+mentions the checker — and `Cpc/Spec.lean` supplies the correspondence between
+Eunoia terms and SMT-LIB terms. **591 of CPC's 593 non-expert rules are proved
+sound against it**, with no `sorry`, `admit` or `axiom` anywhere in the
+development. The two that are not are `beta-reduce` and `trust`, and `trust`
+cannot be, which is
+[the point](logos.md#l6--trust-has-no-soundness-proof-and-that-is-the-whole-story).
+
+So the list above is no longer a research agenda. It is a description of
+something that exists, and telos's job is to read it rather than to redo it.
 
 ## What "defining the kernel" means, in order
 
@@ -181,24 +191,25 @@ Four things, in the order they become possible. Each is worth having alone,
 which is the same progressive stance as
 [`docs/kernel.md`](../../../docs/kernel.md).
 
-1. **Describe it.** A precise, prose-plus-inference-rules account of K1–K6, of
-   the kind a paper would carry. Checkable by a reader against `type_checker.cpp`.
-   No tools, no proof assistant. This is where telos starts.
+1. **Describe it.** A precise account of K1–K6, of the kind a paper would carry,
+   checkable by a reader against `type_checker.cpp`.
 2. **Mechanize the syntax, typing and matching.** K1, K2, K3, K6 as inductive
-   definitions in Lean. A type checker falls out; test it by differential
-   testing against `ethos` on cvc5's proof corpus. **466 lines of the original
-   is the whole of K2 and K3**, which is why this step is the one to do first —
-   it is small, and it is the part that decides soundness.
-3. **Mechanize evaluation.** K4, K5. This is where the interesting obligations
-   are: is `program` evaluation confluent, does it terminate, and what happens
-   when it does not. Dedukti's literature is directly applicable.
-4. **Discharge the signature.** K7, for one fragment, against a mechanized
-   semantics of that fragment. QF_UF or QF_LIA. Anything more is a decade.
+   definitions. A type checker falls out.
+3. **Mechanize evaluation.** K4, K5 — where the interesting obligations are: is
+   `program` evaluation confluent, does it terminate, and what happens when it
+   does not. Dedukti's literature is directly applicable.
+4. **Discharge the signature.** K7, against a mechanized semantics.
 
-Steps 1–3 verify *the checker*. Step 4 verifies *the calculus*. Everybody in
-this space does 1–3 and stops, and stopping there is respectable — but it should
-be said out loud that the rules themselves are the axioms, and 620 hand-written
-axioms is a large thing to trust.
+Steps 1–3 verify *the checker*; step 4 verifies *the calculus*, and it is the
+one everybody skips. Skipping it is respectable, but it should be said out loud
+that the rules then *are* the axioms, and 593 hand-written axioms is a large
+thing to trust.
+
+**[Logos](logos.md) has done all four**, for CPC specifically rather than for
+Eunoia in general, and did not stop at three. That is the single most important
+fact in this directory, and it means the list above is context for reading
+somebody else's development rather than a plan. What telos does about that is
+[the last section of `logos.md`](logos.md#what-this-does-to-telos).
 
 ## Prior art, and what each guarantee actually is
 
@@ -210,6 +221,7 @@ anyway because independence is worth something without proof.
 
 | tool | what it is | what is actually proved | what is still trusted |
 | --- | --- | --- | --- |
+| **Logos** | verified SMT proof checker in Lean 4, for **CPC** — the calculus cvc5 emits ([`logos.md`](logos.md)) | `correct___logos_check_proof`: if `logos` prints `correct` for a proof file, the assumptions the parser read out of it are unsatisfiable — against a standalone Lean formalization of SMT-LIB model semantics. **591 rules, all proven, no `sorry`/`admit`/`axiom` in 872 files** | the 2,680-line specification being the right one; Lean's kernel; **Lean's compiler and the C toolchain**, since you run a binary; the **unverified 2,653-line parser**; and that the assumptions are the problem you asked about — `include` and `reference` are ignored |
 | **cake_lpr** | LPR/LRAT checker; HOL4, compiled by CakeML | if the **binary** prints `s VERIFIED UNSAT`, the CNF in the parsed DIMACS file is unsatisfiable. Composed with CakeML's compiler-correctness theorem, so the statement is about the machine code — **parsing and I/O included** | HOL4, CakeML's compiler theorem, the machine model. Notably **not** an extraction step or an unverified C compiler |
 | **SMTCoq** | Rocq/Coq plugin; certified checker for zChaff, veriT and CVC4 certificates | the checker is proved correct in Coq; by computational reflection a successful check yields a Coq proof of the goal | Coq itself. Solvers untrusted. Scope is the quantifier-free fragment of bit-vectors, arrays, LIA and UF — not "SMT" |
 | **lean-smt** | Lean 4 tactic; runs cvc5, reconstructs CPC proofs | **nothing is proved.** It builds a native Lean proof *term* for each CPC step, so the result is checked by Lean's kernel like any other proof | Lean's kernel, and nothing else. Reconstruction is not proved correct — it either yields a term the kernel accepts or it fails. Measured: **15,271 of 21,595 cvc5 proofs (71%)**, so the cost of the small trusted base is incompleteness |
@@ -230,15 +242,23 @@ Worth separating, because telos has to choose one and the choice is the design.
 | **C** | **verified solver** | IsaSAT, versat | the search is proved; no certificate is produced or needed | years of work, a large trusted base by comparison, and no artifact a third party can re-check |
 | **D** | **proof reconstruction** | lean-smt | the smallest possible trusted base — the host kernel and nothing else | **incompleteness.** 29% of cvc5's proofs do not reconstruct |
 | **E** | **unverified but independent** | Carcara, ethos | a second opinion from code that shares nothing with the solver | no proof. Independence is not verification, and the two get conflated constantly |
+| **F** | **verified program, unverified compiler** | **Logos** | an ordinary, unconditional theorem about the checking function — proved once, no axiom admitted at check time, no proof term produced per input | the compiler that turned it into the binary you ran. Strictly weaker than B, strictly stronger than A, and it is where you land when your language has no verified compiler |
 
 Two observations that bear directly on telos.
 
-**Today's cvc5 kernel is kind E.** `ethos` is independent and fast and proves
-nothing. That is a perfectly respectable engineering position and it is the
-right one for a checker that has to keep up with a solver — but it means the
-answer to *"what has to be right for a cvc5 proof to mean something"* is
-currently "13,862 lines of C++ and 12,530 lines of Eunoia, on their authors'
-word." Moving that to kind A or B is the whole of telos's kernel ambition.
+**cvc5's production kernel is kind E; its verified one is kind F.** `ethos` is
+independent and fast and proves nothing — a respectable engineering position,
+and the right one for a checker that has to keep up with a solver. But it means
+the answer to *"what has to be right for a cvc5 proof to mean something"* is, on
+the production path, "13,862 lines of C++ and 12,530 lines of Eunoia, on their
+authors' word."
+
+[Logos](logos.md) answers the same question with **2,680 lines of Lean
+specification** and a machine-checked proof of everything else. Same calculus,
+same signature — generated from it, in fact — and roughly a tenth of the reading.
+That is the kernel argument getting shorter in the sense
+[`docs/kernel.md`](../../../docs/kernel.md) means, and it happened while this
+repository was measuring the C++ side of it.
 
 **Kind C is the road telos explicitly does not take.** IsaSAT and versat prove
 the search, and they are the two clearest demonstrations of what that costs:
@@ -260,6 +280,14 @@ architecture would cost.
 
 The lineage, closest first. Not endorsements — the ones worth reading before
 writing anything, with what to read each one *for*.
+
+**Read first, and completely**
+- **[Logos](https://github.com/ajreynol/logos)** — `~/logos`. Not background:
+  the thing telos is built on. Read `README.md`'s *Correctness* section for the
+  theorem, `docs/modularity.md` for the contract a second checker has to meet,
+  `Cpc/SmtModel.lean` for the 1,602 lines that are the actual specification, and
+  `scripts/cpc-loc-summary.py` for where the weight sits. Analysis in
+  [`logos.md`](logos.md).
 
 **The framework itself**
 - Eunoia / ethos — `~/ethos`, and the `cpc` signature in `~/cvc5/proofs/eo/cpc`.

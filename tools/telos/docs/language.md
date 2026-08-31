@@ -8,6 +8,16 @@ verified is lost when it is used.
 This is a decision record, not an advocacy document. The alternatives are good
 and the reasons they lost are specific.
 
+**It is also, as of now, mostly retrospective.**
+[Logos](logos.md) is a verified SMT proof checker in Lean 4 with a
+machine-checked soundness theorem, a 1,602-line Lean formalization of SMT-LIB
+model semantics, and 591 CPC rules proved sound. It settles requirements 1, 2, 3
+and 5 by existing, and it supplies the honest reading of requirement 4: not
+optimized, significantly slower than performant checkers, and a full proof build
+takes over two hours. Read the rest of this document as the argument you would
+have had to make in advance, checked against a case where somebody made it and
+was right.
+
 ## What the language has to do
 
 Ranked. The order is the argument — a language that is excellent at 3 and 4 and
@@ -66,6 +76,13 @@ So the untrusted-search / verified-checker split of
 is not speculative here — it ships, twice, with two different trusted bases and
 a measured completeness cost. That is a better starting position than any other
 candidate offers.
+
+And [Logos](logos.md) is a third instance, in the same language, against the
+same calculus telos cares about: an unconditional Lean theorem about the
+checking function, with no axiom admitted at check time and no proof term
+produced per input. It is neither reflection nor reconstruction, which is why
+[the guarantee taxonomy](kernel-of-cvc5.md#the-five-kinds-of-guarantee-on-that-list)
+needed a sixth entry for it.
 
 Requirement 4 is the weakness and it is real. Lean is reference-counted with
 persistent data structures; CDCL wants mutable arrays, cache-friendly watch
@@ -193,7 +210,18 @@ proof term per step is absurd — while reconstruction is what you do when the
 certificate is small, structured, and you want the artifact. A Cooperating
 Proof Calculus proof is the second kind.
 
-**Provisional decision: reconstruction**, because the whole point of
+**Logos does neither, and that is the option to take seriously.** Its theorem is
+an ordinary universally quantified Lean statement about
+`Eo.logos_check_proof : String -> Except String Verdict`, proved once. Checking
+a proof runs a compiled binary; no axiom is admitted, no term is built, and the
+kernel is not in the loop at run time at all. The price is that the binary came
+out of an unverified compiler —
+[kind F](kernel-of-cvc5.md#the-five-kinds-of-guarantee-on-that-list). The price
+of *reconstruction* would have been building a Lean term per proof, which for
+`Bitblasting.eo`-shaped certificates is exactly the case reflection exists for.
+
+**Provisional decision: follow Logos.** Failing that, and for the parts of telos
+Logos does not cover, reconstruction — because the whole point of
 [`kernel.md`](../../../docs/kernel.md)'s measure — *how long the argument is and
 how much of it a reader can check* — is served by a trusted base of exactly one
 component, and because it produces an object somebody else can check without

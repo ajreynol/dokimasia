@@ -1,185 +1,209 @@
 # Next steps
 
-Ordered by **how fast each one could kill the project**, which is the same
-selection rule [`docs/goals.md`](../../docs/goals.md) applies to finding holes:
-optimise for the latency of the answer, not for how much work it represents.
+**Rewritten after reading [Logos](docs/logos.md).** The previous version planned
+a year of work — describe Eunoia's semantics, mechanize the type system, build a
+checker in Lean — most of which exists, is finished, and is maintained. What
+follows is what is left.
 
-Three of the five inversions in [`design.md`](docs/design.md) are safe bets.
-Two are load-bearing hypotheses that have never been tested, and if either is
-false the design is different. Test those first, cheaply, before writing
-anything that assumes them.
+Ordered by **how fast each one could kill the project**, the same selection rule
+[`docs/goals.md`](../../docs/goals.md) applies to finding holes: optimise for
+the latency of the answer, not for how much work it represents.
 
 | | task | tests | cost | produces |
 | --- | --- | --- | --- | --- |
-| **T1** | measure ethos's real TCB | nothing — it corrects a number | hours | an exact figure to replace a file-level estimate |
-| **T2** | describe the kernel, K1–K6 | nothing — it is the prerequisite | weeks | `docs/eunoia-semantics.md` |
-| **T3** | build a proof corpus | nothing — it is the oracle | a day | differential-testing input for T4 and T6 |
-| **T4** | a Eunoia type checker in Lean | **the language choice** | weeks | the first thing telos runs |
-| **T5** | a proof-carrying rewriter for one theory | **[I3](docs/design.md#i3--rewrites-prove-themselves-as-they-fire)**, the riskiest inversion | a week | the answer to whether telos's central claim holds |
-| **T6** | differential-test the signature's `program`s | nothing here — but it may find a real defect | days | possibly a finding, for somebody else's register |
+| **T1** | read Logos properly | nothing — it is the prerequisite for every other row | days | knowing what is already done |
+| **T2** | a proof-carrying rewriter for one theory | **[I3](docs/design.md#i3--rewrites-prove-themselves-as-they-fire)**, the riskiest inversion, and the only one Logos does not settle | a week | the answer to whether telos's central claim holds |
+| **T3** | a CPC corpus, run through **both** ethos and logos | nothing — it is the oracle, and a measurement nobody has | days | agreement data, and the first `incomplete` census |
+| **T4** | the static `incomplete` question | nothing | weeks | a dokimasia-shaped analysis of a Lean development |
+| **T5** | differential-test ethos's evaluator against logos's compiled semantics | nothing here — but it may find a real defect | days | possibly a soundness finding, for somebody else's register |
+| **T6** | measure ethos's real TCB | nothing — it corrects a number | hours | an exact figure to replace a file-level estimate |
 
-T5 is independent of everything and should probably go first despite being
-fifth in the list above by dependency order. It is a week, and it decides
-whether the interesting part of the design survives.
+**T2 first.** It is the only item on the list that could invalidate the design,
+it is a week, and nothing else depends on its outcome being favourable.
 
 ---
 
-## T1 — Measure ethos's real TCB
+## T1 — Read Logos properly
 
-[`kernel-of-cvc5.md`](docs/kernel-of-cvc5.md) currently says *"roughly 4,000
-lines of typing and evaluation, 2,300 of state, 3,600 of parsing"* and admits
-the split is by file rather than by dependency closure. That is exactly the
-estimate [`dokimasia.tcb`](../../dokimasia/tcb/) exists to replace.
+Not a formality. [`docs/logos.md`](docs/logos.md) is an outside reading of the
+repository, made in an afternoon from its README, its scripts and its line
+counts. It is not a substitute for the four things that actually matter:
 
-Two closures, seeded separately:
+- **`Cpc/SmtModel.lean`** — 1,602 lines, and the only part of the whole
+  development a human is obliged to read. If the specification is wrong, nothing
+  downstream of it means anything, and it is the one place where "the proof
+  checks" is not an answer;
+- **`docs/modularity.md`** — written for exactly telos's situation and specific
+  about it: `Proofs/Checker.lean` is byte-identical between `Cpc` and `CpcMini`,
+  the core depends on a single signature symbol (`and`), the cost of a new
+  checker is dominated by the semantics layer, and *start from `CpcMini`*.
+  Including the trap where Lean's positional arm names (`__smtx_model_eval.eq_9`
+  is `and` in Cpc and `imp` in CpcMini) make a proof reusable by accident only,
+  with a one-line discipline to adopt **before the first proof**;
+- **`Cpc/Api.lean`, `ApiChecks.lean`, `ApiCorrect.lean`** — how the theorem
+  connects to the string the executable was handed. This is the part most
+  verified-checker projects leave informal and this one does not;
+- **`docs/smt-model-definitions.pdf`** — the intended write-up of the semantics,
+  the specification and the checker.
 
-- from `TypeChecker` — what does checking a proof actually compile against;
-- from the parser entry point — how much of the binary is soundness-critical
-  *because a mis-parse accepts the wrong thing*.
+Also worth knowing before planning anything: a full proof build is **over two
+hours** and is deliberately not in CI, and `scripts/check-proof-hygiene.sh`
+rejects `sorry`/`admit`/`axiom` textually with no build at all.
 
-**This is a dokimasia task, not a telos one.** `tcb` is seeded from cvc5's
-`ProofChecker` and the 13 rule checkers; pointing it at another tree is a
-generalisation of an existing tool, and it belongs in
-[`TODO.md` G2](../../TODO.md), which already carries *"extend the closure to the
-Eunoia seam, the other component whose independence matters"*. telos ships no
-code; it gets to consume the number.
+## T2 — A proof-carrying rewriter for one theory
 
-## T2 — Describe the kernel
+**The experiment that matters, and the only inversion Logos leaves open.**
 
-The K1–K6 obligations in [`kernel-of-cvc5.md`](docs/kernel-of-cvc5.md), written
-out: the term language, the typing rules, matching, evaluation, the 56 `eo::`
-builtins, `program` application, and what makes a proof valid. Prose and
-inference rules, of the density a paper would carry, checkable by a reader
-against `~/ethos/src/type_checker.cpp`.
-
-No tools, no proof assistant, no Lean. This is the deliverable that has to exist
-before anything can be mechanized, and it is worth having even if nothing ever
-is — **an account of Eunoia's semantics does not currently exist in any form**,
-and the checker is the specification.
-
-Start with K2 and K3 — 466 lines together, and the part that decides whether a
-rule application is legitimate. Do K4's 1,009 lines of builtin operations last;
-they are arithmetic and string manipulation, they are tedious, and they are
-where the effort will otherwise all go.
-
-## T3 — Build a proof corpus
-
-Run cvc5 with `--dump-proofs --proof-format=cpc` over a benchmark set and keep
-the output. This is the differential-testing oracle for T4 (does the Lean
-checker agree with ethos) and for T6 (do the `program`s compute what cvc5
-computes).
-
-Cheap, mechanical, and needed by two later items. Worth doing under
-`--safe-mode=safe` as well as unrestricted, so the corpus splits along the line
-[the contract](../../docs/contract.md) cares about.
-
-## T4 — A Eunoia type checker in Lean
-
-**Scope: K1, K2, K3, K6 only.** The term language, the type system, matching,
-and what a proof is. **No evaluation, no `eo::` builtins, no `program`s** —
-which means it will reject most real proofs, and that is fine. It answers a
-different question.
-
-The deliverable is a Lean development with:
-
-- the term language as an inductive type;
-- typing as an inductive relation, and a decision procedure for it;
-- the `declare-rule` form as data, with rule application as a function;
-- a differential test against `ethos` over T3's corpus, on the subset that
-  needs no evaluation.
-
-**What it decides.** Whether [`language.md`](docs/language.md) is right. Three
-specific things to watch, each of which would reopen the decision:
-
-| watch for | means |
-| --- | --- |
-| the inductive definitions are awkward — heavy encoding, dependent-type fighting | Eunoia's design does not map onto Lean's as cleanly as assumed |
-| checking the corpus is orders of magnitude slower than ethos | requirement 4 has moved into the kernel; F\*→C becomes serious |
-| the differential test finds disagreements that are *ethos* bugs | good news, and a finding for the ethos maintainers |
-
-## T5 — A proof-carrying rewriter for one theory
-
-**The experiment that matters, and it should go first.**
-
-[I3](docs/design.md#i3--rewrites-prove-themselves-as-they-fire) claims that a
-rewriter can return `(t' , proof that t = t')` at no meaningful cost to the
-author of a rewrite rule, and that this dissolves
-[i-4](../../docs/issues.md) — the search budget that completeness currently
-depends on. FMCAD 2022 explicitly chose not to do this, for reasons that are
-stated and are not stupid. The claim is that a dependently typed host changes
-the arithmetic, and **that claim has never been tested.**
+Logos settles the kernel. It says nothing about the *producer*, and
+[I3](docs/design.md#i3--rewrites-prove-themselves-as-they-fire) is the load-
+bearing claim on that side: that a rewriter can return `(t', proof that t = t')`
+at no meaningful cost to the author of a rewrite rule, dissolving
+[i-4](../../docs/issues.md) — the search budget that cvc5's proof completeness
+currently depends on. FMCAD 2022 explicitly declined to do this, for stated
+reasons. The claim is that a dependently typed host changes the arithmetic, and
+**it has never been tested.**
 
 Test it small. Pick one theory where cvc5's RARE coverage is already good — the
-Boolean rules are the obvious start, `theory/booleans/rewrites` — and:
+Boolean rules, `theory/booleans/rewrites` — and:
 
 1. write its rules once, declaratively;
 2. elaborate each into a rewrite *and* its justification;
-3. measure two things: **how much per-rule manual work the justification
-   needed** (the FMCAD objection), and **what building a proof term on every
-   step costs at runtime** (the objection FMCAD did not have to make).
+3. measure **how much per-rule manual work the justification needed** (the FMCAD
+   objection) and **what building a proof term on every step costs at runtime**
+   (the objection FMCAD did not have to make).
 
-A week, maybe two. Three outcomes and all of them are worth having:
+Three outcomes, all worth having: the claim survives; the authoring cost is real
+and the FMCAD objection stands in a dependently typed setting too, which is an
+interesting negative result; or proof terms on every rewrite step do not scale
+and telos needs a different answer to i-4 than "make it not exist."
 
-- **it works** — telos's central claim survives, and the design in
-  [`design.md`](docs/design.md) is worth building on;
-- **the authoring cost is real** — the FMCAD objection stands in a
-  dependently typed setting too, which is a genuinely interesting negative
-  result and is worth writing down carefully;
-- **the runtime cost is prohibitive** — proof terms on every rewrite step do
-  not scale, and telos needs a different answer to i-4 than "make it not exist".
+The natural target format is CPC, so that step 2's output is something
+`logos` can be pointed at — which makes T3 a dependency in practice even though
+it is not one in principle.
 
-## T6 — Differential-test the signature's `program`s
+## T3 — A CPC corpus, through both checkers
 
-4,186 lines of Eunoia `program` definitions are trusted completely and checked
-by nothing. `PolyNorm.eo`'s `$poly_neg`, `$poly_mod_coeffs` and neighbours
-re-implement arithmetic normalisation that cvc5 also does in C++;
-`Bitblasting.eo` re-implements the bit-blaster; `Strings.eo` is 2,277 lines on
-its own. **If a `program` is more permissive than the C++ it mirrors, ethos
-accepts proofs of things that are not true.**
+Run cvc5 with `--dump-proofs --proof-format=cpc` over a benchmark set, then run
+**both** `ethos` and `logos` over the result. Split the corpus by
+`--safe-mode=safe` against unrestricted, so it divides along the line
+[the contract](../../docs/contract.md) cares about.
 
-The test is mechanical: generate inputs, run the `program` via `ethos`, run the
-C++ equivalent via cvc5, compare. `PolyNorm` first — smallest, most
-self-contained, and clearest correspondence.
+Three things fall out, and the second and third are measurements nobody has:
 
-**Two caveats about where this belongs, and they matter.** This is a
-*soundness* question, and dokimasia is
-[completeness, not soundness](../../docs/goals.md#the-stance). It is also a
-question about a *Eunoia signature*, and
-[the contract](../../docs/contract.md#what-we-look-at-and-what-we-do-not) says
-plainly: *"We do not analyze Eunoia signatures. `Cpc.eo` and its semantics are
-`anoieu`'s subject and it is better at them."*
+- **the oracle** for T2 and T5;
+- **the `incomplete` census.** Logos returns three verdicts, and `incomplete`
+  means it accepted the proof but the proof mentions something the SMT-LIB
+  specification does not model. How often, and on what? That is a coverage
+  number for the specification, and the specification is the only part of the
+  trusted base a human reads;
+- **ethos/logos disagreement.** Any proof one accepts and the other rejects is
+  interesting by construction, and the direction matters: a proof `ethos`
+  accepts and `logos` calls `incorrect` is the more alarming one.
 
-So telos should not run this as a dokimasia analysis. Either it goes to
-`anoieu`, or it is done here as background reading for T2 with any finding
-handed over. Recording it because the gap is real and nobody appears to be
-looking at it — not because this repository should claim it.
+## T4 — The static `incomplete` question
+
+T3 answers *how often* per input. The dokimasia question is the other one:
+
+> **Which CPC proofs could Logos ever return `incomplete` on?**
+
+That is the same shape as everything in
+[`docs/pipeline.md`](../../docs/pipeline.md) — take the code, ask what it could
+ever produce, with no benchmark in hand — pointed at a Lean development instead
+of at C++. The side conditions are `TranslatableAssumptionList` and
+`CmdListTranslationOk` in `Cpc/Proofs/Assumptions.lean`, and they are
+`Decidable`, which means the question is about the *reach* of `__eo_to_smt`
+rather than about a heuristic.
+
+Worth doing because it is the one place telos's parent repository has a genuine
+methodological advantage, and because a specification's coverage gap is exactly
+as invisible as a solver's until somebody enumerates it.
+
+## T5 — ethos's evaluator against logos's compiled semantics
+
+The previous version of this list proposed differential-testing the signature's
+4,186 lines of Eunoia `program`s against the C++ they mirror, on the grounds
+that they were trusted completely and checked by nothing.
+
+**That is no longer the right framing.** The programs are compiled into Logos —
+592 `__eo_prog_*` definitions — and **520 of the 591 rule proofs depend on one**.
+A program that was wrong in a way that made its rule unsound would make that
+rule's soundness proof fail. The signature's computational content is inside the
+soundness argument now.
+
+What is *not* established is that the two implementations of Eunoia evaluation
+agree: `ethos`'s C++ evaluator (`TypeChecker::evaluate`, the 56 `eo::` builtins,
+`evaluateProgramApp`) against what `ethos-eoc` compiles the same signature into.
+If they diverge, one of them accepts a proof the other does not, and the Lean
+theorem is about the Lean one. T3's corpus makes this cheap to look for.
+
+**Where it belongs.** This is a *soundness* question about `ethos`, and
+dokimasia is [completeness, not soundness](../../docs/goals.md#the-stance).
+Recording it because the gap is real and nobody appears to be looking at it —
+not because this repository should claim it.
+
+## T6 — Measure ethos's real TCB
+
+[`kernel-of-cvc5.md`](docs/kernel-of-cvc5.md) still says *"roughly 4,000 lines of
+typing and evaluation, 2,300 of state, 3,600 of parsing"* and admits the split is
+by file rather than by dependency closure. Two closures, seeded from
+`TypeChecker` and from the parser entry point.
+
+**A dokimasia task, not a telos one**, and one already implied by
+[`TODO.md` G2](../../TODO.md)'s *"extend the closure to the Eunoia seam."*
+Deprioritised: it sharpens a comparison rather than deciding anything.
 
 ---
 
+## Then: the producer side
+
+Everything above is reading, measuring, or one experiment. What telos would
+actually *build*, if T2 comes back favourable, is the part Logos does not cover:
+a solver whose output is a CPC proof, structured so that
+[I1](docs/design.md#i1--the-answer-carries-its-certificate) and
+[I4](docs/design.md#i4--safe-mode-is-a-type-not-a-list) hold by construction —
+the answer carries its certificate, and a proofless configuration does not
+typecheck.
+
+The target is precise and someone else maintains the goalposts:
+
+> **telos succeeds when Logos says `correct`.**
+
+Not `incomplete`, which means the proof left the specified fragment. Not
+"produces proofs", which is unfalsifiable. A fragment on which a telos solver's
+output is accepted by an independently maintained verified checker, with the
+`incomplete` count as the completeness metric — measured per input, by a tool,
+with no static analysis in the loop.
+
 ## Not doing
 
-- **Writing a solver.** Not until T4 and T5 have both returned. A CDCL(T)
-  implementation is the least interesting and most expensive part of this, and
-  starting there is how research projects become abandoned codebases.
+- **Writing a kernel.** Logos is the kernel. Rebuilding it would be the single
+  most expensive way for this project to produce nothing.
+- **Writing a solver**, until T2 returns. A CDCL(T) implementation is the least
+  interesting and most expensive part of this, and starting there is how
+  research projects become abandoned codebases.
 - **Verifying the search.** Ever, under the current design. See
-  [I5](docs/design.md#i5--soundness-is-the-kernels-job-completeness-is-the-type-systems)
-  — the search is untrusted on purpose, and that is what makes the kernel small
-  enough to verify.
-- **Claiming anything about cvc5.** telos is a design exercise. If it produces a
-  fact about cvc5 — as T6 might — that fact goes into the appropriate register
-  under the appropriate project's name, with the same evidence standard
-  everything else here is held to.
+  [I5](docs/design.md#i5--soundness-is-the-kernels-job-completeness-is-the-type-systems),
+  and the price tag IsaSAT and versat put on the alternative.
+- **Claiming anything about cvc5, ethos or logos.** telos is a design exercise.
+  If it produces a fact about any of them — as T3 and T5 might — that fact goes
+  into the appropriate register under the appropriate project's name, with the
+  same evidence standard everything else here is held to.
 - **Announcing it.** See the [notice](README.md).
 
 ## The honest cost
 
-T1 and T3 are days. T2 is weeks and is unavoidable. T4 and T5 are each a few
-weeks and either could fail. Nothing here produces a solver, and the first
-version of anything that could be called one is a year away at a generous
-estimate, assuming both experiments succeed.
+T1 and T6 are days. T3 is days. T2 is a week or two and could fail. T4 is weeks.
+Nothing here produces a solver.
 
-That is the correct scale for a stretch goal and it should not be presented as
-anything else. The progressive stance from
-[`docs/kernel.md`](../../docs/kernel.md) applies unchanged: **every degree is
-worth having, and there is no finish line.** T2 alone — a written semantics for
-Eunoia, which does not exist today — would justify the directory.
+But the scale has changed, and in the right direction. The previous version of
+this file estimated a year before anything could be called a solver, on the
+assumption that telos had to build a verified kernel first. It does not. Logos
+took roughly six months and 707 commits to do that — the repository carries its
+own estimate of what the proofs would have cost by hand, and the number in it is
+25 expert person-years, which is worth reading as a statement about how the
+work was done as much as about how large it is.
+
+The progressive stance from [`docs/kernel.md`](../../docs/kernel.md) applies
+unchanged: **every degree is worth having, and there is no finish line.** T3
+alone — a corpus through both checkers, with an `incomplete` census — would
+justify the directory.

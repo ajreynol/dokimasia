@@ -91,6 +91,15 @@ documentation is generated from it, and the signature *is* it.
 `dokimasia.signature` has nothing to check because there is nothing for the two
 halves to disagree about — the class of defect it looks for is not expressible.
 
+**This one is no longer a proposal.** [Logos](logos.md) compiles its entire
+calculus — 591 rules, the term language, the parser configuration, the
+translation to SMT-LIB — out of `Cpc.eo` with `ethos-eoc`, keeps the per-rule
+proofs across regeneration, and has a CI group that fails when generated code
+drifts from the signature it came from. A rule added to CPC shows up as a
+`sorry` stub; a rule whose *statement* changed keeps its old proof and fails to
+build. Both failures are loud and distinct by design. telos inherits this rather
+than redesigning it.
+
 This is the least novel idea in the document and the most reliably valuable.
 [H11](../../../docs/hygiene.md#h11--the-rare-correspondence-is-stated-not-inferred)
 already observes the pattern working inside cvc5: the RARE→`ProofRewriteRule`
@@ -237,9 +246,14 @@ work:
 
 | | who guarantees it | how | what it costs |
 | --- | --- | --- | --- |
-| **soundness** | a verified kernel | a machine-checked theorem about ≈500 lines of typing and matching ([K2, K3](kernel-of-cvc5.md#what-eunoia-actually-is)) | the hard part, but small and bounded |
+| **soundness** | **[Logos](logos.md)** | a machine-checked Lean theorem against a 2,680-line specification of SMT-LIB semantics | **already paid** — 691,993 lines of proof, by somebody else |
 | **completeness** | the type system | `Answer φ` has no proofless constructor ([I1](#i1--the-answer-carries-its-certificate)) | free |
 | **the search** | **nobody** | untrusted, deliberately | nothing |
+
+That first row used to read "a verified kernel — the hard part, but small and
+bounded." It is not a plan any more. Logos is the kernel, telos does not write
+one, and the correct posture toward it is a consumer's: emit CPC, run `logos`,
+and treat any verdict other than `correct` as telos's bug.
 
 **The search is not verified and should not be.** This is the LCF / de Bruijn
 architecture: the search may be wrong in any way that does not produce a proof

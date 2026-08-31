@@ -44,6 +44,46 @@ Not a competitor to cvc5, not a replacement, not a proposal to anyone. A
 research vehicle for the one experiment dokimasia cannot run, because dokimasia
 is downstream of a design that is already fixed.
 
+## The foothold: Logos
+
+**telos is built on [`ajreynol/logos`](https://github.com/ajreynol/logos), and
+Logos is a moving target.** Everything below is downstream of that fact, so it
+belongs before the design rather than after it.
+
+Logos is a **verified proof checker for SMT in Lean 4**. Its soundness theorem
+`correct___logos_check_proof` says: if the checker prints `correct` for a proof
+file, the assumptions the parser read out of it are unsatisfiable — proved
+against `Cpc/SmtModel.lean`, a standalone Lean formalization of SMT-LIB's model
+semantics. Its calculus is **compiled from the same `Cpc.eo` signature cvc5
+emits proofs against**, by `ethos-eoc`, and regenerated as CPC changes.
+
+Measured at logos `a5650dad`:
+
+| | ethos + the `cpc` signature | **Logos** |
+| --- | --- | --- |
+| what a human must read and believe | ≈**26,400 lines** — 13,862 C++, 12,530 Eunoia | **2,680 lines** of Lean specification |
+| what a machine checks | nothing | **691,993 lines** of proof |
+| rules proved sound | — | **591 of 593**, no `sorry`/`admit`/`axiom` in 872 files |
+| the calculus is | hand-written twice, in Eunoia and in C++ | generated from the signature, with drift caught in CI |
+| unverified residue | all of it | the parser — 2,653 lines |
+
+The two CPC rules with no soundness proof are `beta-reduce` and **`trust`** —
+cvc5's declared hole, the one
+[`dokimasia.trust`](../../dokimasia/trust/) censuses 75 ids of. It cannot have
+one. Which states the relationship between these two projects in a sentence:
+
+> **Every hole dokimasia counts is a proof Logos cannot check.**
+
+Full description, measurements and eight things telos should learn from it are
+in [`docs/logos.md`](docs/logos.md). **Read that first.**
+
+The consequence for telos is large and worth stating plainly: the kernel half of
+this project already exists and is better than the sketch that preceded it. What
+is unclaimed is the **producer** side — and that gives telos a definition of
+success that is executable rather than rhetorical:
+
+> **telos succeeds when Logos says `correct`.**
+
 ## Why here, and not somewhere else
 
 Because the analysis is the input. Every design decision below is derived from a
@@ -105,12 +145,13 @@ theorem about the machine code* down to *nothing at all*.
 
 ## The language
 
-**Lean 4**, one language for the calculus, the checker, the metatheory and the
-solver, with Rust named in advance as the escape hatch for a solver core that
-needs to go fast.
+**Lean 4** — which Logos settles by demonstration rather than by argument, so
+the decision record below is now a rationalisation of a choice that has already
+been made and validated at scale. Rust stays named as the escape hatch for a
+search core that needs to go fast.
 
-The deciding argument is not general excellence, it is that in a dependently
-typed host language **[inversion 1](docs/design.md#i1--the-answer-carries-its-certificate)
+The independent argument, had Logos not existed, is that in a dependently typed
+host language **[inversion 1](docs/design.md#i1--the-answer-carries-its-certificate)
 is free**. `solve` cannot return `unsat` without a proof term, because the
 return type says so, and that is checked by a kernel nobody has to trust our
 account of. dokimasia's founding question — *is there a path through the solver
@@ -149,10 +190,11 @@ the scrutiny before. That pair is sitting there unused.)*
 
 ## Status
 
-Design notes only. Nothing is written, nothing is measured that
-[`dokimasia.tcb`](../../dokimasia/tcb/) did not measure, and no claim here has
-been checked against an implementation.
+Design notes only. Nothing is written here. The measurements are of other
+people's trees — cvc5, ethos and logos — and no design claim in this directory
+has been tested against an implementation.
 
+- **[`docs/logos.md`](docs/logos.md) — the foothold: what Logos is, what it weighs, what its guarantee is, and eight lessons. Start here**
 - [`docs/kernel-of-cvc5.md`](docs/kernel-of-cvc5.md) — what the kernel is today, what "defining" it means, and what each comparable tool's guarantee actually is
 - [`docs/design.md`](docs/design.md) — the five inversions, and the risks in each
 - [`docs/language.md`](docs/language.md) — the decision record
