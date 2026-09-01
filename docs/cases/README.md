@@ -2,6 +2,11 @@
 
 **A cvc5 developer asks a design question. We answer it with a check.**
 
+Most cases are that shape. A few are not — [#12905](out-of-scope-bug-report.md)
+is a routing question about our own scope, and its deliverable is a boundary
+rather than a verifier. Those are legitimate and rarer; the test is whether the
+case ends in something that constrains future behaviour.
+
 That is the decision this directory records, and it is a standing one: these
 requests will keep arriving, and answering them well is the highest-value thing
 this repository does per hour spent.
@@ -78,4 +83,5 @@ question arrives already scoped.
 
 | case | question | check | verdict |
 | --- | --- | --- | --- |
+| [out-of-scope-bug-report](out-of-scope-bug-report.md) | cvc5 [#12905](https://github.com/cvc5/cvc5/issues/12905) is a real bug and **not a proof bug**. What do we do with it, and where does the learning live? | — *(a routing decision, not an invariant)* | **never** for the issue; **carry to ourselves** the decision — a research project under `tools/`, with a charter |
 | [safe-build-vs-safe-mode](safe-build-vs-safe-mode.md) | cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) — the configure script deliberately forbids safe + debug for simplicity. **Is that actually a restriction?** | `BUILD0001`, [`dokimasia.buildmode`](../../dokimasia/buildmode/) | **carry** — it costs one thing only (safe-build diagnostics on a debug binary), and an invariant nothing maintains is what keeps the cost that low |
