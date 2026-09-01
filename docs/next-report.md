@@ -5,6 +5,20 @@ a cvc5 maintainer's time — as a bug report, or as a patch a human carries?
 
 Nothing here is sent by a program. See [`pr-policy.md`](pr-policy.md).
 
+## The verdicts
+
+Applying [the bar](pr-policy.md#the-bar). Two rows clear it; everything else
+names the rule that blocks it.
+
+| verdict | row | |
+| --- | --- | --- |
+| **carry** | `i-3` / `R2` | the completeness flag cannot be set in the mode that promises it |
+| **carry** | `i-2` | `stringLazyPreproc` — safe mode refuses to let you set it *because it lacks proof support*, and leaves it on |
+| not yet — **run-it** | `i-1`, `i-22`, `i-6` | a static argument with no input. `i-1` has had one attempt fail |
+| not yet — **run-it** | the 182 [latent holes](reachability.md) | declared, and nothing has reached them |
+| not yet — **worth-the-attention** | the dead-declaration cleanups | bundled, and only after something substantive lands |
+| never | `i-4` | a termination argument for the reconstruction search settles it, and nothing else does |
+
 ## The recommendation
 
 **Report the completeness flag first: `--check-proofs-complete` cannot be set in
@@ -49,6 +63,28 @@ completeness testing off, and no test would fail.
 **What would sink it:** a maintainer saying the side effect is deliberate and
 documented, and that naming the flag was never intended. That is a fine answer,
 and it still leaves the `--proof-granularity` interaction worth an assertion.
+
+## The second carry: `i-2`
+
+Two commands, and they contradict each other:
+
+```
+$ cvc5 --safe-mode=safe --strings-lazy-pp f.smt2
+(error "Fatal error in option parsing: cannot set option strings-lazy-pp in
+        safe mode, as this option does not support proofs")
+```
+
+...while `strings_options.toml` gives it `default = "true"` and `setDefaultsPre`
+never turns it off. **Safe mode refuses to let you set the option on the grounds
+that it does not support proofs, and then runs with it on.**
+
+`--no-strings-lazy-pp` is refused too, so the guard also blocks the one
+assignment that would make the configuration safer — a user who has read the
+annotation and wants to comply cannot.
+
+Either reading is a defect and the fix is a maintainer's one-line call: disable
+it in safe mode, or drop the stale annotation. It is cheap to receive, which is
+why it goes with `i-3` rather than behind it.
 
 ## Runner-up, and why it is second
 

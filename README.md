@@ -323,7 +323,7 @@ the path. Ours happens first.
 | **[`docs/checks.md`](docs/checks.md)** | **the checks** — sixteen facets, what each has returned, and what the unfinished ones wait on |
 | **[`docs/next-report.md`](docs/next-report.md)** | **what to report next, and why** — the recommendation, the runner-up, and what is not ready to carry |
 | **[`docs/reachability.md`](docs/reachability.md)** | **what the corpus actually reaches** — safe mode: 0 holes over 1,061 proofs; unrestricted: one benchmark in ten |
-| **[`docs/pr-policy.md`](docs/pr-policy.md)** | **we never open a pull request** — what the tools may and may not do, and why the rate limit is a person |
+| **[`docs/pr-policy.md`](docs/pr-policy.md)** | **what we send, and what we build** — we never open a pull request; who decides what; the five-rule bar, and how it also decides what is worth building |
 | [`TODO.md`](TODO.md) | what the analysis is for: five metric groups, what each aims at, and the next four things |
 | [`docs/goals.md`](docs/goals.md) | the stance, the goal, the agility constraint, and how we would know it is working |
 | [`docs/contract.md`](docs/contract.md) | what cvc5 promises, where, and the three ways completeness breaks |

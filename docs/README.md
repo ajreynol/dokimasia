@@ -12,7 +12,7 @@ behind it.
 | [`checks.md`](checks.md) | **the checks** — the sixteen facets, what each has returned against a checkout, and what the unfinished ones are waiting on |
 | [`next-report.md`](next-report.md) | **the next thing to report, and why it is that one** — the recommendation, the runner-up, and what is explicitly not ready |
 | [`reachability.md`](reachability.md) | **what the corpus actually reaches** — the static denominator against cvc5's own runtime counters, measured over `regress0` |
-| [`pr-policy.md`](pr-policy.md) | **we never open a pull request** — the hard rule, what the tools may do instead, and the three errors this session caught that an automated path would have shipped |
+| [`pr-policy.md`](pr-policy.md) | **what we send, and what we build** — the hard rule, who decides what, the five-rule bar and the three verdicts, and how the same bar decides which checks are worth building |
 
 ## The stance and the subject
 
