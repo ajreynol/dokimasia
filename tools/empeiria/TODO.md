@@ -9,6 +9,12 @@ tell what is intended from what exists.
       issue number; it guards the tree, makes the branch, and hands a
       fix-first prompt to an assistant. `--record` and `--list` close the loop
       afterwards. Fixing is never gated on the ledger.
+- [x] **`--triage`** — the open-issue index, [`triage.md`](triage.md), and the
+      command that refreshes it. Standing obligation: analyse every open issue
+      as it arrives, one row each.
+- [ ] **Run `--triage` for real, once.** The file currently holds one hand-written
+      row and says so; until it has been refreshed against the tracker it is a
+      template, not an index.
 - [ ] **Work #12905 end to end with it.** Reproduce it,
       locate it, attempt a fix and a regression test. A ledger format designed
       before a single issue has been worked will be wrong in ways no amount of
@@ -35,7 +41,11 @@ tell what is intended from what exists.
 
 - **Anything that delivers.** No branch pushed, no PR, no issue comment — see
   the charter. The artifact is a patch in a tree a person is driving.
-- Anything that reads the tracker over the network. The parent's standing
-  position is that an analysis whose result depends on when it ran is not a
-  measurement, and nothing here needs to move faster than a person.
+- **Any script here making a network call itself.** `--triage` reads the
+  tracker through an assistant in a session a person started, exactly as the
+  other commands do; the script calls nothing. The index it writes is a dated
+  snapshot, never a measurement.
+- **Any automatic refresh.** A person runs `--triage`. An index that updated
+  itself would be trusted more than it deserves, which is the one thing the
+  file's own header exists to prevent.
 - Any automation of the response itself.

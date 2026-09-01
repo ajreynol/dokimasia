@@ -8,6 +8,7 @@
 # and nothing about it gates the fix. That ordering is the whole vision of this
 # project -- be useful fast, then be smarter next time.
 #
+#   run_empeiria --triage               refresh the open-issue index
 #   run_empeiria 12905                  work it: reproduce, locate, fix, test
 #   run_empeiria 12905 --show-prompt    print the prompt, run nothing
 #   run_empeiria --record 12905         afterwards: what the maintainer did
@@ -22,6 +23,7 @@ set -euo pipefail
 
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 LEDGER="$HERE/ledger"
+TRIAGE="$HERE/triage.md"
 
 # A response lives on the lines *after* the HUMAN RESPONSE: marker, not on it.
 # Checking the marker line itself was a bug: it made --list never report a
@@ -43,10 +45,12 @@ BRANCH=""
 usage() {
   cat >&2 <<'USAGE'
 usage: run_empeiria N [--codex] [--branch NAME] [--print] [--show-prompt] [--force]
+       run_empeiria --triage [--codex] [--print] [--show-prompt]
        run_empeiria --record N
        run_empeiria --list
 
   N               the cvc5 issue to work
+  --triage        refresh the open-issue index in triage.md
   --record N      record what the maintainer did, after the fact
   --list          what has been worked, and what came back
   --codex         run codex instead of claude
@@ -62,6 +66,7 @@ USAGE
 
 while [ $# -gt 0 ]; do
   case "$1" in
+    --triage) MODE=triage; shift ;;
     --record) MODE=record; ISSUE="${2:-}"; [ -n "$ISSUE" ] || usage; shift 2 ;;
     --list) MODE=list; shift ;;
     --codex) AGENT=codex; shift ;;
@@ -93,6 +98,57 @@ if [ "$MODE" = list ]; then
     printf '%-10s %-12s %s\n' "#$n" "${state:-?}" "${when:-?}"
   done
   exit 0
+fi
+
+if [ "$MODE" = triage ]; then
+  read -r -d '' TPROMPT <<TRIAGE_END || true
+Refresh the open-issue index at:
+
+  $TRIAGE
+
+Read that file first: its header states what the file is for and, more
+importantly, what it may not be used for. Do not change the header, the
+"What this is" section, or the class table. You are updating one table.
+
+1. **Read every open issue** at https://github.com/cvc5/cvc5/issues — all of
+   them, not a sample. If there are too many to read properly, say how many you
+   read and stop; a partial index that says it is partial is useful, and one
+   that pretends to be complete is not.
+2. **One row per issue**, in the table under "## Open issues", newest first:
+
+   | # | title | one line | class | worked |
+
+   - **one line**: what is actually wrong, in your own words, from the report.
+     Not the title again. If the report does not say, write "report does not
+     say" -- that is the most useful row in the table.
+   - **class**: one of proof / bug / perf / design / unclear, per the class
+     table already in the file. When torn between a class and \`unclear\`, pick
+     \`unclear\`: a wrong route costs somebody an afternoon and a hedge costs a
+     question.
+   - **worked**: "not yet", or the ledger state if $LEDGER/<n>.md exists.
+3. **Update the snapshot line** under the title with today's date, how many
+   issues you read, and how many were open.
+4. **Do not drop a row for an issue that has closed** since the last refresh --
+   move it to a "## Recently closed" section with a word on how it closed. What
+   got fixed is the cheapest signal here about what this project should expect.
+
+You are writing an index. Every row is a guess from an issue's text by
+something that has reproduced nothing, and the file says so about itself. Do
+not write a row that reads more confident than that.
+
+**Do not open, comment on, label or close anything.** Do not touch any
+repository other than this file. Nothing here is delivered.
+TRIAGE_END
+  if [ "$SHOW" = 1 ]; then printf '%s\n' "$TPROMPT"; exit 0; fi
+  command -v "$AGENT" >/dev/null 2>&1 || {
+    echo "run_empeiria: $AGENT is not on PATH" >&2; exit 127; }
+  echo "-- run_empeiria: refreshing $TRIAGE" >&2
+  echo "   the index is the first place to look and the last place to trust" >&2
+  if [ "$AGENT" = codex ]; then
+    if [ "$PRINT" = 1 ]; then exec codex exec "$TPROMPT"; else exec codex "$TPROMPT"; fi
+  else
+    if [ "$PRINT" = 1 ]; then exec claude -p "$TPROMPT"; else exec claude "$TPROMPT"; fi
+  fi
 fi
 
 case "$ISSUE" in ''|*[!0-9]*)

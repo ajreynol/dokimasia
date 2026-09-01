@@ -67,6 +67,7 @@ that never learns repeats its mistakes at machine speed.
 ## Using it
 
 ```bash
+run_empeiria --triage               # refresh the open-issue index
 cd ~/cvc5
 run_empeiria 12905                  # reproduce, locate, fix, test
 run_empeiria 12905 --show-prompt    # print the prompt, run nothing
@@ -74,7 +75,9 @@ run_empeiria --record 12905         # afterwards: what the maintainer did
 run_empeiria --list                 # what has been worked, and what came back
 ```
 
-It refuses to run outside a cvc5 checkout and refuses a dirty tree; it creates
+`--triage` is the standing obligation and the only command that does not need a
+cvc5 checkout — it reads the tracker, not the tree. The rest refuse to run
+outside a cvc5 checkout and refuse a dirty tree; it creates
 the branch itself rather than asking the assistant to, because a branch the
 assistant forgot is a diff on somebody's main. `--show-prompt` runs nothing and
 works anywhere, so the prompt is auditable without a checkout to hand. It makes
@@ -82,6 +85,13 @@ no network calls, and it never pushes, posts or opens anything.
 
 **The goals, in order.**
 
+0. **Keep an index of every open issue** — [`triage.md`](triage.md), refreshed
+   by `run_empeiria --triage`. It is numbered zero because it is a standing
+   obligation rather than a result: it makes goal 1 well aimed and produces
+   nothing on its own. **It is the first place to look and the last place to
+   trust** — an index written from issue text by something that reproduced
+   nothing, and it says so about itself on every screen. No row in it may be
+   cited as evidence anywhere.
 1. **Work an issue end to end.** Reproduce it, locate it, and produce a fix as
    a patch and a regression test — in a working tree a person is driving. A
    triage nobody tried to act on is an opinion.
@@ -139,6 +149,14 @@ this section only says how its three parts land on a project that writes fixes.
 - **The guidance stays with the maintainer**, including this charter. A
   research project is started and ended by a person, and its scope is changed
   the same way — never by the project deciding it has outgrown its boundary.
+
+**On reading the tracker.** The parent's standing position is that no analysis
+path makes a network call, because an analysis whose answer depends on when it
+ran is not a measurement. `--triage` does not break it: like every other command
+here the script itself calls nothing, and hands a prompt to an assistant in a
+session a person started. The index it produces is explicitly a dated snapshot
+and explicitly not a measurement, which is the same arrangement the parent uses
+for anything imported rather than computed.
 
 The [research-project rules](https://github.com/ajreynol/anoieu/blob/main/docs/policy.md)
 say the same thing from the other direction: nothing leaves the island by
