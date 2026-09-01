@@ -32,6 +32,7 @@ import glob
 import os
 import re
 from dataclasses import dataclass, field
+from .. import source
 from ..sanity import expect
 
 _KIND_BLOCK = re.compile(r"^\[\[kinds\]\](.*?)(?=^\[\[|\Z)", re.M | re.S)
@@ -174,8 +175,7 @@ class Fragment:
 def _kinds(src: str, f: Fragment) -> None:
     for path in sorted(glob.glob(os.path.join(src, "theory", "*", "kinds.toml"))):
         theory = os.path.basename(os.path.dirname(path))
-        with open(path, encoding="utf-8", errors="ignore") as fh:
-            text = fh.read()
+        text = source.read(path)
         tid = _THEORY_ID.search(text)
         if tid:
             f.theory_id[theory] = tid.group(1)

@@ -26,6 +26,7 @@ import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
+from .. import source
 from ..sanity import expect
 
 
@@ -117,8 +118,7 @@ class InferenceIds:
 def _declared(src: str) -> list[str]:
     """The enum members of InferenceId, in declaration order."""
     path = os.path.join(src, _ENUM_HEADER)
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        text = fh.read()
+    text = source.read(path)
     start = text.find("enum class InferenceId")
     if start < 0:
         return []
@@ -152,8 +152,7 @@ def scan(src: str, include_tests: bool = False) -> InferenceIds:
                 if root != src:
                     rel = os.path.join("..", os.path.relpath(full, base))
                 try:
-                    with open(full, encoding="utf-8", errors="ignore") as fh:
-                        text = fh.read()
+                    text = source.read(full)
                 except OSError:
                     continue
                 if "InferenceId::" not in text:

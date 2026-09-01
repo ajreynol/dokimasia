@@ -23,6 +23,7 @@ kind can be introduced internally rather than parsed from input. Verdicts are
 """
 
 from __future__ import annotations
+from .. import source
 
 import os
 import re
@@ -113,8 +114,7 @@ def _from_illegal_checker(src: str, kg: KindGates) -> None:
     path = os.path.join(src, "smt", "illegal_checker.cpp")
     if not os.path.exists(path):
         return
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        text = fh.read()
+    text = source.read(path)
     for start, end, head in _blocks(text):
         body = text[start:end]
         if "d_illegalKinds.insert" not in body:
@@ -135,8 +135,7 @@ def _from_logic_exceptions(src: str, kg: KindGates) -> None:
             if not fn.endswith(".cpp"):
                 continue
             full = os.path.join(dirpath, fn)
-            with open(full, encoding="utf-8", errors="ignore") as fh:
-                text = fh.read()
+            text = source.read(full)
             if "LogicException" not in text or "options()." not in text:
                 continue
             rel = os.path.relpath(full, src)
@@ -178,8 +177,7 @@ def _rule_kinds(src: str, kg: KindGates) -> None:
             if not fn.endswith(".cpp"):
                 continue
             full = os.path.join(dirpath, fn)
-            with open(full, encoding="utf-8", errors="ignore") as fh:
-                text = fh.read()
+            text = source.read(full)
             if "rewriteViaRule" not in text:
                 continue
             for m in re.finditer(r"::rewriteViaRule\b", text):

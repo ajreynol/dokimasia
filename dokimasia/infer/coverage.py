@@ -19,6 +19,7 @@ the tool says which of the two it is looking at.
 """
 
 from __future__ import annotations
+from .. import source
 
 import os
 import re
@@ -112,8 +113,7 @@ def scan(root: str) -> Coverage:
         th = _theory_of(rel)
         if th is None:
             continue
-        with open(path, encoding="utf-8", errors="ignore") as fh:
-            text = fh.read()
+        text = source.read(path)
         t = cov.theories.setdefault(th, TheoryCoverage(th))
         t.has_ipc = True
         t.ipc_file = rel

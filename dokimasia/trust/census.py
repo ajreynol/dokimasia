@@ -20,6 +20,7 @@ import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
+from .. import source
 from ..sanity import expect
 
 _USE = re.compile(r"(?:(case)\s+|(==|!=)\s*)?\bTrustId::([A-Z][A-Z0-9_]*)")
@@ -125,8 +126,7 @@ class Census:
 
 def _declared(src: str) -> list[str]:
     path = os.path.join(src, "proof", "trust_id.h")
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        text = fh.read()
+    text = source.read(path)
     start = text.find("enum class TrustId")
     end = text.find("\n};", start)
     names = _MEMBER.findall(text[start:end]) if start >= 0 else []
@@ -154,8 +154,7 @@ def census(root: str) -> Census:
             full = os.path.join(dirpath, fn)
             rel = os.path.relpath(full, src)
             try:
-                with open(full, encoding="utf-8", errors="ignore") as fh:
-                    text = fh.read()
+                text = source.read(full)
             except OSError:
                 continue
             if "TrustId::" not in text:

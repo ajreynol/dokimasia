@@ -51,6 +51,7 @@ The register row for each is in [`issues.md`](issues.md).
 | `CI` | `dokimasia.ci` | 4 of 22 jobs run a proof tester; 4 of 5 completeness links hold, the fifth is never named | `i-3`, `i-13`, `i-14` |
 | `GATE` | `dokimasia.gates` | 59 term kinds carry an option gate; verdicts blocked / partial / open per rule | `i-1`, `s-1`–`s-5` |
 | `FRAG` | `dokimasia.fragment` | 341 kinds over 14 theories (223 available, 118 blocked); two safe-mode options gate no kind at all | `i-15` |
+| `LATENT` | `dokimasia.latent` | **182 of 203 declared holes reached by no input**; 21 reached only outside safe mode; 0 in safe mode | [`reachability.md`](reachability.md) |
 | `SIG` | `dokimasia.signature` | 0 printable rules undeclared; 24 skolems constructed and unprintable; 1 documented arity disagreement | `i-19`, `i-20`, `i-21` |
 
 The `MODE` row is the shape to notice: the check returned two options and one of

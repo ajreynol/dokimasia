@@ -28,6 +28,7 @@ import glob
 import os
 import re
 from dataclasses import dataclass, field
+from .. import source
 from ..sanity import expect
 
 _DECL = re.compile(r"\(declare-rule\s+([^\s()]+)\s*\((.*?)\)\s*(.*?)(?=\n\(|\Z)", re.S)
@@ -122,7 +123,7 @@ _LATEX_SPACE = re.compile(r"\\[,;:!>]")
 
 
 def _detex(text: str) -> str:
-    """Strip LaTeX spacing commands.
+    r"""Strip LaTeX spacing commands.
 
     `\,` is a thin space whose second character is a comma, so splitting a
     premise list on `,` without removing it invents a premise. That bug alone
@@ -248,8 +249,7 @@ def _parse_signature(root: str) -> dict[str, tuple[object, int]]:
     out: dict[str, tuple[object, int]] = {}
     for path in glob.glob(os.path.join(root, "proofs", "eo", "**", "*.eo"),
                           recursive=True):
-        with open(path, encoding="utf-8", errors="ignore") as fh:
-            text = fh.read()
+        text = source.read(path)
         for m in _DECL.finditer(text):
             name, body = m.group(1), m.group(3)
             if ":premise-list" in body:
@@ -266,8 +266,7 @@ def _parse_signature(root: str) -> dict[str, tuple[object, int]]:
 
 def _parse_docs(root: str) -> dict[str, tuple[object, int]]:
     path = os.path.join(root, "include", "cvc5", "cvc5_proof_rule.h")
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        text = fh.read()
+    text = source.read(path)
     out: dict[str, tuple[object, int]] = {}
     for m in _EVALUE_DOC.finditer(text):
         comment, name = m.group(1), m.group(2)
@@ -292,8 +291,7 @@ def _parse_skolems(root: str) -> Skolems:
     """Skolem ids from the header, the construction sites, and the seam."""
     src = os.path.join(root, "src")
     hdr = os.path.join(root, "include", "cvc5", "cvc5_skolem_id.h")
-    with open(hdr, encoding="utf-8", errors="ignore") as fh:
-        h = fh.read()
+    h = source.read(hdr)
     sk = Skolems(declared=re.findall(r"EVALUE\((\w+)\)", h))
     for m in _SK_EVALUE.finditer(h):
         c = _SK_COUNT.search(m.group(1))

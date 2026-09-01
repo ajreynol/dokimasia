@@ -40,10 +40,15 @@ it for one corpus**, and it is in [`reachability.md`](reachability.md):
 | `--safe-mode=safe` | 1,061 | **0** |
 | unrestricted | 1,236 | **129** (10.4%) |
 
-Of the denominator, unrestricted mode touched **10 of 70 live `TrustId`s** and
-**2 of 40** statically-unprintable rewrites. The other 86% and 95% are holes this
-corpus has never exercised — which is the population this repository is for,
-now measured instead of assumed.
+Doing the subtraction across the whole inventory — `python3 -m dokimasia.latent
+census` — gives the number this repository should be judged on:
+
+> **182 of 203 declared holes have never been reached by any input we have run.**
+
+21 were reached outside safe mode; none inside it. That 182 is the population
+cvc5's runtime oracle structurally cannot see, and it must move in either
+direction: an input promotes a hole to a finding, an unreachability argument
+removes it from the inventory.
 
 The same run validated the static tier against the runtime oracle. cvc5's
 completeness check is literally `!EoPrinter::isHandled(...)`, the predicate

@@ -31,6 +31,7 @@ import glob
 import os
 import re
 from dataclasses import dataclass, field
+from .. import source
 from ..sanity import expect
 
 _EVALUE = re.compile(r"EVALUE\(([A-Z][A-Z0-9_]*)\)")
@@ -183,8 +184,7 @@ def _strip_comments(text: str) -> str:
 
 def _declared(include_dir: str) -> list[str]:
     path = os.path.join(include_dir, "cvc5", "cvc5_proof_rule.h")
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        text = fh.read()
+    text = source.read(path)
     b = text.find("enum ENUM(ProofRewriteRule)")
     end = text.find("\n};", b)
     return [r for r in _EVALUE.findall(text[b:end]) if r not in SENTINELS]
@@ -205,8 +205,7 @@ def _rare(src: str) -> tuple[dict[str, str], dict[str, str]]:
                 continue
             path = os.path.join(dirpath, fn)
             try:
-                with open(path, encoding="utf-8") as fh:
-                    text = fh.read()
+                text = source.read(path)
             except (OSError, UnicodeDecodeError):
                 continue
             names = _RARE.findall(text)
@@ -229,8 +228,7 @@ def _markers(include_dir: str) -> dict[str, str]:
 def _handled(src: str) -> tuple[dict[str, str], set[str]]:
     """(rule -> always|conditional, rules the seam takes only when unrestricted)."""
     path = os.path.join(src, "proof", "eo", "eo_printer.cpp")
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        text = fh.read()
+    text = source.read(path)
     # match the *definition*, not the call site 100 lines above it
     m = re.search(r"^bool EoPrinter::isHandledTheoryRewrite\b", text, re.M)
     if m is None:
@@ -276,8 +274,7 @@ def _implemented(src: str) -> dict[str, str]:
             if not fn.endswith(".cpp"):
                 continue
             full = os.path.join(dirpath, fn)
-            with open(full, encoding="utf-8", errors="ignore") as fh:
-                text = fh.read()
+            text = source.read(full)
             if "rewriteViaRule" not in text:
                 continue
             rel = os.path.relpath(full, src)

@@ -18,6 +18,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
+from .. import source
 from ..sanity import expect
 
 #: Testers whose purpose is to exercise proof production.
@@ -135,8 +136,7 @@ def _parse_workflow(path: str, name: str) -> list[Job]:
 
 
 def _parse_testers(path: str) -> tuple[dict[str, Tester], list[str]]:
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        text = fh.read()
+    text = source.read(path)
     testers: dict[str, Tester] = {}
     for m in re.finditer(r'super\(\)\.__init__\("([a-z-]+)"\)', text):
         name = m.group(1)

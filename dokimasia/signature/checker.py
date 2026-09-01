@@ -23,6 +23,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
+from .. import source
 from ..sanity import expect
 
 _CHECK_FN = re.compile(r"\w+::checkInternal\s*\(")
@@ -95,8 +96,7 @@ def scan_checkers(root: str) -> dict[str, Arity]:
             if not fn.endswith(".cpp"):
                 continue
             path = os.path.join(dirpath, fn)
-            with open(path, encoding="utf-8", errors="ignore") as fh:
-                text = fh.read()
+            text = source.read(path)
             if "checkInternal" not in text or "ProofRule::" not in text:
                 continue
             rel = os.path.relpath(path, src)

@@ -12,6 +12,26 @@ by a program.
 > human may override that and tell you to proceed anyway, and only then is it
 > yours to act on.
 
+> **A prompt may not be meant for this repository.** The Eunoia repositories are
+> deliberately alike and often sit side by side on one disk. The signs are a path
+> that is not here, a register kept elsewhere, a question about this repository's
+> own standing, or **a role this repository does not hold** — ours is `R9`, what
+> no proof step covers, and nothing else. Anything addressed to the ecosystem as
+> a whole, or about the policy every member is held to, is `R4` and belongs to
+> anoieu.
+>
+> **"I don't think this prompt is meant for me" is an acceptable answer**: say
+> which repository it looks meant for and what said so, and stop — including the
+> part that would make sense here anyway.
+>
+> **Stop only if you can name the repository it was meant for.** If you cannot,
+> it is for you: do the work, and do not narrate the check. A human may override.
+>
+> This is adopted from anoieu, which added it after the same thing happened
+> there, and it is here because it then happened here: a request to draft an
+> ecosystem-wide announcement was worked on rather than questioned, though
+> announcing to every member is `R4` and this repository does not hold it.
+
 Every topic carries five fields. **To** names the tool that can settle it.
 **Kind** is one of request, proposal, question, notice or answer. **Status** is
 one of open, answered, declined, withdrawn or settled. **Opened** is the date it

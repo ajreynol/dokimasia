@@ -49,13 +49,7 @@ jobs:
       - name: the pin is real, upstream, and what the docs quote
         run: python3 tests/test_pin.py /tmp/cvc5
       - name: every ratchet is clean at the pinned commit
-        run: |
-          fail=0
-          for t in tcb modes inferid ledger trust ci rewrites infer; do
-            echo "--- $t"
-            python3 -m dokimasia."$t" baseline /tmp/cvc5 --check || fail=1
-          done
-          exit $fail
+        run: python3 -m dokimasia check /tmp/cvc5 --verbose
       - name: the full suite, with the checkout
         run: |
           fail=0

@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+"""Run cvc5 over a benchmark corpus and record which proof holes it reaches.
+
+Produces `reach-corpus.json`, the numerator `dokimasia.latent` subtracts from
+the static inventory. This needs a *built* cvc5, which is why it is a script
+and not a subtool: every other analysis here reads a checkout and builds
+nothing.
+
+    scripts/sweep_corpus --cvc5 <binary> --corpus <dir> [--jobs 16]
+
+**The stat names are data, and they are checked.** An earlier run of this by
+hand grepped for `trustIds` and `ruleEouCount` -- the C++ *member* names, not
+the registered statistic names -- and reported zero holes in both modes. A
+query that cannot match returns a clean-looking zero, which is the most
+dangerous result an experiment can produce. So: if a whole sweep sees a counter
+name zero times, that is reported as a suspect query rather than as good news.
+"""
+import argparse
+import collections
+import json
+import os
+import re
+import subprocess
+import sys
+from concurrent.futures import ThreadPoolExecutor
+
+#: Registered in src/smt/proof_final_callback.cpp. Verify against that file
+#: after any cvc5 bump: these are the statistic names, not the member names.
+HOLE_COUNTERS = (
+    "ruleUnhandledEoCount",
+    "theoryRewriteRuleUnhandledEoCount",
+    "trustCount",
+    "trustTheoryLemmaCount",
+    "trustTheoryRewriteCount",
+)
+#: Proves the run produced a proof at all, so an empty hole set means something.
+PROOF_COUNTER = "finalProofs::numFinalProofs"
+
+_HIST = re.compile(r"^finalProof::(\w+) = \{(.*)\}\s*$", re.M)
+_NPROOF = re.compile(re.escape(PROOF_COUNTER) + r" = (\d+)")
+
+MODES = {"safe": ["--safe-mode=safe"], "unrestricted": []}
+
+
+def run_one(cvc5, flags, path, timeout):
+    cmd = [cvc5, *flags, "--produce-proofs", "--check-proofs",
+           "--stats-internal", path]
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    except (subprocess.TimeoutExpired, OSError):
+        return None
+    out = p.stdout + p.stderr
+    m = _NPROOF.search(out)
+    if not m or int(m.group(1)) == 0:
+        return None
+    counters = {}
+    for name, body in _HIST.findall(out):
+        if name not in HOLE_COUNTERS:
+            continue
+        c = counters.setdefault(name, collections.Counter())
+        for item in body.split(","):
+            if ":" in item:
+                k, v = item.rsplit(":", 1)
+                c[k.strip()] += int(v.strip())
+    return counters
+
+
+def sweep(cvc5, benches, flags, jobs, timeout):
+    proofs = 0
+    hit = 0
+    agg = {}
+    with ThreadPoolExecutor(max_workers=jobs) as ex:
+        for res in ex.map(lambda b: run_one(cvc5, flags, b, timeout), benches):
+            if res is None:
+                continue
+            proofs += 1
+            if res:
+                hit += 1
+            for name, c in res.items():
+                agg.setdefault(name, collections.Counter()).update(c)
+    return proofs, hit, {k: dict(v) for k, v in agg.items()}
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--cvc5", required=True, help="a built cvc5 binary")
+    ap.add_argument("--corpus", required=True, help="directory of .smt2 files")
+    ap.add_argument("--out", default="reach-corpus.json")
+    ap.add_argument("--jobs", type=int, default=os.cpu_count() or 8)
+    ap.add_argument("--timeout", type=int, default=10)
+    ap.add_argument("--limit", type=int, default=0, help="first N benchmarks only")
+    a = ap.parse_args()
+
+    benches = sorted(
+        os.path.join(r, f)
+        for r, _d, fs in os.walk(a.corpus) for f in fs if f.endswith(".smt2"))
+    if a.limit:
+        benches = benches[:a.limit]
+    if not benches:
+        print(f"no .smt2 under {a.corpus}", file=sys.stderr)
+        return 2
+    print(f"{len(benches)} benchmarks, {a.jobs} jobs, {a.timeout}s timeout")
+
+    # Provenance, because a runtime number is only as good as the build that
+    # produced it -- and ours has come from a fork build with local changes.
+    try:
+        ver = subprocess.run([a.cvc5, "--version"], capture_output=True,
+                             text=True, timeout=30).stdout.splitlines()[0].strip()
+    except Exception:
+        ver = "unknown"
+    prov = {"cvc5_version": ver, "corpus": os.path.abspath(a.corpus),
+            "benchmarks": len(benches), "timeout_s": a.timeout,
+            "counters_queried": list(HOLE_COUNTERS)}
+    try:
+        prov["corpus_commit"] = subprocess.run(
+            ["git", "-C", a.corpus, "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, timeout=30).stdout.strip() or "unknown"
+    except Exception:
+        prov["corpus_commit"] = "unknown"
+    print(f"  binary: {ver}")
+
+    out, seen = {"_provenance": prov}, collections.Counter()
+    for mode, flags in MODES.items():  # noqa: E501
+        proofs, hit, agg = sweep(a.cvc5, benches, flags, a.jobs, a.timeout)
+        for name in agg:
+            seen[name] += 1
+        out[mode] = {"benchmarks_with_proofs": proofs,
+                     "benchmarks_with_holes": hit,
+                     "counters": agg}
+        print(f"  {mode:<13} {proofs:>5} produced a proof, {hit:>4} reached a hole")
+
+    # The guard. A counter that never appeared in ANY mode is either genuinely
+    # never hit or -- far more likely -- a name that no longer matches.
+    missing = [c for c in HOLE_COUNTERS if not seen[c]]
+    if missing:
+        print("\n  !! these counters never appeared in either mode:")
+        for c in missing:
+            print(f"       finalProof::{c}")
+        print("     Either nothing hit them, or the name is stale. Check them"
+              "\n     against src/smt/proof_final_callback.cpp before trusting"
+              "\n     a zero -- a query that cannot match looks exactly like a"
+              "\n     clean result.")
+
+    with open(a.out, "w", encoding="utf-8") as fh:
+        json.dump(out, fh, indent=2, sort_keys=True)
+        fh.write("\n")
+    print(f"\nwrote {a.out}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

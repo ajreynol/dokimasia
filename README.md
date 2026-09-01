@@ -79,6 +79,21 @@ cvc5 `40a4bb7e4`, and what the unfinished ones are waiting on:
 
 No dependencies; Python 3.10+; reads a checkout, needs no build.
 
+```bash
+python3 -m dokimasia check  <cvc5>   # every ratchet, one process — 2.4s
+python3 -m dokimasia report <cvc5>   # every analysis, printed
+```
+
+**[`dokimasia.latent`](dokimasia/latent/)** — the subtraction the rest of the
+repository exists to make: *static inventory − what a corpus reached = the holes
+nothing has hit*.
+
+```bash
+python3 -m dokimasia.latent census <cvc5>          # 182 of 203 latent, 0 in safe mode
+python3 -m dokimasia.latent list   <cvc5> --kind seam-rule
+scripts/sweep_corpus --cvc5 <binary> --corpus <dir>  # regenerate the census
+```
+
 **[`dokimasia.tcb`](dokimasia/tcb/)** — the trusted computing base of the
 internal proof checker, the natural kernel candidate.
 

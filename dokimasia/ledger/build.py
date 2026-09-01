@@ -28,6 +28,7 @@ import os
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
+from .. import source
 from ..sanity import expect
 
 _EVALUE = re.compile(r"EVALUE\(([A-Z][A-Z0-9_]*)\)")
@@ -140,8 +141,7 @@ def _strip_comments(text: str) -> str:
 def _declared(include_dir: str) -> tuple[list[str], list[str]]:
     """(ProofRule names, ProofRewriteRule names) from the public header."""
     path = os.path.join(include_dir, "cvc5", "cvc5_proof_rule.h")
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        text = fh.read()
+    text = source.read(path)
     a = text.find("enum ENUM(ProofRule)")
     b = text.find("enum ENUM(ProofRewriteRule)")
     rules = _EVALUE.findall(text[a:b]) if a >= 0 else []
@@ -157,8 +157,7 @@ def _parse_is_handled(src: str) -> dict[str, str]:
     Rules absent from the result are ``never``.
     """
     path = os.path.join(src, "proof", "eo", "eo_printer.cpp")
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        text = fh.read()
+    text = source.read(path)
     # `bool EoPrinter::isHandled` is a prefix of `...isHandledTheoryRewrite`,
     # so anchor on the full signature rather than the prefix.
     m = re.search(r"^bool EoPrinter::isHandled\(", text, re.M)
@@ -213,8 +212,7 @@ def build(root: str) -> Ledger:
             full = os.path.join(dirpath, fn)
             rel = os.path.relpath(full, src)
             try:
-                with open(full, encoding="utf-8", errors="ignore") as fh:
-                    text = fh.read()
+                text = source.read(full)
             except OSError:
                 continue
             if "ProofRule::" not in text:

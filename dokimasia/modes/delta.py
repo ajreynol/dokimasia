@@ -31,6 +31,7 @@ from __future__ import annotations
 import os
 import re
 from dataclasses import dataclass, field
+from .. import source
 from ..sanity import expect
 
 MACROS = (
@@ -116,8 +117,7 @@ def _tags_for(cond: str) -> set[str]:
 def parse_set_defaults(src: str) -> list[OptionChange]:
     """Parse ``src/smt/set_defaults.cpp`` into a list of option changes."""
     path = os.path.join(src, "smt", "set_defaults.cpp")
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        text = fh.read()
+    text = source.read(path)
 
     # Strip the macro *definitions* at the top; we want call sites only.
     body_start = text.find("void SetDefaults::")
@@ -249,8 +249,7 @@ def parse_option_defaults(src: str) -> dict[str, dict[str, str]]:
     for fn in sorted(os.listdir(odir)):
         if not fn.endswith(".toml"):
             continue
-        with open(os.path.join(odir, fn), encoding="utf-8", errors="ignore") as fh:
-            text = fh.read()
+        text = source.read(os.path.join(odir, fn))
         for block in _OPT_BLOCK.findall(text):
             fields = {}
             for k, v in _FIELD.findall(block):

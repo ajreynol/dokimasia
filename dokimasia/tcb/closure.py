@@ -40,6 +40,7 @@ are not followed. Figures are a lower bound in that respect.
 """
 
 from __future__ import annotations
+from .. import source
 
 import os
 import re
@@ -102,8 +103,7 @@ class IncludeGraph:
                 path = os.path.join(root, fn)
                 rel = os.path.relpath(path, src)
                 try:
-                    with open(path, encoding="utf-8", errors="ignore") as fh:
-                        text = fh.read()
+                    text = source.read(path)
                 except OSError:
                     continue
                 g.lines[rel] = text.count("\n") + 1

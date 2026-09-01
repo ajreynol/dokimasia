@@ -12,7 +12,7 @@ named argument, not a task.
 
 ## What exists
 
-Eleven subtools, dependency-free, reading a checkout with no build. Eight carry a
+Twelve subtools, dependency-free, reading a checkout with no build. Eight carry a
 `baseline --check` ratchet.
 
 | tool | answers | ratchet |
@@ -28,6 +28,7 @@ Eleven subtools, dependency-free, reading a checkout with no build. Eight carry 
 | `gates` | which option legalises each term kind, and so each rewrite rule | |
 | `fragment` | the supported fragment per theory, and whether it is enforced | |
 | `signature` | whether the Eunoia signature agrees with cvc5's account of a rule | |
+| `latent` | static inventory − what a corpus reached = **the holes nothing has hit** | |
 
 ## What the analysis is for
 
@@ -51,11 +52,12 @@ Five groups. Each carries metrics and a short list of what is left.
 | rewrites the seam takes **only** outside safe mode | **3** — one (`LAMBDA_ELIM`) not otherwise blocked | 0 |
 | `TrustId`s constructible | **70 of 75 live** | ranked by safe-mode reachability |
 | inferences falling through to a trust step by construction | **79** | ranked by reachability |
-| **of that inventory, what any input has reached** | **[0 in safe mode, 10 of 70 `TrustId`s unrestricted](docs/reachability.md)** | the latent set, named |
+| **of that inventory, what any input has reached** | **[0 in safe mode, 21 of 203 unrestricted](docs/reachability.md)** | the latent set, named |
+| **the latent count** — declared, never reached | **182 of 203** (`latent census`) | shrinking, either way it goes |
 
-**Left to do:** rank the trust census and the 79 fall-throughs by safe-mode
-reachability — now unblocked, since `gates` and `fragment.requires_higher_order`
-supply the static side and the corpus supplies the reached side (`t-4`).
+**Left to do:** work the 182 down (`t-3`). The count is the headline number and
+it should move in either direction — an input promotes a hole to a finding, an
+unreachability argument removes it from the inventory.
 
 **What cvc5 can do:** close the holes (`i-7`, `i-18`); declare which seam
 refusals are intentional (**R1**, **R6**).
@@ -148,10 +150,9 @@ Everything above that is not on this list is context, not a queue.
 | | | why |
 | --- | --- | --- |
 | **t-1** | **Get an input for `i-1` (`LAMBDA_ELIM`).** | The only candidate that could become a rank-1 finding, and static work cannot settle it. **One attempt has failed** — a plain `define-fun` runs clean in safe mode; the macro is expanded before the rewriter. Needs a benchmark that keeps a lambda alive. Treat [`s-6`](docs/issues.md#settled) as the cautionary case |
-| **t-2** | **Promote the corpus sweep to a checked-in tool.** | [The measurement](docs/reachability.md) that produced our best result currently exists as shell scripts in a scratch directory. It needs to be `scripts/` or `dokimasia.reach`, with the stat names as data — we got them wrong once and a non-matching query returns a clean-looking zero |
-| **t-3** | **Re-run the corpus census on a clean upstream build.** | [The census](docs/reachability.md) was produced by a binary built from `ajreynol/CVC4` with local modifications, so it is the one set of numbers a reader cannot re-check by fetching the pin. Listed as a debt in `tools/cvc5.lock`, and it needs a build we do not have |
-| **t-4** | **Rank the trust census and the 79 fall-throughs by safe-mode reachability.** | `TRUST0001`, the long-standing open item, now unblocked: `gates` plus `fragment.requires_higher_order` give the static side, [the corpus](docs/reachability.md) gives the reached side |
-| **t-5** | **Carry `i-3`/`R2` to cvc5.** | [The recommendation](docs/next-report.md). One command is the whole report, and the fix is an assertion in `setDefaultsPre` |
+| **t-2** | **Re-run the corpus census on a clean upstream build.** | [The census](docs/reachability.md) was produced by a binary built from `ajreynol/CVC4` with local modifications, so it is the one set of numbers a reader cannot re-check by fetching the pin. Listed as a debt in `tools/cvc5.lock`, and it needs a build we do not have |
+| **t-3** | **Work the latent set down.** | `dokimasia.latent` now names **182 holes no input has reached**. Each needs an input (it becomes a finding) or an unreachability argument (it leaves the inventory). Start with the 5 latent seam rules — `SAT_REFUTATION` is the one that is not arith |
+| **t-4** | **Carry `i-3`/`R2` to cvc5.** | [The recommendation](docs/next-report.md). One command is the whole report, and the fix is an assertion in `setDefaultsPre` |
 
 Deferred until **R1** has been asked for, because R1 would retire most of what
 they are for: the AST tier (`API0001`–`0004`, `INFER0001`), `SEAM0002` (the
@@ -160,6 +161,9 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
 
 ## Standing
 
+- **One command.** `python3 -m dokimasia check <cvc5>` runs every ratchet in a
+  single process, reading `src/` once instead of once per tool: **2.4s, down
+  from 7.4s**. `report` prints every analysis; `write` re-records baselines.
 - **Ratchets, in CI.** Eight tools carry `baseline --check`. `.github/workflows/checks.yml`
   runs the whole suite and every ratchet on each push, against the commit
   [`tools/cvc5.lock`](tools/cvc5.lock) pins. Re-run the corpus census per cvc5
