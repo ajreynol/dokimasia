@@ -13,8 +13,10 @@ holes no input has reached.
 Modelled on [`anoieu`](https://github.com/ajreynol/anoieu), which does the same
 job for Eunoia signatures. Signatures are its subject; the C++ is ours.
 
-*Status: two subtools exist and have produced one report. Everything else is
-design. Numbers below were measured against cvc5 `16c4001e53`.*
+*Status: eleven subtools are live and have produced one filed finding and a
+register of candidates; five facets are partial or designed. Every number in
+this file was measured against cvc5 `16c4001e53`, and each is reproducible with
+the command beside it.*
 
 > **A quiet run is not a complete proof pipeline.** When a check here reports
 > nothing, that is a fact about the check and not about cvc5. Every analysis in
@@ -27,36 +29,51 @@ will and will not publish about somebody else's code is
 [`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md),
 shared with anoieu.
 
-## The analyses
+## Why cvc5 should care
 
-The facets of cvc5 we audit. Each is a namespace of check codes; each check owns
-a witness; each says something about the pipeline that is true or false.
+The question this repository has to answer before it asks for anyone's time.
+The full answer, with every number reproducible against a checkout, is
+**[`docs/why.md`](docs/why.md)**. The short form is three claims and one
+admission.
 
-✅ live · ◐ partial · ○ designed
+**1 — We supply the denominator cvc5's own counters cannot.**
+`proof_final_callback.cpp` already counts trust steps and unhandled rules at
+runtime, which is a numerator: the holes some input reached. *How many exist to
+be reached* is a property of the code, and no execution can report the paths it
+did not take. We count them: 70 live `TrustId`s, 79 inferences that fall through
+to a trust step by construction, 14 rules the Eunoia seam refuses, 40 rewrites
+applied and unprintable. Put those beside one corpus run with `--stats-internal`
+and you get the number nobody has — **what fraction of cvc5's declared holes has
+any input ever reached** — which decides how much the rest of this matters, in
+either direction.
 
-| | prefix | facet | asks |
-| --- | --- | --- | --- |
-| ✅ | `TCB` | **the checker's dependency surface** | how much of cvc5 must be right for `--check-proofs` to mean anything — and is it growing? |
-| ◐ | `MODE` | **the safe-mode contract** | is anything reachable in safe mode without proof support? what does enabling proofs change about the solver at all? |
-| ✅ | `RULE` | **the rule ledger** | for every `ProofRule`: who produces it, checks it, elaborates it, prints it. The interesting rows are the ones with a hole |
-| ✅ | `TRUST` | **the trust census** | every site that can introduce a trust step, keyed by `TrustId`: which are reachable, which are dead, which are unnamed |
-| ✅ | `INFER` | **inference coverage** | for each `InferenceId` a theory emits, does its reconstruction have a case, and is a `ProofGenerator` attached? |
-| ✅ | `RW` | **rewrite coverage** | can every rewrite the rewriter performs be reconstructed — and which reconstructions depend on a search budget? |
-| ◐ | `PP` | **preprocessing coverage** | does every pass either prove its work or declare a `PREPROCESS_*` trust id? |
-| ◐ | `ELAB` | **macro elaboration** | is every `MACRO_*` expanded at each granularity, terminating in non-macro rules? |
-| ◐ | `SEAM` | **the Eunoia seam** | `isHandled` and `isHandledSkolemId` as coverage problems, including their argument-dependent arms |
-| ◐ | `INFERID` | **inference-id hygiene** | is each `InferenceId` produced at one place, so the control-flow graph is unambiguous? |
-| ✅ | `CI` | **is cvc5's proof CI intact?** | do the jobs that guard proof completeness still run, with the flags they need — independently of anyone remembering to keep them? |
-| ○ | `API` | **proof API contracts** | does a `ProofGenerator` return a proof of what was asked? which invariants vanish in a release build? |
-| ✅ | `GATE` | **option gates** | which option must be on for a term kind — and so a rule — to occur, so severity can be computed instead of guessed |
-| ✅ | `FRAG` | **the supported fragment** | which term kinds may appear per theory under safe mode — and do the three enforcement mechanisms actually cover it? |
-| ✅ | `SIG` | **signature agreement** | do the rules and skolems cvc5 can print exist in the Eunoia signature, and does its own documentation match? |
-| ○ | `KRN` | **kernel obligations** | see [the stretch goals](docs/kernel.md) |
+**2 — Three properties the proof pipeline depends on hold today and are
+asserted nowhere.** `--check-proofs-complete` appears nowhere in cvc5's CI:
+completeness is tested through a five-link implication, four links hold, and the
+fifth is that nobody has added a `--proof-granularity` flag to the proof tester.
+Safe mode's disable list is hand-maintained, and `stringLazyPreproc` declares
+`no_support = ["proofs"]`, defaults `true`, and escapes both mechanisms. The
+proof checker's trusted surface is 41,446 lines and nothing measures it. The
+failure mode of all three is **silence**; each has a ratchet here that runs in
+seconds with no build.
 
-Two of these — the ledger's arity column, and severity derived from reachability
-rather than presence — are things [cvc5 asked anoieu
-for](https://github.com/ajreynol/anoieu/blob/main/docs/README.md). They are C++
-questions, so they live here.
+**3 — Our candidates arrive with the option gate already applied.** Severity is
+computed rather than guessed, which has already killed five of our own
+hypotheses ([`s-1`–`s-5`](docs/issues.md#settled)) and is what makes
+[`i-1`](docs/issues.md) stand out.
+
+**And the admission: we have produced no kind A finding.** An incomplete proof
+named down to the input that produces it is what this repository is *for*, and
+we have none. One finding is filed and it is a refactoring ask. That is the bar,
+and we have not cleared it.
+
+## The checks
+
+Sixteen facets, each a namespace of check codes, each owning a witness — eleven
+live, five partial or designed. The catalogue, what each has returned against
+cvc5 `16c4001e53`, and what the unfinished ones are waiting on:
+
+> **→ [`docs/checks.md`](docs/checks.md)**
 
 ## What exists today
 
@@ -85,7 +102,7 @@ python3 -m dokimasia.modes baseline <cvc5> --check  # ratchet, for CI
 a single program point.
 
 ```bash
-python3 -m dokimasia.inferid check <cvc5>          # 51 ids used in more than one place
+python3 -m dokimasia.inferid check <cvc5>          # 51 ids produced at more than one site
 python3 -m dokimasia.inferid show  <cvc5> STRINGS_CODE_PROXY
 python3 -m dokimasia.inferid dead  <cvc5>          # 14 declared, produced nowhere
 python3 -m dokimasia.inferid stats <cvc5>
@@ -132,7 +149,7 @@ supports, per theory, and whether it is enforced. Generates
 [`docs/fragment.md`](docs/fragment.md).
 
 ```bash
-python3 -m dokimasia.fragment theories <cvc5>     # 352 kinds over 14 theories
+python3 -m dokimasia.fragment theories <cvc5>     # 341 kinds over 14 theories
 python3 -m dokimasia.fragment check    <cvc5>     # is the fragment enforced?
 python3 -m dokimasia.fragment doc      <cvc5> --out docs/fragment.md
 ```
@@ -159,7 +176,7 @@ needing: which option legalises each term kind, and so whether a rule can fire
 under `--safe-mode=safe`.
 
 ```bash
-python3 -m dokimasia.gates kinds    <cvc5>        # 52 gated term kinds
+python3 -m dokimasia.gates kinds    <cvc5>        # 59 kinds carry an option gate
 python3 -m dokimasia.gates rule     <cvc5> LAMBDA_ELIM
 python3 -m dokimasia.gates verdicts <cvc5>        # blocked / partial / open
 ```
@@ -287,6 +304,8 @@ the path. Ours happens first.
 
 | | |
 | --- | --- |
+| **[`docs/why.md`](docs/why.md)** | **why cvc5 should care** — the denominator argument, the three unasserted properties, what we have not delivered, and what would show we are wrong |
+| **[`docs/checks.md`](docs/checks.md)** | **the checks** — sixteen facets, what each has returned, and what the unfinished ones wait on |
 | [`TODO.md`](TODO.md) | what the analysis is for: five metric groups, what each aims at, and the next four things |
 | [`docs/goals.md`](docs/goals.md) | the stance, the goal, the agility constraint, and how we would know it is working |
 | [`docs/contract.md`](docs/contract.md) | what cvc5 promises, where, and the three ways completeness breaks |

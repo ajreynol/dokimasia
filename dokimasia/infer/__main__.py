@@ -90,13 +90,22 @@ def cmd_baseline(args) -> int:
     with open(path, encoding="utf-8") as fh:
         old = json.load(fh)
     rc = 0
+    # An id leaving the unhandled set has two very different causes, and calling
+    # both "reconstructed" is a claim about cvc5 we cannot back: the theory may
+    # now name it in its switch, or it may simply no longer be emitted here --
+    # renamed, removed, or moved. `produced` is what tells them apart.
+    produced = {t.theory: t.produced for t in c.with_reconstructor()}
     for th, ids in sorted(snap.items()):
         added = sorted(set(ids) - set(old.get(th, [])))
-        fixed = sorted(set(old.get(th, [])) - set(ids))
+        gone = sorted(set(old.get(th, [])) - set(ids))
         for a in added:
             print(f"  + {th}: {a} now falls through to a trust step"); rc = 1
-        for f in fixed:
-            print(f"  - {th}: {f} is now reconstructed")
+        for g in gone:
+            if g in produced.get(th, set()):
+                print(f"  - {th}: {g} is now reconstructed")
+            else:
+                print(f"  ? {th}: {g} is no longer emitted by this theory "
+                      f"-- renamed, removed, or moved, NOT reconstructed")
     print()
     print("An inference lost its reconstruction. If intended, update the baseline."
           if rc else "OK: no inference newly falls through.")

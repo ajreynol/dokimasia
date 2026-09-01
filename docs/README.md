@@ -4,6 +4,13 @@ The index of `docs/`. The front page is [`README.md`](../README.md), which says
 what the analyzer is and what exists today; everything here is the reasoning
 behind it.
 
+## Start here
+
+| | |
+| --- | --- |
+| [`why.md`](why.md) | **why cvc5 should care** — the three claims this repository can back, what it has not delivered, and what would show it is wrong |
+| [`checks.md`](checks.md) | **the checks** — the sixteen facets, what each has returned against a checkout, and what the unfinished ones are waiting on |
+
 ## The stance and the subject
 
 | | |

@@ -92,6 +92,7 @@ change, R1 is the one that makes everything else exact.
 | **R9** test each RARE rule against the rewriter | G5 determinacy | a rule that misstates the rewrite fails silently → is caught |
 | **R10** rule on the hygiene standard | G3 nameability | eleven proposals open → decided, either way |
 | **R11** run our ratchets in CI | all groups | measured when we remember → measured on every push |
+| **R12** one corpus run with `--stats-internal` | *decides G1's worth* | holes counted → holes counted **and** the fraction any input has reached |
 
 | # | ask | kind | why | where argued |
 | --- | --- | --- | --- | --- |
@@ -107,6 +108,7 @@ change, R1 is the one that makes everything else exact.
 | **R9** | **test each RARE rule against the rewriter** — instantiate the match, rewrite, compare to the target | C | the only thing that catches a rule that *misstates* the rewrite, which today fails silently forever (`i-17`). Belongs upstream, beside the rewriter. Partial is fine | [rare-correspondence E1](rare-correspondence.md#e1--instantiate-each-rare-rule-and-run-the-rewriter) |
 | **R10** | adopt the proof hygiene standard, or rule on it | B | eleven rules, most ratifying existing practice; the contested ones are `H1`, `H5`, `H6` | [hygiene](hygiene.md) |
 | **R11** | run our checks in cvc5 CI, and upload SARIF | B | `p-1`; the ledger and mode ratchets run in seconds and need no baseline | [tooling](tooling.md#d1--three-artifacts-by-what-each-question-needs) |
+| **R12** | **run the regression corpus once with `--stats-internal` and publish the `finalProof::*` counters** | B | the cheapest experiment either side can run, and the one that decides how much the rest of this is worth. cvc5's counters are a numerator — holes some input reached; our census is the denominator — holes that exist to be reached. Nobody currently knows the ratio, and it cuts both ways: if the corpus has touched most of them the static surface has little headroom and we should narrow accordingly | [why](why.md#1-we-supply-the-denominator-your-own-counters-lack) |
 
 ## Process
 
