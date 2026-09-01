@@ -15,7 +15,7 @@ job for Eunoia signatures. Signatures are its subject; the C++ is ours.
 
 *Status: eleven subtools are live and have produced one filed finding and a
 register of candidates; five facets are partial or designed. Every number in
-this file was measured against cvc5 `16c4001e53`, and each is reproducible with
+this file was measured against cvc5 `40a4bb7e4`, and each is reproducible with
 the command beside it.*
 
 > **A quiet run is not a complete proof pipeline.** When a check here reports
@@ -71,7 +71,7 @@ and we have not cleared it.
 
 Sixteen facets, each a namespace of check codes, each owning a witness — eleven
 live, five partial or designed. The catalogue, what each has returned against
-cvc5 `16c4001e53`, and what the unfinished ones are waiting on:
+cvc5 `40a4bb7e4`, and what the unfinished ones are waiting on:
 
 > **→ [`docs/checks.md`](docs/checks.md)**
 

@@ -1,0 +1,21 @@
+{
+  "_comment": "The cvc5 revision every baseline and every published number in this repository is measured against. It MUST be a commit on cvc5/cvc5 main, so that anyone can fetch it and re-check us without our machine. A commit that exists only on a fork breaks the promise that every claim is re-checkable without us -- which is how this file came to exist.",
+  "cvc5": {
+    "repo": "https://github.com/cvc5/cvc5",
+    "branch": "main",
+    "commit": "40a4bb7e43",
+    "date": "2026-08-25"
+  },
+  "unpinned_measurements": {
+    "_comment": "Numbers that could NOT be taken at the pinned commit, each with why. A runtime measurement needs a *build*, and we have no upstream build -- so these are the claims a reader cannot re-check by fetching the pin alone. Keep this list short; an entry here is a debt, not a licence.",
+    "8ead214f23": "ajreynol/CVC4 branch; source tree the regress0 corpus sweep was run against (docs/reachability.md)",
+    "95bef9bc44": "ajreynol/CVC4 branch with local modifications; the cvc5 binary that produced the corpus numbers. Re-run on a clean upstream build before quoting these upstream -- TODO t-2"
+  },
+  "historical": {
+    "_comment": "Commits referenced only in retraction and history text, never as the basis of a published number. Each maps to the ONE document allowed to mention it, so the exemption cannot silently spread to a document that is quoting it as a measurement.",
+    "16c4001e53": {
+      "only_in": "docs/findings.md",
+      "why": "ajreynol/CVC4 fork; the commit every number was WRONGLY pinned to before tools/cvc5.lock existed. Referenced in docs/findings.md#retractions as the error itself"
+    }
+  }
+}

@@ -19,7 +19,7 @@ Each row is a place a proof can go missing, and each is an analysis family.
 
 ## What the measurements already say
 
-Counted against cvc5 `16c4001e53`. These are the inputs to the first checks,
+Counted against cvc5 `40a4bb7e4`. These are the inputs to the first checks,
 not findings — a finding is a claim, and claims get reproduced before they are
 filed (see [what we promise](findings.md)).
 

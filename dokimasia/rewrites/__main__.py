@@ -55,16 +55,41 @@ def cmd_gaps(args) -> int:
     print("  and when it fails the macro step stays. Conditional, not benign:")
     for k, v in r.by_theory(macro).items():
         print(f"    {k:<20} {v}")
+    open_smg: list[str] = []
+    partial_smg: list[str] = []
     if smg:
         print(f"\n  {len(smg)} SAFE-MODE gaps — the seam accepts these *only* when")
         print("  safeMode == UNRESTRICTED, so safe mode is stricter at the seam than")
         print("  the default. If a rewriter applies one under --safe-mode=safe, the")
-        print("  step cannot be printed:")
+        print("  step cannot be printed.")
+        # The option gate decides whether a rewriter can apply these at all, and
+        # `gates` computes it -- so rank them here instead of telling the reader
+        # to go and do it. `blocked` means every kind the arm names is gated;
+        # `partial` means read the arm, since its kinds may be alternatives or
+        # conjoined requirements; `open` means nothing we can see stops it.
+        from ..gates.gates import scan as gscan
+        kg = gscan(args.cvc5)
+        print("  Ranked by the option gate:\n")
         for n in smg:
-            print(f"    {n:<32} {r.implemented[n]}")
-        print("\n  Whether a rewriter can apply them in safe mode needs the option")
-        print("  gate, which this tool does not compute. Confirm before filing.")
-    return 1 if (hard or smg) else 0
+            verdict, why = kg.verdict(n)
+            mark = {"blocked": "blocked ", "partial": "partial ",
+                    "open": "OPEN    ", "unknown": "unknown "}[verdict]
+            print(f"    {mark} {n:<28} {r.implemented[n]}")
+            print(f"             {why}")
+            if verdict in ("open", "unknown"):
+                open_smg.append(n)
+            elif verdict == "partial":
+                partial_smg.append(n)
+        if partial_smg:
+            print(f"\n  {len(partial_smg)} partial — the arm decides, and reading it is the"
+                  " work.\n  Conjoined kinds mean blocked; alternatives mean not."
+                  f"\n    {', '.join(partial_smg)}")
+        if open_smg:
+            print(f"\n  {len(open_smg)} not blocked by any gate — the ones worth an input:")
+            print(f"    {', '.join(open_smg)}")
+        else:
+            print("\n  Nothing is left open by the gate.")
+    return 1 if (hard or open_smg) else 0
 
 
 def cmd_correspondence(args) -> int:

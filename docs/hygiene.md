@@ -40,7 +40,7 @@ That only works if an id means one thing. Below is what the code says today.
 ## The rules
 
 Each rule states the norm, the evidence for it, how it would be checked, and
-what it buys. Measured against cvc5 `16c4001e53`.
+what it buys. Measured against cvc5 `40a4bb7e4`.
 
 ### H1 — One id, one place
 

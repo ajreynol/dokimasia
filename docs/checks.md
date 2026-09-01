@@ -39,7 +39,7 @@ questions, so they live here.
 Only the live ones, and only what a check actually returned against a checkout.
 The register row for each is in [`issues.md`](issues.md).
 
-| prefix | tool | measured at `16c4001e53` | rows |
+| prefix | tool | measured at `40a4bb7e4` | rows |
 | --- | --- | --- | --- |
 | `TCB` | `dokimasia.tcb` | 179 files, 41,446 lines, 8.0% of `src/`; 6 rule checkers compile against the solvers they check | [`f-1`](findings/tcb-001.md) |
 | `MODE` | `dokimasia.modes` | 24 option changes in safe mode; 2 options declare no proof support and stay on, of which 1 survives review | `i-2`, `i-5` |

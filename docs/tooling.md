@@ -10,7 +10,7 @@ one this document set out to reach:
 
 ## What cvc5 already runs
 
-Measured at `16c4001e53`.
+Measured at `40a4bb7e4`.
 
 [`.github/workflows/static_analysis.yml`](https://github.com/cvc5/cvc5/blob/main/.github/workflows/static_analysis.yml)
 is a **nightly** job (`cron: '0 4 * * *'`, plus `workflow_dispatch`) that does

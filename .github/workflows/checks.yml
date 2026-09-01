@@ -1,0 +1,66 @@
+name: checks
+
+on: [push, pull_request]
+
+jobs:
+  # Everything that needs no cvc5 checkout. Fast, and it is the majority.
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: the test suite, without a cvc5 checkout
+        run: |
+          fail=0
+          for t in tests/*.py; do
+            echo "--- $t"
+            python3 "$t" || fail=1
+          done
+          exit $fail
+
+  # The ratchets, against the commit tools/cvc5.lock pins. This is the job that
+  # would have caught a baseline naming an InferenceId cvc5 does not have, on
+  # the commit that introduced it rather than a month later.
+  ratchets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: fetch the pinned cvc5
+        run: |
+          commit=$(python3 -c "import json;print(json.load(open('tools/cvc5.lock'))['cvc5']['commit'])")
+          repo=$(python3 -c "import json;print(json.load(open('tools/cvc5.lock'))['cvc5']['repo'])")
+          echo "pinned at $commit"
+          branch=$(python3 -c "import json;print(json.load(open('tools/cvc5.lock'))['cvc5']['branch'])")
+          git init --quiet /tmp/cvc5
+          git -C /tmp/cvc5 remote add origin "$repo"
+          # GitHub refuses a bare-SHA fetch on most repos, so deepen the branch
+          # until the pinned commit is present. A commit that is only on a fork
+          # is never reached, which is exactly the failure we want here.
+          git -C /tmp/cvc5 fetch --depth 1 origin "$commit" 2>/dev/null || true
+          d=100
+          until git -C /tmp/cvc5 cat-file -t "$commit" >/dev/null 2>&1; do
+            if [ "$d" -gt 12800 ]; then
+              echo "::error::$commit is not reachable on $repo $branch"
+              exit 1
+            fi
+            git -C /tmp/cvc5 fetch --quiet --depth "$d" origin "$branch"
+            d=$((d * 4))
+          done
+          git -C /tmp/cvc5 checkout --detach "$commit"
+      - name: the pin is real, upstream, and what the docs quote
+        run: python3 tests/test_pin.py /tmp/cvc5
+      - name: every ratchet is clean at the pinned commit
+        run: |
+          fail=0
+          for t in tcb modes inferid ledger trust ci rewrites infer; do
+            echo "--- $t"
+            python3 -m dokimasia."$t" baseline /tmp/cvc5 --check || fail=1
+          done
+          exit $fail
+      - name: the full suite, with the checkout
+        run: |
+          fail=0
+          for t in tests/*.py; do
+            echo "--- $t"
+            python3 "$t" /tmp/cvc5 || fail=1
+          done
+          exit $fail
