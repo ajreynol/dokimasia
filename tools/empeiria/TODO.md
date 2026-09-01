@@ -5,14 +5,18 @@ tell what is intended from what exists.
 
 ## First
 
-- [ ] **Work #12905 end to end, by hand, without tooling.** Reproduce it,
+- [x] **`run_empeiria`** — the interface. Run it from a cvc5 checkout with an
+      issue number; it guards the tree, makes the branch, and hands a
+      fix-first prompt to an assistant. `--record` and `--list` close the loop
+      afterwards. Fixing is never gated on the ledger.
+- [ ] **Work #12905 end to end with it.** Reproduce it,
       locate it, attempt a fix and a regression test. A ledger format designed
       before a single issue has been worked will be wrong in ways no amount of
       thinking finds — and an executor that has never executed does not know
       what it needs to record.
-- [ ] **The ledger format, written after that.** One block per issue: what the
-      project produced, what the maintainer actually did, and **the delta**.
-      Design it around the delta, not around the issue.
+- [ ] **Revisit the ledger format after two or three real issues.** The shape
+      `run_empeiria` writes today is a first guess made before any issue was
+      worked, which is exactly the condition under which a format is wrong.
 - [ ] **Decide what a delta is worth recording.** Every correction is a delta;
       only some teach anything. Guessing this in advance is how the ledger fills
       with noise.

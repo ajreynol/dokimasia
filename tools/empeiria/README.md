@@ -15,7 +15,8 @@ claim about cvc5 or should be quoted as though it did.
 
 **An island in this repository.** empeiria reads dokimasia's analyses, cvc5's
 tree, and its own ledger. Nothing in `dokimasia/` imports it, no test covers it,
-no baseline ratchets it, no CI job runs it, and it ships no code today. Delete
+no baseline ratchets it, no CI job runs it, and its one script is invoked by hand from
+somebody else's checkout. Delete
 this directory and the repository is exactly as functional — that is the
 property that makes it safe to keep here.
 
@@ -52,11 +53,32 @@ proof-completeness bugs, so almost none are dokimasia's. **Can a front end work
 them — triage *and* fix — and get better at it by learning from how the
 maintainers answered the last ones?**
 
-**It is both halves, and that is the point.** A learner that never attempts a
-fix has no signal beyond whether its triage read well. An executor that never
-learns repeats its mistakes at machine speed. The two are one loop: attempt the
-work, compare against what the maintainer did, and let the difference change the
-next attempt.
+**It is both halves, and the order between them is fixed.** Fixing the bug
+comes first and the learning is a by-product — the ecosystem's charter is *be
+useful fast*, and a project that made somebody wait for a fix while it took
+notes would have inverted its own reason for existing. So the ledger is written
+after the work, by a separate command, and nothing about it gates the fix.
+
+The two are still one loop: attempt the work, compare against what the
+maintainer did, let the difference change the next attempt. A learner that never
+attempts a fix has no signal beyond whether its triage read well; an executor
+that never learns repeats its mistakes at machine speed.
+
+## Using it
+
+```bash
+cd ~/cvc5
+run_empeiria 12905                  # reproduce, locate, fix, test
+run_empeiria 12905 --show-prompt    # print the prompt, run nothing
+run_empeiria --record 12905         # afterwards: what the maintainer did
+run_empeiria --list                 # what has been worked, and what came back
+```
+
+It refuses to run outside a cvc5 checkout and refuses a dirty tree; it creates
+the branch itself rather than asking the assistant to, because a branch the
+assistant forgot is a diff on somebody's main. `--show-prompt` runs nothing and
+works anywhere, so the prompt is auditable without a checkout to hand. It makes
+no network calls, and it never pushes, posts or opens anything.
 
 **The goals, in order.**
 
