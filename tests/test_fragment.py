@@ -52,8 +52,20 @@ def test_cvc5(root):
     check("ufHoExp restricts the logic", axes["ufHoExp"], "logic")
     check("fpExp restricts a type", axes["fpExp"], "type")
 
-    # no UF kind is blocked -- bears on i-1 (LAMBDA_ELIM)
-    check("no uf kind is blocked in safe mode", f.safe_fragment("uf")[1], [])
+    # The uf fragment, which bears on i-1 (LAMBDA_ELIM). This assertion used to
+    # read "no uf kind is blocked in safe mode", and that was wrong: HO_APPLY
+    # takes a function-typed argument, so it needs the higher-order logic that
+    # safe mode refuses. LAMBDA is still not blocked -- its *result* is a
+    # function type, not its argument -- which is why i-1 survives at the kind
+    # level even though the false positive next to it (SET_FILTER) did not.
+    check("only HO_APPLY is blocked in the uf fragment",
+          f.safe_fragment("uf")[1], ["HO_APPLY"])
+    check("LAMBDA is still not blocked by any kind gate",
+          f.blocked_in_safe_mode("LAMBDA")[0], False)
+    check("SET_FILTER is blocked, by the logic axis",
+          f.blocked_in_safe_mode("SET_FILTER")[0], True)
+    check("...and the mechanism is named as the logic",
+          f.blocked_in_safe_mode("SET_FILTER")[1].startswith("logic"), True)
     print(f"       {len(f.kinds)} kinds over {len(f.theory_id)} theories; "
           f"{len(EXPERT_OPTIONS)} expert options")
 

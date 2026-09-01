@@ -38,6 +38,12 @@ _KIND_BLOCK = re.compile(r"^\[\[kinds\]\](.*?)(?=^\[\[|\Z)", re.M | re.S)
 _NAME = re.compile(r'^\s*name\s*=\s*"([A-Z][A-Z0-9_]*)"', re.M)
 _TYPE = re.compile(r'^\s*type\s*=\s*"(\w+)"', re.M)
 _THEORY_ID = re.compile(r'^\s*id\s*=\s*"(THEORY_\w+)"', re.M)
+_TYPERULE = re.compile(r'^\s*typerule\s*=\s*"[^"]*?([A-Za-z_]+)TypeRule"', re.M)
+#: A type rule that rejects a child whose type is not a function type. Found by
+#: scanning theory/*/*type_rules.cpp for an isFunction() test inside a
+#: computeType body; kept as data because the scan is over C++ we do not own.
+_FN_TYPED = re.compile(r"([A-Za-z_]+)TypeRule::computeType")
+_IS_FUNCTION = re.compile(r"isFunction\(\)")
 
 #: Theories safe mode disables outright, and the option that does it.
 THEORY_OPTIONS = {"fp": "fp", "ff": "ff", "bags": "bags", "sep": "sep"}
@@ -62,6 +68,11 @@ NONKIND_AXIS = {
               "cannot be excluded by kind"),
 }
 
+#: The exception that proves a function-typed argument does *not* imply the
+#: higher-order logic: a quantifier's instantiation pattern is not a term the
+#: user writes, so it cannot be the thing that trips TheoryUF's guard.
+FN_TYPED_EXEMPT = frozenset({"QuantifierInstPattern"})
+
 #: Kind `type` values that denote a *type constructor* rather than a term.
 TYPE_LIKE = frozenset({"sort", "cardinality", "well-founded"})
 
@@ -80,6 +91,27 @@ class Fragment:
     swept_theories: set[str] = field(default_factory=set)
     #: option -> (axis, file) when it gates something other than a term kind
     nonkind_gate: dict[str, tuple[str, str]] = field(default_factory=dict)
+    #: kind -> the TypeRule named by its kinds.toml block
+    typerule: dict[str, str] = field(default_factory=dict)
+    #: TypeRule names whose computeType requires a function-typed child
+    fn_typed_rules: set[str] = field(default_factory=set)
+
+    def requires_higher_order(self, kind: str) -> str:
+        """Why this kind needs the higher-order logic, or '' if it does not.
+
+        A kind whose type rule demands a function-typed argument cannot be
+        written without a function term, and `TheoryUF::preRegisterTerm` throws
+        `LogicException` on a function-typed term unless
+        `logicInfo().isHigherOrder()`. Safe and stable mode both refuse the
+        higher-order logic, so such a kind is unreachable in both -- and *no
+        gate on the kind itself says so*. This is the axis a kind list cannot
+        express, and the one that made us wrong about SET_FILTER.
+        """
+        tr = self.typerule.get(kind, "")
+        if tr and tr in self.fn_typed_rules and tr not in FN_TYPED_EXEMPT:
+            return (f"{tr}TypeRule requires a function-typed argument, so the "
+                    f"term needs the higher-order logic, which safe mode refuses")
+        return ""
 
     def by_theory(self) -> dict[str, list[str]]:
         out: dict[str, list[str]] = {}
@@ -92,6 +124,9 @@ class Fragment:
         theory = self.kinds.get(kind, ("", ""))[0]
         if theory in THEORY_OPTIONS:
             return True, f"whole-theory sweep ({THEORY_OPTIONS[theory]} disabled)"
+        ho = self.requires_higher_order(kind)
+        if ho:
+            return True, f"logic ({ho})"
         gates = self.kind_gate.get(kind, set())
         expert = sorted(g for g in gates if g in EXPERT_OPTIONS)
         if expert:
@@ -149,8 +184,34 @@ def _kinds(src: str, f: Fragment) -> None:
             ty = _TYPE.search(block)
             if nm:
                 f.kinds[nm.group(1)] = (theory, ty.group(1) if ty else "?")
+                tr = _TYPERULE.search(block)
+                if tr:
+                    f.typerule[nm.group(1)] = tr.group(1)
     expect(len(f.kinds), 300, "term kinds",
            "the `[[kinds]]` blocks in theory/*/kinds.toml")
+
+
+def _fn_typed_rules(src: str) -> set[str]:
+    """Type rules whose computeType tests a child type with isFunction().
+
+    Reads theory/*/*type_rules.cpp and attributes each `isFunction()` to the
+    most recent `XTypeRule::computeType` header above it. Coarse on purpose: a
+    false positive here makes us call a kind unreachable that is reachable,
+    which loses a candidate rather than inventing one, and the list is small
+    enough to read.
+    """
+    out: set[str] = set()
+    for path in sorted(glob.glob(os.path.join(src, "theory", "*", "*type_rules.cpp"))):
+        with open(path, encoding="utf-8", errors="ignore") as fh:
+            cur = ""
+            for line in fh:
+                m = _FN_TYPED.search(line)
+                if m:
+                    cur = m.group(1)
+                elif cur and _IS_FUNCTION.search(line):
+                    out.add(cur)
+                    cur = ""
+    return out
 
 
 def scan(root: str) -> Fragment:
@@ -166,4 +227,5 @@ def scan(root: str) -> Fragment:
     f.origin = kg.origin
     f.swept_theories = set(THEORY_OPTIONS)
     f.nonkind_gate = kg.nonkind_gate
+    f.fn_typed_rules = _fn_typed_rules(src)
     return f

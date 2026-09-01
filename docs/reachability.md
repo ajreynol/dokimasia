@@ -1,0 +1,120 @@
+# What the corpus actually reaches
+
+The measurement [`why.md`](why.md#1-we-supply-the-denominator-your-own-counters-lack)
+argues for, carried out. Our static census is a denominator — holes that exist
+to be reached. cvc5's `finalProof::*` counters are a numerator — holes some
+input reached. **Nobody had put the two together.** This is that number.
+
+*Measured 2026-09-01 against cvc5 `8ead214f23`, binary built at `95bef9bc44`,
+over all 2,608 benchmarks in `test/regress/cli/regress0`, 10s timeout each.
+Raw data: [`../reach-corpus.json`](../reach-corpus.json).*
+
+## The headline
+
+| | benchmarks producing a proof | benchmarks reaching **any** proof hole |
+| --- | --- | --- |
+| `--safe-mode=safe` | 1,061 | **0** |
+| unrestricted (default) | 1,236 | **129** (10.4%) |
+
+Both runs used `--produce-proofs --check-proofs --stats-internal`, which is what
+switches on `d_checkProofHoles`; a hole is any non-empty
+`finalProof::ruleUnhandledEoCount`, `trustCount`, `trustTheoryLemmaCount`,
+`trustTheoryRewriteCount` or `theoryRewriteRuleUnhandledEoCount`.
+
+**Safe mode reaches no hole at all on this corpus, and unrestricted reaches one
+in ten.** That is the first quantified statement we have seen of what safe mode
+buys, and it is a measurement rather than a reading of the option list.
+
+It also sets the honest bound on this repository: **on regress0, safe mode is
+clean.** A safe-mode completeness defect, if one exists, is not in this corpus —
+which is exactly the population our static analysis claims to be for, and
+exactly why finding one is hard.
+
+## Where the holes are, in unrestricted mode
+
+`finalProof::ruleUnhandledEoCount` — 14 distinct rules, 322 occurrences:
+
+| count | rule | |
+| --- | --- | --- |
+| 220 | `TRUST` | every trust step is unhandled; see below |
+| 60 | `TRUST_THEORY_REWRITE` | |
+| 9 | `ARITH_TRANS_PI` | ✅ in our static gap list |
+| 7 | `ARITH_POW2_INIT` | ✅ |
+| 7 | `ARITH_REDUCTION` | argument-dependent arm |
+| 6 | `ARITH_TRANS_SINE_SHIFT` | ✅ |
+| 3 | `THEORY_REWRITE` | argument-dependent arm |
+| 2 | `DISTINCT_VALUES` | argument-dependent arm |
+| 2 | `ARITH_TRANS_EXP_APPROX_BELOW` | ✅ |
+| 2 | `ARITH_POW2_DIV0` | ✅ |
+| 1 each | `ARITH_TRANS_SINE_APPROX_BELOW_NEG`, `ARITH_TRANS_EXP_APPROX_ABOVE_NEG`, `ARITH_POW2_MONOTONE`, `ARITH_POW2_LOWER_BOUND` | ✅ |
+
+`finalProof::trustCount` — 10 of the 70 live `TrustId`s (**14%**):
+
+```
+157  THEORY_LEMMA          27  ARITH_NL_COVERING_DIRECT   12  THEORY_INFERENCE_SEP
+ 11  ARITH_NL_COVERING_RECURSIVE   4  THEORY_INFERENCE_SETS   3  THEORY_INFERENCE_DATATYPES
+  3  VALID_WITNESS          1  THEORY_PREPROCESS   1  QUANTIFIERS_INST_REWRITE
+  1  THEORY_PREPROCESS_LEMMA
+```
+
+`finalProof::trustTheoryLemmaCount` — which theory admitted the lemma:
+
+```
+54 THEORY_SETS   54 THEORY_SEP   22 THEORY_ARITH   21 THEORY_UF   5 THEORY_FP   1 THEORY_DATATYPES
+```
+
+`finalProof::theoryRewriteRuleUnhandledEoCount` — 2 of the 40 statically
+unprintable rewrites: `arrays-eq-range-expand` (2), `macro-quant-var-elim-eq` (1).
+
+## What this validates, and what it corrects
+
+**The static seam analysis is sound against the runtime oracle.** cvc5's
+completeness check is literally `!EoPrinter::isHandled(...)`
+(`smt/proof_final_callback.cpp`), which is the predicate `dokimasia.ledger`
+computes without building. Every rule the corpus reported unhandled is in our
+static gap list or in an argument-dependent arm we classify as *conditional*.
+**Nine of the fourteen gaps we predicted were hit; none of the hits was outside
+our prediction.** That is the strongest evidence we have that the tier is
+measuring what it claims.
+
+**The denominator is mostly untouched.** 10 of 70 live `TrustId`s and 2 of 40
+unprintable rewrites were reached — 14% and 5%. The remaining 86% and 95% are
+holes this corpus has never exercised. That is the population the repository
+exists for, and it is now measured rather than assumed.
+
+**Safe mode is doing real work, on identical inputs.**
+`test/regress/cli/regress0/uf/cnf_abc.smt2` answers `unsat` in both modes; it
+produces a `THEORY_UF` trust lemma in unrestricted and **none** in safe mode.
+The same holds for `iso_icl_repgen004` and `SEQ032_size2`. Safe mode is not
+merely refusing inputs — it changes the strategy so the hole is not taken.
+
+## Limits, stated
+
+- **One corpus, one level.** `regress0` only, 10s timeout, single-threaded
+  defaults. `regress1`–`4` and the SMT-LIB benchmarks are not covered, and the
+  692 benchmarks that produced no proof (parse errors, `sat`, timeouts) tell us
+  nothing either way.
+- **A binary from a branch.** Built at `95bef9bc44` on a feature branch with
+  local modifications, not a release. The numbers should be reproduced on a
+  clean build before any of them is quoted upstream.
+- **Zero is not proof of absence.** Safe mode reaching no hole on regress0 says
+  regress0 does not reach one. It is precisely the silence this repository
+  refuses to read as coverage.
+- **We got the stat names wrong first.** The initial sweep grepped for
+  `trustIds` and `ruleEouCount` — the C++ *member* names — and reported zero
+  holes in both modes. The registered names are `trustCount` and
+  `ruleUnhandledEoCount`. A clean-looking zero from a query that cannot match is
+  the most dangerous result an experiment can return, and it survived one round
+  of interpretation before a spot check caught it.
+
+## Reproducing
+
+```bash
+cvc5 --safe-mode=safe --produce-proofs --check-proofs --stats-internal b.smt2 \
+  | grep -E '^finalProof::(trustCount|ruleUnhandledEoCount|trustTheoryLemmaCount)'
+```
+
+Note that `--check-proofs-complete` **cannot** be added in safe or stable mode:
+it is `category = "expert"` and both modes refuse expert options. See
+[`R2`](issues.md#open--asks). `--stats-internal` sets the same internal flag, so
+the counters are available where the option is not.

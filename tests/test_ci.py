@@ -92,7 +92,14 @@ PARSER.add_argument("--not-a-tester-flag")
 def test_cvc5(root):
     print(f"cvc5 tree at {root}:")
     m = scan(root)
-    check("the ten testers are found", len(m.testers), 10)
+    # A count is the wrong assertion here: a branch may add a tester (cvc5-ajr
+    # carries `cpc-logos`), and pinning the number makes an unrelated checkout
+    # fail for no defect. What must hold is that the ten we reason about are
+    # all present -- a missing one silently narrows every CI claim we make.
+    known = {"abduct", "alethe", "base", "cpc", "dump", "lfsc",
+             "model", "proof", "synth", "unsat-core"}
+    check("the ten testers we reason about are all present",
+          sorted(known - set(m.testers)), [])
     # verified by hand against run_regression.py
     check("the proof tester's flags", m.testers["proof"].flags,
           ["--check-proofs", "--proof-check=lazy"])

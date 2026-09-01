@@ -1,7 +1,7 @@
 # The contract
 
 What cvc5 promises about proofs, where it promises it, and the three ways
-the promise can break. Background for [the analyses](../README.md#the-analyses).
+the promise can break. Background for [the analyses](checks.md).
 
 ## The gap this exists to close
 

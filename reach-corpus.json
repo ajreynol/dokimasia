@@ -1,0 +1,60 @@
+{
+  "safe": {
+    "benchmarks_with_holes": 0,
+    "benchmarks_with_proofs": 1061,
+    "counters": {}
+  },
+  "unrestricted": {
+    "benchmarks_with_holes": 129,
+    "benchmarks_with_proofs": 1236,
+    "counters": {
+      "ruleUnhandledEoCount": {
+        "ARITH_POW2_DIV0": 2,
+        "ARITH_POW2_INIT": 7,
+        "ARITH_POW2_LOWER_BOUND": 1,
+        "ARITH_POW2_MONOTONE": 1,
+        "ARITH_REDUCTION": 7,
+        "ARITH_TRANS_EXP_APPROX_ABOVE_NEG": 1,
+        "ARITH_TRANS_EXP_APPROX_BELOW": 2,
+        "ARITH_TRANS_PI": 9,
+        "ARITH_TRANS_SINE_APPROX_BELOW_NEG": 1,
+        "ARITH_TRANS_SINE_SHIFT": 6,
+        "DISTINCT_VALUES": 2,
+        "THEORY_REWRITE": 3,
+        "TRUST": 220,
+        "TRUST_THEORY_REWRITE": 60
+      },
+      "theoryRewriteRuleUnhandledEoCount": {
+        "arrays-eq-range-expand": 2,
+        "macro-quant-var-elim-eq": 1
+      },
+      "trustCount": {
+        "ARITH_NL_COVERING_DIRECT": 27,
+        "ARITH_NL_COVERING_RECURSIVE": 11,
+        "QUANTIFIERS_INST_REWRITE": 1,
+        "THEORY_INFERENCE_DATATYPES": 3,
+        "THEORY_INFERENCE_SEP": 12,
+        "THEORY_INFERENCE_SETS": 4,
+        "THEORY_LEMMA": 157,
+        "THEORY_PREPROCESS": 1,
+        "THEORY_PREPROCESS_LEMMA": 1,
+        "VALID_WITNESS": 3
+      },
+      "trustTheoryLemmaCount": {
+        "THEORY_ARITH": 22,
+        "THEORY_DATATYPES": 1,
+        "THEORY_FP": 5,
+        "THEORY_SEP": 54,
+        "THEORY_SETS": 54,
+        "THEORY_UF": 21
+      },
+      "trustTheoryRewriteCount": {
+        "THEORY_ARITH": 18,
+        "THEORY_FF": 12,
+        "THEORY_FP": 12,
+        "THEORY_SEP": 4,
+        "THEORY_SETS": 14
+      }
+    }
+  }
+}

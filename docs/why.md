@@ -32,21 +32,30 @@ take. That number is what we compute:
 | `ProofRule`s the solver emits that `EoPrinter::isHandled` refuses | **14** | `ledger holes` |
 | rewrites applied and unprintable | **40** | `rewrites gaps` |
 
-Put the two together and you get the number nobody currently has:
+Put the two together and you get the number nobody had. **We have now measured
+it for one corpus**, and it is in [`reachability.md`](reachability.md):
 
-> **What fraction of cvc5's own declared holes has any input ever reached?**
+| over all 2,608 `regress0` benchmarks | proofs produced | reached **any** hole |
+| --- | --- | --- |
+| `--safe-mode=safe` | 1,061 | **0** |
+| unrestricted | 1,236 | **129** (10.4%) |
 
-That single figure decides how much anything else here is worth, and it decides
-it in either direction. If the corpus has touched most of them, the residual
-surface is small, the runtime oracle is doing its job, and this repository is
-worth much less than it thinks — we would say so and narrow accordingly. If it
-has touched a third, then every hole in the remainder is one SMT-LIB does not
-exercise, and the runtime oracle is *structurally* unable to find the next one:
-it fires on an input reaching a step, and by construction no input does.
+Of the denominator, unrestricted mode touched **10 of 70 live `TrustId`s** and
+**2 of 40** statically-unprintable rewrites. The other 86% and 95% are holes this
+corpus has never exercised — which is the population this repository is for,
+now measured instead of assumed.
 
-Neither side can compute it alone. It needs our static inventory and one corpus
-run with `--stats-internal`, and it is the cheapest experiment on either side's
-list. It is filed as [`R12`](issues.md#open--asks).
+The same run validated the static tier against the runtime oracle. cvc5's
+completeness check is literally `!EoPrinter::isHandled(...)`, the predicate
+`dokimasia.ledger` computes without building: **nine of the fourteen gaps we
+predicted were hit, and nothing hit was outside our prediction.**
+
+And it bounds us honestly: **on `regress0`, safe mode is clean.** If a safe-mode
+completeness defect exists, it is not in this corpus.
+
+What remains is scale: one corpus at one level, on a branch build. The levels
+and benchmark sets we cannot run are still worth a maintainer's cheap `make`
+target, and that is what [`R12`](issues.md#open--asks) now asks for.
 
 ---
 

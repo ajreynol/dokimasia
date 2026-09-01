@@ -35,13 +35,40 @@ It is also useful to cvc5 independently of us: the same JSON documents the
 calculus, feeds the signature, and lets cvc5 assert its own invariants at build
 time. R1 makes several of the asks below unnecessary rather than merely easier.
 
-### R2 — name the completeness guarantee
+### R2 — make the completeness guarantee statable
 
 `--check-proofs-complete` appears nowhere in `.github/` or `test/`. In a safe
 build, `setDefaultsPre` enables it as a side effect of `--check-proofs`, so
-completeness is tested through a four-link chain nothing asserts. Passing the
-flag explicitly in the `proof` tester costs one line and makes the guarantee
-visible. See [`CI0002`](issues.md).
+completeness is tested through a chain nothing asserts. See [`CI0002`](issues.md).
+
+**Corrected, by running it.** This ask first read *"pass the flag explicitly in
+the proof tester; it costs one line."* That is impossible, and one command shows
+why:
+
+```
+$ cvc5 --safe-mode=safe --produce-proofs --check-proofs --check-proofs-complete f.smt2
+(error "Fatal error in option parsing: expert option check-proofs-complete
+        cannot be set in safe mode.")
+```
+
+`checkProofsComplete` is `category = "expert"` in `proof_options.toml`, and safe
+and stable mode reject expert options. So the flag **cannot be named in either
+of the two jobs whose mode carries the contract** — it can only be passed in the
+unrestricted job, where the guarantee is not the one being promised. The
+implication is not merely unasserted; it is currently *the only way the
+guarantee can be obtained where it matters.*
+
+That makes the ask sharper rather than weaker. Two forms, either acceptable:
+
+- **exempt `checkProofsComplete` from the expert refusal** (or drop the expert
+  category), so the safe-mode tester can name what it is testing; or
+- **assert the implication where it is created** — in `setDefaultsPre`, where a
+  safe build turns the option on, state that a safe build with `--check-proofs`
+  has `checkProofsComplete` set. That is the [kind D](findings.md) form: the
+  invariant moves into cvc5's tree and our `CI0002` check retires.
+
+The second is smaller and needs no option-semantics decision, so it is the one
+we would propose first.
 
 ### R3 — get the theory solvers out of the proof checker's includes
 
