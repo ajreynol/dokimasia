@@ -9,7 +9,8 @@
 # project -- be useful fast, then be smarter next time.
 #
 #   run_empeiria --triage               refresh the open-issue index
-#   run_empeiria 12905                  work it: reproduce, locate, fix, test
+#   run_empeiria --issue 12905          work it: reproduce, locate, fix, test
+#   run_empeiria 12905                  the same thing; a bare N means --issue N
 #   run_empeiria 12905 --show-prompt    print the prompt, run nothing
 #   run_empeiria --record 12905         afterwards: what the maintainer did
 #   run_empeiria --list                 what has been worked, and what came back
@@ -44,12 +45,13 @@ BRANCH=""
 
 usage() {
   cat >&2 <<'USAGE'
-usage: run_empeiria N [--codex] [--branch NAME] [--print] [--show-prompt] [--force]
+usage: run_empeiria [--issue] N [--codex] [--branch NAME] [--print]
+                          [--show-prompt] [--force]
        run_empeiria --triage [--codex] [--print] [--show-prompt]
        run_empeiria --record N
        run_empeiria --list
 
-  N               the cvc5 issue to work
+  --issue N       the cvc5 issue to work; a bare N is shorthand for it
   --triage        refresh the open-issue index in triage.md
   --record N      record what the maintainer did, after the fact
   --list          what has been worked, and what came back
@@ -67,6 +69,8 @@ USAGE
 while [ $# -gt 0 ]; do
   case "$1" in
     --triage) MODE=triage; shift ;;
+    --issue) [ -z "$ISSUE" ] || { echo "run_empeiria: one issue at a time" >&2; usage; }
+             ISSUE="${2:-}"; [ -n "$ISSUE" ] || usage; shift 2 ;;
     --record) MODE=record; ISSUE="${2:-}"; [ -n "$ISSUE" ] || usage; shift 2 ;;
     --list) MODE=list; shift ;;
     --codex) AGENT=codex; shift ;;
@@ -77,6 +81,8 @@ while [ $# -gt 0 ]; do
     --force) FORCE=1; shift ;;
     -h|--help) usage ;;
     -*) echo "run_empeiria: unexpected option $1" >&2; usage ;;
+    # A bare number is shorthand for --issue N, because that is the common case
+    # and the whole interface should be the issue number.
     *) [ -z "$ISSUE" ] || { echo "run_empeiria: one issue at a time" >&2; usage; }
        ISSUE="$1"; shift ;;
   esac
@@ -154,7 +160,8 @@ TRIAGE_END
 fi
 
 case "$ISSUE" in ''|*[!0-9]*)
-  echo "run_empeiria: give an issue number, e.g. run_empeiria 12905" >&2; usage ;;
+  echo "run_empeiria: give an issue number, e.g. run_empeiria --issue 12905" >&2
+  usage ;;
 esac
 : "${BRANCH:=empeiria/issue-$ISSUE}"
 

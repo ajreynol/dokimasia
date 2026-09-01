@@ -69,7 +69,8 @@ that never learns repeats its mistakes at machine speed.
 ```bash
 run_empeiria --triage               # refresh the open-issue index
 cd ~/cvc5
-run_empeiria 12905                  # reproduce, locate, fix, test
+run_empeiria --issue 12905          # reproduce, locate, fix, test
+run_empeiria 12905                  # the same; a bare N means --issue N
 run_empeiria 12905 --show-prompt    # print the prompt, run nothing
 run_empeiria --record 12905         # afterwards: what the maintainer did
 run_empeiria --list                 # what has been worked, and what came back
