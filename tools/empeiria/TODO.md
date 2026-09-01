@@ -5,16 +5,21 @@ tell what is intended from what exists.
 
 ## First
 
-- [ ] **The ledger format.** One block per issue worked: the issue, the triage
-      an assistant produced, what the maintainer actually did, and **the
-      delta**. The delta is the asset; design the format around it rather than
-      around the issue.
-- [ ] **Work #12905 through it by hand**, once, without tooling. A format
-      designed before a single case has been worked will be wrong in ways no
-      amount of thinking finds.
+- [ ] **Work #12905 end to end, by hand, without tooling.** Reproduce it,
+      locate it, attempt a fix and a regression test. A ledger format designed
+      before a single issue has been worked will be wrong in ways no amount of
+      thinking finds — and an executor that has never executed does not know
+      what it needs to record.
+- [ ] **The ledger format, written after that.** One block per issue: what the
+      project produced, what the maintainer actually did, and **the delta**.
+      Design it around the delta, not around the issue.
 - [ ] **Decide what a delta is worth recording.** Every correction is a delta;
       only some teach anything. Guessing this in advance is how the ledger fills
       with noise.
+- [ ] **Decide what "a fix" has to include** before one is offered to anybody:
+      the patch, the regression test, the reproducer run before and after, and
+      the build it was checked against. That is `run-it` applied to a diff, and
+      it is the standing precondition rather than a per-case judgement.
 
 ## Then
 
@@ -24,6 +29,8 @@ tell what is intended from what exists.
 
 ## Not yet
 
+- **Anything that delivers.** No branch pushed, no PR, no issue comment — see
+  the charter. The artifact is a patch in a tree a person is driving.
 - Anything that reads the tracker over the network. The parent's standing
   position is that an analysis whose result depends on when it ran is not a
   measurement, and nothing here needs to move faster than a person.

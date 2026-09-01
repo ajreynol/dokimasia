@@ -63,10 +63,14 @@ never done is record what the human answer taught that the assistant missed.
 
 **The decision: a child project**, under
 [anoieu's research-project rules](https://github.com/ajreynol/anoieu/blob/main/docs/policy.md).
-Its subject is the triage loop — *what does a maintainer's answer teach that the
-issue text did not?* — and its charter names proof-completeness bugs as out of
-scope, so the boundary runs the other way too: if one of its issues turns out to
-be a proof bug, it leaves and enters this repository's register.
+Its subject is the whole loop — **working a cvc5 bug and learning from how the
+maintainers answered** — so it both attempts fixes and records the delta between
+what it produced and what they did. Its charter names proof-completeness bugs as
+out of scope, so the boundary runs the other way too: if one of its issues turns
+out to be a proof bug, it leaves and enters this repository's register. Its
+reporting policy is not its own — it shares
+[`pr-policy.md`](../pr-policy.md) with this repository, so *executor* means the
+patch exists in a tree a person is driving, and never that anything is sent.
 
 **Why not simply a new repository** is worth stating plainly, because it is the
 tempting answer. The reason to run it here is that this repository has already
