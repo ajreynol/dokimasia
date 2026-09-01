@@ -84,6 +84,17 @@ python3 -m dokimasia check  <cvc5>   # every ratchet, one process — 2.4s
 python3 -m dokimasia report <cvc5>   # every analysis, printed
 ```
 
+**[`dokimasia.buildmode`](dokimasia/buildmode/)** — is a safe *build* still an
+unrestricted build with one option default flipped? That invariant is what keeps
+cvc5's deliberate refusal to combine safe mode with debug symbols nearly
+costless; see [the case study](docs/cases/safe-build-vs-safe-mode.md) for cvc5
+[#12899](https://github.com/cvc5/cvc5/pull/12899).
+
+```bash
+python3 -m dokimasia.buildmode check <cvc5>       # 8 conditionals, all benign
+python3 -m dokimasia.buildmode sites <cvc5>       # each one, classified
+```
+
 **[`dokimasia.latent`](dokimasia/latent/)** — the subtraction the rest of the
 repository exists to make: *static inventory − what a corpus reached = the holes
 nothing has hit*.
@@ -321,6 +332,7 @@ the path. Ours happens first.
 | --- | --- |
 | **[`docs/why.md`](docs/why.md)** | **why cvc5 should care** — the denominator argument, the three unasserted properties, what we have not delivered, and what would show we are wrong |
 | **[`docs/checks.md`](docs/checks.md)** | **the checks** — sixteen facets, what each has returned, and what the unfinished ones wait on |
+| **[`docs/cases/`](docs/cases/)** | **case studies** — a cvc5 design question answered with a verifier rather than an opinion; the standing decision and the register |
 | **[`docs/next-report.md`](docs/next-report.md)** | **what to report next, and why** — the recommendation, the runner-up, and what is not ready to carry |
 | **[`docs/reachability.md`](docs/reachability.md)** | **what the corpus actually reaches** — safe mode: 0 holes over 1,061 proofs; unrestricted: one benchmark in ten |
 | **[`docs/pr-policy.md`](docs/pr-policy.md)** | **what we send, and what we build** — we never open a pull request; who decides what; the five-rule bar, and how it also decides what is worth building |

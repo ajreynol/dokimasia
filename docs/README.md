@@ -10,6 +10,8 @@ behind it.
 | --- | --- |
 | [`why.md`](why.md) | **why cvc5 should care** — the three claims this repository can back, what it has not delivered, and what would show it is wrong |
 | [`checks.md`](checks.md) | **the checks** — the sixteen facets, what each has returned against a checkout, and what the unfinished ones are waiting on |
+| [`cases/`](cases/) | **case studies** — a cvc5 design question, answered with a verifier rather than an opinion. The standing decision, and the register |
+| [`cases/safe-build-vs-safe-mode.md`](cases/safe-build-vs-safe-mode.md) | cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) — is deliberately forbidding safe mode with debug symbols actually a restriction? What it costs, and the invariant that keeps the cost that low |
 | [`next-report.md`](next-report.md) | **the next thing to report, and why it is that one** — the recommendation, the runner-up, and what is explicitly not ready |
 | [`reachability.md`](reachability.md) | **what the corpus actually reaches** — the static denominator against cvc5's own runtime counters, measured over `regress0` |
 | [`pr-policy.md`](pr-policy.md) | **what we send, and what we build** — the hard rule, who decides what, the five-rule bar and the three verdicts, and how the same bar decides which checks are worth building |

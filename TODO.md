@@ -12,7 +12,7 @@ named argument, not a task.
 
 ## What exists
 
-Twelve subtools, dependency-free, reading a checkout with no build. Eight carry a
+Thirteen subtools, dependency-free, reading a checkout with no build. Eight carry a
 `baseline --check` ratchet.
 
 | tool | answers | ratchet |
@@ -29,6 +29,7 @@ Twelve subtools, dependency-free, reading a checkout with no build. Eight carry 
 | `fragment` | the supported fragment per theory, and whether it is enforced | |
 | `signature` | whether the Eunoia signature agrees with cvc5's account of a rule | |
 | `latent` | static inventory − what a corpus reached = **the holes nothing has hit** | |
+| `buildmode` | is a safe *build* still an unrestricted build with one option default flipped? | invariant |
 
 ## What the analysis is for
 
@@ -152,7 +153,8 @@ Everything above that is not on this list is context, not a queue.
 | **t-1** | **Get an input for `i-1` (`LAMBDA_ELIM`).** | The only candidate that could become a rank-1 finding, and static work cannot settle it. **One attempt has failed** — a plain `define-fun` runs clean in safe mode; the macro is expanded before the rewriter. Needs a benchmark that keeps a lambda alive. Treat [`s-6`](docs/issues.md#settled) as the cautionary case |
 | **t-2** | **Re-run the corpus census on a clean upstream build.** | [The census](docs/reachability.md) was produced by a binary built from `ajreynol/CVC4` with local modifications, so it is the one set of numbers a reader cannot re-check by fetching the pin. Listed as a debt in `tools/cvc5.lock`, and it needs a build we do not have |
 | **t-3** | **Work the latent set down.** | `dokimasia.latent` now names **182 holes no input has reached**. Each needs an input (it becomes a finding) or an unreachability argument (it leaves the inventory). Start with the 5 latent seam rules — `SAT_REFUTATION` is the one that is not arith |
-| **t-4** | **Carry `i-3`/`R2` and `i-2` to cvc5.** | The two rows that [clear the bar](docs/pr-policy.md#the-bar). `i-3`: the completeness flag cannot be set in the mode that promises it. `i-2`: safe mode refuses `--strings-lazy-pp` *because it lacks proof support*, then runs with it on. Both are one command to check and a one-line call to fix — see [the verdicts](docs/next-report.md) |
+| **t-4** | **Answer cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) with `BUILD0001`.** | [The case study](docs/cases/safe-build-vs-safe-mode.md) is written and the check passes. We are **not** asking for the configure restriction to be lifted — it is a deliberate simplification. We are reporting what it costs (only safe-build diagnostics on a debug binary) and offering the invariant that keeps the cost that low, as a [kind B](docs/findings.md) adoption; better still if cvc5 owns it and ours retires |
+| **t-5** | **Carry `i-3`/`R2` and `i-2` to cvc5.** | The two rows that [clear the bar](docs/pr-policy.md#the-bar). `i-3`: the completeness flag cannot be set in the mode that promises it. `i-2`: safe mode refuses `--strings-lazy-pp` *because it lacks proof support*, then runs with it on. Both are one command to check and a one-line call to fix — see [the verdicts](docs/next-report.md) |
 
 Deferred until **R1** has been asked for, because R1 would retire most of what
 they are for: the AST tier (`API0001`–`0004`, `INFER0001`), `SEAM0002` (the
@@ -161,6 +163,10 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
 
 ## Standing
 
+- **A design question is answered with a check.** When a cvc5 developer asks
+  *why is this the way it is*, the deliverable is an invariant, a verifier, and
+  a test showing the verifier fire — not an opinion and not a reading. The
+  standing decision and the register are [`docs/cases/`](docs/cases/).
 - **One command.** `python3 -m dokimasia check <cvc5>` runs every ratchet in a
   single process, reading `src/` once instead of once per tool: **2.4s, down
   from 7.4s**. `report` prints every analysis; `write` re-records baselines.

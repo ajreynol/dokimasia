@@ -22,6 +22,7 @@ the [front page](../README.md#what-exists-today); the individual claims are in
 | ◐ | `ELAB` | **macro elaboration** | is every `MACRO_*` expanded at each granularity, terminating in non-macro rules? |
 | ◐ | `SEAM` | **the Eunoia seam** | `isHandled` and `isHandledSkolemId` as coverage problems, including their argument-dependent arms |
 | ◐ | `INFERID` | **inference-id hygiene** | is each `InferenceId` produced at one place, so the control-flow graph is unambiguous? |
+| ✅ | `BUILD` | **the safe-build invariant** | is a safe build still an unrestricted build with one option default flipped? While it is, excluding safe mode from a build configuration costs only diagnostics |
 | ✅ | `CI` | **is cvc5's proof CI intact?** | do the jobs that guard proof completeness still run, with the flags they need — independently of anyone remembering to keep them? |
 | ○ | `API` | **proof API contracts** | does a `ProofGenerator` return a proof of what was asked? which invariants vanish in a release build? |
 | ✅ | `GATE` | **option gates** | which option must be on for a term kind — and so a rule — to occur, so severity can be computed instead of guessed |
@@ -51,6 +52,7 @@ The register row for each is in [`issues.md`](issues.md).
 | `CI` | `dokimasia.ci` | 4 of 22 jobs run a proof tester; 4 of 5 completeness links hold, the fifth is never named | `i-3`, `i-13`, `i-14` |
 | `GATE` | `dokimasia.gates` | 59 term kinds carry an option gate; verdicts blocked / partial / open per rule | `i-1`, `s-1`–`s-5` |
 | `FRAG` | `dokimasia.fragment` | 341 kinds over 14 theories (223 available, 118 blocked); two safe-mode options gate no kind at all | `i-15` |
+| `BUILD` | `dokimasia.buildmode` | **8 conditionals on the safe-build macro, all benign**; 0 excluded sources; 0 behavioural readers of `isSafeBuild()` | [`cases/safe-build-vs-safe-mode.md`](cases/safe-build-vs-safe-mode.md) |
 | `LATENT` | `dokimasia.latent` | **182 of 203 declared holes reached by no input**; 21 reached only outside safe mode; 0 in safe mode | [`reachability.md`](reachability.md) |
 | `SIG` | `dokimasia.signature` | 0 printable rules undeclared; 24 skolems constructed and unprintable; 1 documented arity disagreement | `i-19`, `i-20`, `i-21` |
 

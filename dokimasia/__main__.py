@@ -19,8 +19,12 @@ from . import source
 #: wants them: contract first, then inventory, then hygiene.
 RATCHETS = ("modes", "ci", "ledger", "rewrites", "trust", "infer", "inferid", "tcb")
 
+#: Checks that assert an invariant outright rather than against a baseline.
+#: They pass or fail on the tree alone, so there is nothing to re-record.
+INVARIANTS = ("buildmode",)
+
 #: Everything, including the tools with no baseline to ratchet against.
-ALL = RATCHETS + ("gates", "fragment", "signature", "latent")
+ALL = RATCHETS + INVARIANTS + ("gates", "fragment", "signature", "latent")
 
 
 def _run(mod: str, argv: list[str]) -> tuple[int, str]:
@@ -41,11 +45,16 @@ def cmd_check(args) -> int:
     """Every ratchet, one process. The CI job and the pre-commit check."""
     t0 = time.time()
     failed, broke = [], []
-    for mod in RATCHETS:
+    for mod in RATCHETS + INVARIANTS:
         t = time.time()
-        rc, out = _run(mod, ["baseline", args.cvc5, "--check"])
+        argv = ([args.cvc5] if mod in INVARIANTS
+                else ["baseline", args.cvc5, "--check"])
+        rc, out = _run(mod, ["check"] + argv if mod in INVARIANTS else argv)
         last = [ln for ln in out.strip().splitlines() if ln.strip()]
-        tail = last[-1] if last else "(no output)"
+        # A ratchet's verdict is its last line; an invariant states its verdict
+        # in the middle and then explains itself, so look for the verdict.
+        tail = next((ln.strip() for ln in last if "INVARIANT" in ln),
+                    last[-1] if last else "(no output)")
         mark = "ok  " if rc == 0 else ("FAIL" if rc == 1 else "ERR ")
         print(f"  {mark} {mod:<9} {time.time()-t:5.2f}s  {tail}")
         if rc == 1:
@@ -55,7 +64,8 @@ def cmd_check(args) -> int:
         elif rc != 0:
             broke.append(mod)
     n, b = source.stats()
-    print(f"\n  {len(RATCHETS)} ratchets in {time.time()-t0:.2f}s; "
+    print(f"\n  {len(RATCHETS)} ratchets + {len(INVARIANTS)} invariant(s) "
+          f"in {time.time()-t0:.2f}s; "
           f"read {n} files / {b/1e6:.1f} MB once")
     if broke:
         print(f"\n  {len(broke)} tool(s) errored: {', '.join(broke)} — "
@@ -82,7 +92,7 @@ def cmd_report(args) -> int:
         "rewrites": ["gaps"], "trust": ["census"], "infer": ["coverage"],
         "inferid": ["check"], "tcb": ["measure"], "gates": ["verdicts"],
         "fragment": ["check"], "signature": ["skolems"],
-        "latent": ["census"],
+        "latent": ["census"], "buildmode": ["check"],
     }
     for mod in ALL:
         print(f"\n{'=' * 72}\n== {mod}\n{'=' * 72}")
