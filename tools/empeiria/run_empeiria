@@ -84,19 +84,21 @@ done
 
 # --- list needs nothing else -------------------------------------------------
 if [ "$MODE" = list ]; then
-  if [ ! -d "$LEDGER" ] || [ -z "$(ls -A "$LEDGER" 2>/dev/null)" ]; then
-    echo "no issues worked yet; the ledger at $LEDGER is empty"
-    exit 0
-  fi
-  printf '%-10s %-12s %s\n' "issue" "state" "worked"
+  found=0
   for f in "$LEDGER"/*.md; do
     [ -e "$f" ] || continue
     n=$(basename "$f" .md)
+    case "$n" in ''|*[!0-9]*) continue ;; esac   # ledger/README.md is not an issue
+    if [ "$found" = 0 ]; then
+      printf '%-10s %-12s %s\n' "issue" "state" "worked"
+      found=1
+    fi
     state=$(sed -n 's/^TRIAGE:[[:space:]]*\([a-z ]*\).*/\1/p' "$f" | head -1)
     when=$(sed -n 's/^worked: *//p' "$f" | head -1)
     if has_response "$f"; then state="${state:-?} +response"; fi
     printf '%-10s %-12s %s\n' "#$n" "${state:-?}" "${when:-?}"
   done
+  [ "$found" = 1 ] || echo "no issues worked yet; the ledger at $LEDGER is empty"
   exit 0
 fi
 
