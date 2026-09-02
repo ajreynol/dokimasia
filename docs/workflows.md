@@ -64,8 +64,8 @@ that escapes a promise, a fragment no list of kinds can express.
 ## Prompt one: in cvc5
 
 Fixed text; the id and the branch are the only things that change.
-[`scripts/check_dokimasia`](../scripts/check_dokimasia) runs it in a cvc5
-checkout and fills both in. Where the script and this document disagree, this
+[`scripts/prompts/check_dokimasia`](../scripts/prompts/check_dokimasia) runs it
+in a cvc5 checkout and fills both in. Where the script and this document disagree, this
 document is right.
 
 ```text
@@ -163,7 +163,8 @@ unconfirmed it is reported as "cannot tell".
 ## Prompt two: the follow-up, here
 
 For an assistant working in a checkout of **dokimasia**.
-[`scripts/process_dokimasia`](../scripts/process_dokimasia) runs it here. This
+[`scripts/prompts/process_dokimasia`](../scripts/prompts/process_dokimasia) runs
+it here. This
 document is written around a link — to the branch, the pull request, or wherever
 the triage was written down — and the script around a checkout it has already
 resolved. Below the opening the text is the same, and where it is not, this

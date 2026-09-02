@@ -106,7 +106,8 @@ no network calls, and it never pushes, posts or opens anything.
    of issues fixed before the measurement was designed. An improvement nobody
    measured did not happen.
 
-**The stretch goal.** A front end that reads a fresh cvc5 issue and produces a
+**The wishue** — the goal if this went unusually well, and not a commitment.
+A front end that reads a fresh cvc5 issue and produces a
 fix a maintainer applies with edits they would call minor — measured against
 what they actually did, not against whether the patch reads well.
 
@@ -173,7 +174,7 @@ what it takes, so a reader can tell what was checked from what was reasoned.
 
 | inherited | where it was established |
 | --- | --- |
-| the workflow that runs an assistant against a cvc5 issue and writes a `TRIAGE:` / `HUMAN RESPONSE:` block | [`scripts/check_cvc5_issue`](../../scripts/check_cvc5_issue), [`docs/workflows.md`](../../docs/workflows.md) |
+| the workflow that runs an assistant against a cvc5 issue and writes a `TRIAGE:` / `HUMAN RESPONSE:` block | [`scripts/prompts/check_cvc5_issue`](../../scripts/prompts/check_cvc5_issue), [`docs/workflows.md`](../../docs/workflows.md) |
 | that a reply is triage and only an artifact settles anything | [`docs/findings.md`](../../docs/findings.md) |
 | that a claim about behaviour is worthless until it has been run | [`docs/pr-policy.md`](../../docs/pr-policy.md) — three static arguments that read correctly and were false |
 | the reporting policy in full — the bar, the three verdicts, and that we never open a PR | [`docs/pr-policy.md`](../../docs/pr-policy.md), shared rather than restated |

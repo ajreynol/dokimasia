@@ -28,7 +28,7 @@ the [front page](../README.md#what-exists-today); the individual claims are in
 | ✅ | `GATE` | **option gates** | which option must be on for a term kind — and so a rule — to occur, so severity can be computed instead of guessed |
 | ✅ | `FRAG` | **the supported fragment** | which term kinds may appear per theory under safe mode — and do the three enforcement mechanisms actually cover it? |
 | ✅ | `SIG` | **signature agreement** | do the rules and skolems cvc5 can print exist in the Eunoia signature, and does its own documentation match? |
-| ○ | `KRN` | **kernel obligations** | see [the stretch goals](kernel.md) |
+| ○ | `KRN` | **kernel obligations** | see [the wishues](kernel.md) |
 
 Two of these — the ledger's arity column, and severity derived from reachability
 rather than presence — are things [cvc5 asked anoieu

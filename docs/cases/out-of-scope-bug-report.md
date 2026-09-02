@@ -50,7 +50,8 @@ The maintainer will answer #12905 — reproduce it, locate it, fix it or explain
 why it is not a bug. **That answer is evidence about how cvc5 issues get
 addressed**, and it is evidence this repository is well placed to collect and
 badly placed to act on. We run assistants against cvc5 issues already
-([`scripts/check_cvc5_issue`](../../scripts/check_cvc5_issue)); what we have
+([`scripts/prompts/check_cvc5_issue`](../../scripts/prompts/check_cvc5_issue));
+what we have
 never done is record what the human answer taught that the assistant missed.
 
 **The options, and why the middle one wins.**
@@ -83,7 +84,8 @@ graduating is one of its three endings.
 ## What this changes about the workflow
 
 The maintainer's side of the loop was already defined —
-[`scripts/check_cvc5_issue`](../../scripts/check_cvc5_issue) writes a `TRIAGE:`
+[`scripts/prompts/check_cvc5_issue`](../../scripts/prompts/check_cvc5_issue)
+writes a `TRIAGE:`
 block and leaves `HUMAN RESPONSE:` empty for a person. What was missing is what
 happens **after** the response arrives. Today: nothing. The answer is read and
 the file is forgotten.

@@ -17,13 +17,14 @@ The separation is anoieu's, and so is the shape below.
 
 **Whose job.** Whoever processes a reply here — step 7 of prompt two in
 [`workflows.md`](workflows.md#prompt-two-the-follow-up-here), which is what
-[`scripts/process_dokimasia`](../scripts/process_dokimasia) runs. Not cvc5:
+[`scripts/prompts/process_dokimasia`](../scripts/prompts/process_dokimasia)
+runs. Not cvc5:
 they send feedback, and what it changed on this side is ours to decide.
 
 **When.** Every run, by default.
 
-    scripts/process_dokimasia [DIR] [ID]              # an entry is written
-    scripts/process_dokimasia --no-postm [DIR] [ID]   # the agent decides
+    scripts/prompts/process_dokimasia [DIR] [ID]              # an entry is written
+    scripts/prompts/process_dokimasia --no-postm [DIR] [ID]   # the agent decides
 
 `--no-postm` asks for a test to be applied instead — did working this reply
 change how dokimasia works — and for the answer either way. anoieu ran that test
@@ -41,7 +42,7 @@ rather than fields of their own.
 ## <date> — <project>: <what this run was>
 
 **Tool:** the project the rows were reported to. This is what was passed to
-`scripts/process_dokimasia`, so it is never a judgement call.
+`scripts/prompts/process_dokimasia`, so it is never a judgement call.
 
 **Summary:** **what the nature of the rows was**, most important first — what
 was actually wrong with the software, not what the exchange consisted of.

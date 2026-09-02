@@ -100,8 +100,8 @@ retraction log is the internal counterpart to the decision record.
 | **never** | `git push`, `gh pr create`, `gh issue create`, or any network call to a tracker |
 | **never** | commit to a cvc5 branch on its own initiative |
 
-`scripts/check_dokimasia` and `scripts/check_cvc5_issue` make **no network
-calls**: they build a prompt and hand it to an assistant working in a tree a
+`scripts/prompts/check_dokimasia` and `scripts/prompts/check_cvc5_issue` make
+**no network calls**: they build a prompt and hand it to an assistant working in a tree a
 person is watching. Anything crossing between the repositories is carried by
 that person.
 

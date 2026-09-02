@@ -214,7 +214,7 @@ type, and the safe configuration instantiates `Limitation` at the empty type. A
 proofless inference in a safe build is then not a runtime exception, not a link
 error, but a type error at the definition site, before anything is built.
 
-This is the second stretch goal in [`docs/kernel.md`](../../../docs/kernel.md)
+This is the second wishue in [`docs/kernel.md`](../../../docs/kernel.md)
 — *a safe build that cannot be unsafe* — reached by construction rather than by
 progressive pruning. And it makes the consistency check that document proposes
 (the runtime disable list and the build-time exclusion list must agree)

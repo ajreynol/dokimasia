@@ -49,8 +49,9 @@ Ids are allocated once, in order, and are never reused. Newest topic first.
 **Settles when:** anoieu says whether the shared parts of the protocol become
 something a member fetches, or stay something each member copies.
 
-We have built our half of the bug-reporting loop: `scripts/check_dokimasia` and
-`scripts/process_dokimasia`, the prompts they carry defined in our own
+We have built our half of the bug-reporting loop:
+`scripts/prompts/check_dokimasia` and `scripts/prompts/process_dokimasia`, the
+prompts they carry defined in our own
 `workflows.md`, and a postmortem log with the shape yours sets out. It works,
 and it took an afternoon, because we read your two scripts and wrote ours from
 them. That is the point of this topic: the second implementation of a protocol

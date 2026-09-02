@@ -81,7 +81,7 @@ The question each tool answers, and whether it is ours.
 | **Frama-C** | C only | Rules itself out |
 | **Coverity / PVS-Studio / SonarQube / Klocwork** | commercial, broad defect classes | Not extensible to a project-specific contract, which is the only thing we care about |
 
-### Verification-grade, for the kernel stretch goal
+### Verification-grade, for the kernel wishue
 
 | tool | what it does | for us |
 | --- | --- | --- |

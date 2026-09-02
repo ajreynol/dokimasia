@@ -1,8 +1,16 @@
-# The two stretch goals
+# The two wishues
 
 Both are *progressive*: they improve by degrees, every degree is worth
 having, and neither has a finish line. Neither is a claim about
 verification tools.
+
+A **wishue** is a goal you would take if the work went unusually well and are
+not committing to — a wish written down as an issue. The word is cvc5's own:
+it keeps a `cvc5-wishues` tracker and its source carries seventeen
+`TODO (wishue #N)` comments, at `40a4bb7e4`. This repository used to call these
+two *stretch goals*, and stopped because *stretch* now names something else
+across the Eunoia ecosystem — the span between two announcements. Same two
+goals, one less collision.
 
 
 ## A kernel you can argue about

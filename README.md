@@ -269,12 +269,18 @@ cvc5 is the only project we report on and the protocol is the ecosystem's
 rather than ours. The first runs in a cvc5 checkout and drafts a reply there;
 the second runs here and reads it.
 
+They sit under `scripts/prompts/` rather than in `scripts/` itself, which is
+anoieu's layout and adopted here for its reason: a script that hands context to
+an assistant spends a turn, and which commands do that should be visible from
+the directory listing rather than discovered by running one. `audit_loc`,
+`bump_anoieu` and `sweep_corpus` compute and print, so they stay where they are.
+
 ```bash
-scripts/check_dokimasia i-4              # in cvc5: answer one row
-scripts/check_dokimasia                  # in cvc5: sweep every open row
-scripts/process_dokimasia i-4            # here: read what came back
-scripts/process_dokimasia --status       # what became of the branch; no agent
-scripts/process_dokimasia --dry-run      # what it would do; no agent
+scripts/prompts/check_dokimasia i-4              # in cvc5: answer one row
+scripts/prompts/check_dokimasia                  # in cvc5: sweep every open row
+scripts/prompts/process_dokimasia i-4            # here: read what came back
+scripts/prompts/process_dokimasia --status       # what became of the branch; no agent
+scripts/prompts/process_dokimasia --dry-run      # what it would do; no agent
 ```
 
 Both prompts are defined in [`docs/workflows.md`](docs/workflows.md) and the
@@ -294,10 +300,10 @@ starts an assistant inside a cvc5 checkout, points it at an issue from cvc5's
 own tracker, and asks it to triage and fix.
 
 ```bash
-scripts/check_cvc5_issue --issue 12884       # one issue
-scripts/check_cvc5_issue --all --sample 5    # a sample the assistant picks
-scripts/check_cvc5_issue --codex --issue 12884
-scripts/check_cvc5_issue --issue 12884 --show-prompt   # print it, run nothing
+scripts/prompts/check_cvc5_issue --issue 12884       # one issue
+scripts/prompts/check_cvc5_issue --all --sample 5    # a sample the assistant picks
+scripts/prompts/check_cvc5_issue --codex --issue 12884
+scripts/prompts/check_cvc5_issue --issue 12884 --show-prompt   # print it, run nothing
 ```
 
 Run it in the root of a cvc5 checkout; it refuses to run anywhere else. It is
@@ -340,7 +346,7 @@ the path. Ours happens first.
 | [`docs/goals.md`](docs/goals.md) | the stance, the goal, the agility constraint, and how we would know it is working |
 | [`docs/contract.md`](docs/contract.md) | what cvc5 promises, where, and the three ways completeness breaks |
 | [`docs/pipeline.md`](docs/pipeline.md) | the stages of proof production and where each leaks |
-| [`docs/kernel.md`](docs/kernel.md) | the two stretch goals: a kernel you can argue about, and a safe build that cannot be unsafe |
+| [`docs/kernel.md`](docs/kernel.md) | the two wishues: a kernel you can argue about, and a safe build that cannot be unsafe |
 | [`docs/hygiene.md`](docs/hygiene.md) | proof hygiene for cvc5 — ten rules, each with a measurement |
 | [`docs/coupling.md`](docs/coupling.md) | what we ask of cvc5, and what we parse that could break |
 | [`docs/tooling.md`](docs/tooling.md) | the C++ static-analysis landscape, our design decisions, and the posture toward murxla |

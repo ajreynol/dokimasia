@@ -19,6 +19,41 @@ that makes it safe to keep here.
 
 ---
 
+## The charter
+
+Stated here because a research project's charter is the thing a person agreed
+to, and until now it was spread across this file and [`TODO.md`](TODO.md)
+instead of being in one place somebody could hold it to.
+
+**The question.** *If the proof came first, what would the solver look like?*
+The premise below says why that is the complementary question to the parent's
+and not a competing one.
+
+**The goals, in order** — they are [`TODO.md`](TODO.md)'s `T1` to `T6`, ordered
+by how fast each could kill the project rather than by how much work each
+represents. `T2`, a proof-carrying rewriter for one theory, is first because it
+is the only one whose outcome could invalidate the design.
+
+**The wishue** — the outcome if this went unusually well, and not a commitment.
+It is already stated, and stated as a target somebody else maintains the
+goalposts for: **telos succeeds when Logos says `correct`** — a fragment on
+which a telos solver's output is accepted by an independently maintained
+verified checker, with the `incomplete` count as the completeness metric.
+
+**Out of scope**, in full in [`TODO.md`](TODO.md)'s *Not doing*, and in
+summary: writing a kernel (Logos is the kernel); writing a solver until `T2`
+returns; verifying the search, ever, under the current design; claiming anything
+about cvc5, ethos or logos, since a fact about any of them goes into that
+project's register under its own name; and announcing this directory.
+
+**Is there a paper in it?** Not in the design, and probably never — a set of
+inversions nobody has implemented is a position, not a result. There are two
+candidates and both are measurements rather than arguments: `T3`'s `incomplete`
+census over a CPC corpus run through both checkers, which is a coverage number
+for the specification that nobody has taken, and `T2`'s outcome either way,
+including the negative one. Neither is close, and whether either is worth
+writing up is a decision for a person and not for this file.
+
 ## The premise
 
 dokimasia measures cvc5's proof kernel from the outside, and the arc of that
@@ -193,6 +228,11 @@ the scrutiny before. That pair is sitting there unused.)*
 Design notes only. Nothing is written here. The measurements are of other
 people's trees — cvc5, ethos and logos — and no design claim in this directory
 has been tested against an implementation.
+
+There are three endings and a person picks: it graduates into its own
+repository, it is folded into the parent, or it is retired in place with a note
+saying what was learned and why it stopped. Going quiet is not one of them, and
+a directory that has not moved is a claim nobody is standing behind.
 
 - **[`docs/logos.md`](docs/logos.md) — the foothold: what Logos is, what it weighs, what its guarantee is, and eight lessons. Start here**
 - [`docs/kernel-of-cvc5.md`](docs/kernel-of-cvc5.md) — what the kernel is today, what "defining" it means, and what each comparable tool's guarantee actually is
