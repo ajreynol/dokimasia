@@ -79,6 +79,18 @@ Not a competitor to cvc5, not a replacement, not a proposal to anyone. A
 research vehicle for the one experiment dokimasia cannot run, because dokimasia
 is downstream of a design that is already fixed.
 
+**There is a competing answer, and it is not written down here.** The opposite
+bet is that cvc5's *development procedure* is the thing to automate — the
+accumulated design kept and its upkeep mechanized, rather than the design thrown
+away to fix the order it was built in. It says the artifact is the asset and the
+process around it is the problem. **If that were true, the argument from build
+order that this whole directory rests on would matter much less**, because holes
+would close faster than they accumulate — worth knowing before reading the five
+inversions as settled. Neither bet has produced anything, so nothing here ranks
+them; where the idea is being put on the record is
+[`../../docs/discussion.md`](../../docs/discussion.md), as a proposal to
+somebody else's page rather than a position of ours.
+
 ## The foothold: Logos
 
 **telos is built on [`ajreynol/logos`](https://github.com/ajreynol/logos), and

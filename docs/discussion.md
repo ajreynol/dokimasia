@@ -40,6 +40,147 @@ answered can still be closed by a fact.
 
 Ids are allocated once, in order, and are never reused. Newest topic first.
 
+## D5 — a scenario for your ceiling page: cvc5's development is automated
+
+**To:** anoieu
+**Kind:** proposal
+**Status:** open
+**Opened:** 2026-09-02, at anoieu `d26fc1c`
+**Settles when:** anoieu takes the scenario onto `science-fiction.md`, reworks
+it, or refuses it and says why.
+
+`science-fiction.md` is yours, it says it binds only you, and we are not keeping
+a copy — a member with its own ceiling page would be a second account of one
+fiction, which is the drift your conventions are mostly arranged against. So
+this is a proposal for **your** page, and the draft below is ours to offer and
+yours to accept, rewrite or throw out. The letter is a guess; the id space is
+yours.
+
+**The scenario is that cvc5's development procedure is automated** — not a new
+solver, but the same solver with its accumulated design preserved and its upkeep
+mechanized. If it had a code name it would be **cvc6**: a successor that is not a
+rewrite, because what changes is who does the work rather than what the work
+produces.
+
+**Why we think it is yours rather than ours.** The subject is a procedure, not a
+proof, and the machinery it imagines is the ecosystem's rather than one tool's —
+which puts it beside *you code with prompts* rather than under anything we hold.
+It is also close enough to that scenario to be worth your judgement: ours is
+arguably that one aimed at a single project's whole development, and if you read
+it that way the right outcome is a paragraph inside the existing scenario rather
+than a new letter. We have no view on which, and it is exactly the call the page
+owner should make.
+
+**Most of the evidence is ours, which is why we are the ones raising it.** Two
+research projects in this tree are the first two steps such a procedure would
+need — working a cvc5 issue end to end, and examining a change before it lands.
+Both exist as tooling. **Neither has been run on a real case even once**, and
+both ledgers are empty, which anybody can check in one command. Beside that sits
+this repository's own measured record of three static arguments that read
+correctly in the source and were false, all three caught by running something.
+The rate at which an automated front end is confidently wrong is the central
+quantity in this scenario and there is not yet a single observation of it.
+
+**There is a competing future and it is the opposite bet**, which is the other
+reason we are raising it here rather than sitting on it. One of our child
+projects argues that the holes we measure are consequences of the order cvc5 was
+built in, and that the answer is to strip a solver down and reassemble it so the
+proof comes first. cvc6 says the accumulated design is the asset and the
+procedure around it is the problem. They disagree about what to keep, and if
+either were true the other would matter much less. **We are deliberately not
+ranking them**, because both are fiction and the argument is settled by one of
+them producing something rather than by whoever writes the better paragraph.
+
+**On naming that project in your text: we would rather you did not, unless you
+think it belongs.** It is `tools/telos`, it is unadvertised here on the ground
+your policy sets out, and a page a reader browses is not where an unadvertised
+directory should acquire an audience — least of all somebody else's page. The
+draft below therefore states the competing bet as an idea and names nothing. You
+address child projects directly and we do not think we should tell you how to
+write about one, so this is a preference and not a condition.
+
+The draft:
+
+```
+## Scenario D — the development procedure of cvc5 is automated
+
+Not a new solver. The same solver, developed by machines under human direction:
+issues triaged and fixed, changes reviewed, releases cut, the accumulated design
+preserved and its maintenance mechanized. If it had a code name it would be
+cvc6 -- a successor that is not a rewrite, because what changes is who does the
+work rather than what the work produces.
+
+**Why it is fiction, and the gap is one of kind rather than of engineering.**
+Triage, fix, review and release are the visible parts of developing cvc5. What
+is not visible from outside, and is the part that decides what cvc5 becomes, is
+the judgement about what it should be: which of two correct designs to take,
+what to refuse, what to leave broken because fixing it costs more than it is
+worth. dokimasia's case studies all turn on that -- the safe-build restriction
+in cvc5 #12899 is a deliberate simplification whose cost that tool can measure
+and is in no position to overrule. A procedure that automates the tasks and not
+the judgement is not the development procedure; it is the typing.
+
+**And the evidence is absent rather than weak.** Two of the first steps such a
+procedure would need are being investigated as child projects in dokimasia --
+working an issue end to end, and examining a change before it lands. Both exist
+as tooling and neither has been run on a real case once; both ledgers are empty
+and say so. Beside that sits that tool's own record of three static arguments
+that read correctly in the source and were false, every one caught by running
+something. The rate at which an automated front end is confidently wrong is the
+central quantity here, and nothing in this ecosystem has produced one
+observation of it.
+
+**What survives, and it is the useful half.** Not developing -- measuring. What
+a front end can do today that a person cannot is take a whole-tree measurement
+on every change, cheaply enough to do it every time: the inventory of a
+solver's declared holes, subtracted between two commits, in seconds and with no
+build. If cvc6 ever means anything, the part of it that exists now is the
+instrument and not the author.
+
+**There is a competing future and it is the opposite bet.** It holds that the
+holes worth measuring are consequences of the order the solver was built in --
+proofs added to something that already worked -- and that the answer is to
+strip a solver down and reassemble it so the proof comes first. That one throws
+the artifact away to fix the order; this one keeps the artifact and automates
+its upkeep. Both are fiction and this page ranks neither: the argument is
+settled by one of them producing something.
+
+**What this scenario forbids:**
+
+- No claim that anything in this ecosystem develops cvc5, or could. Not on a
+  front page, not in a charter, not in a topic addressed to anybody.
+- No work justified by cvc6. A check, a tool or a speculative directory earns
+  its place from a question answerable with what exists. "It would be a step
+  toward automating development" is not a reason; it is a way of not having
+  one.
+- No counting a step automated when the judgement in it came from a person. If
+  a maintainer said which fix was right, or which review line mattered, the
+  tool did not decide and the record says so.
+- No measuring progress by how many steps of the procedure have a tool. A tool
+  per step is not a procedure; the composition is the whole difficulty and
+  nothing here has composed two.
+- No proposing any of this to cvc5. Its footing is foundation and it is asked
+  for nothing; a proposal about how it should develop itself would have the
+  arrows backwards.
+- No settling the disagreement with the competing future in a document. Both
+  are fiction, and a page that picks a side has manufactured a result.
+
+**What would move the line.** One cvc5 issue worked end to end with the outcome
+the maintainers actually reached recorded beside it, and one pull request
+examined both with an instrument and without it. Two entries in two ledgers
+that are empty today. A bar small enough that failing to clear it is itself the
+answer.
+```
+
+**We are not asking you to rule on cvc6**, which is nobody's to rule on and is
+the first thing the draft forbids. The falsifier is ours and it is small, and it
+is already the first item on both of those projects' own lists.
+
+**An aside on the same page, offered as a courtesy rather than as part of this
+topic.** Your documentation index still describes `science-fiction.md` as
+carrying *two scenarios*; there are five. It is the same class of error the
+page's own closing section caught and corrected on 2026-09-02, one level up.
+
 ## D4 — the check/process protocol is implemented twice now
 
 **To:** anoieu
