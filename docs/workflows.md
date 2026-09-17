@@ -162,6 +162,11 @@ unconfirmed it is reported as "cannot tell".
 
 ## Prompt two: the follow-up, here
 
+The launcher resolves cvc5 through `scripts/targets.py`, shared with both
+analysis producers. See [checkout configuration](analyzer.md) for precedence,
+the local map, and migration from the older `~/cvc5` default. A positional
+checkout overrides configuration; `--link` can be used without a checkout.
+
 For an assistant working in a checkout of **dokimasia**.
 [`prompts/process_dokimasia`](../prompts/process_dokimasia) runs
 it here. This

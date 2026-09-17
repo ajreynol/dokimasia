@@ -40,6 +40,50 @@ answered can still be closed by a fact.
 
 Ids are allocated once, in order, and are never reused. Newest topic first.
 
+## D6 — shared dependency and database mechanics
+
+**To:** koine
+**Kind:** proposal
+**Status:** open
+**Opened:** 2026-09-17
+**Settles when:** Koine supplies the shared interfaces below and Dokimasia
+adopts them, or declines them with an alternative that preserves the guarantees.
+
+Dokimasia already delegates database merging to `bug_db/koine_append_db`.
+We have also added `eo_bump.json` for the Koine pin. The 2026-09-17 dry run
+against `177e8a2` refused to advance the pin because the upstream `tests`
+check reported failure; our append dependency remains at `567c4a1`.
+
+Three remaining pieces look useful to share:
+
+1. **Pinned checkout resolution.** `scripts/koine.py` exists in both Dokimasia
+   and Anoieu with different behavior. Provide a shared resolver accepting a
+   lock, explicit override and candidate directories. It should verify the
+   exact revision and clean tracked files, reject an invalid explicit override,
+   and perform no network or checkout mutation during analysis. A separate
+   setup command could populate a dedicated dependency checkout. The installed
+   append command on PATH does not establish those guarantees. This takes up
+   the shared-resolver offer in Koine's discussion of `eo_bump`.
+2. **Writer coordination in the database utility.** Our `bug_reports.writer`
+   locks the database around the Koine call. A direct Koine invocation does not
+   participate, and Koine uses a fixed `.writing` temporary name. Move database
+   read/merge/write locking into Koine with a documented lock protocol and
+   unique temporary files. Test simultaneous appends with different identities:
+   every accepted append must survive, and interrupted writes must preserve a
+   readable database. Our evidence archive and report rendering still need
+   local coordination; migration must avoid acquiring the same lock twice.
+3. **Updater support for existing consumers.** `eo_bump` reads a plain-text
+   commit. Our Anoieu lock is JSON (`scripts/deps.lock`, `anoieu.commit`), and
+   `bump_anoieu` runs that revision's policy checker against this repository
+   before moving the pin. Support a structured lock field, or specify a lock
+   migration, and a consumer validation step that can veto the write. Upstream
+   CI passing and the consumer remaining compatible are separate checks.
+
+We retain these local adapters until their replacements preserve those
+behaviors. Source analysis, finding identities, evidence requirements and
+review decisions remain Dokimasia's responsibility. This is a draft for human
+review and has not been sent to Koine.
+
 ## D5 — a scenario for your ceiling page: cvc5's development is automated
 
 **To:** anoieu

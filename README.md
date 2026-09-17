@@ -31,6 +31,9 @@ Database updates require a clean Koine checkout at `scripts/koine.lock`, found
 through `$KOINE`, a sibling `koine` directory, or `deps/koine`. No checkout is
 fetched or changed by the analyzer. Set `DOKIMASIA_CVC5` or add a cvc5 path to
 ignored `scripts/repos.local` to omit `--cvc5` on subsequent runs.
+The reporting launcher uses the same checkout configuration. See
+[dependency setup](docs/maintenance.md#local-dependencies) for pinned checkouts
+and Koine's shared updater.
 
 See [the analyzer guide](docs/analyzer.md) for target selection, evidence,
 identity, database conflicts and comparison of independent producers.

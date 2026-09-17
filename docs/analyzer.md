@@ -25,11 +25,17 @@ those checks.
 `--config` supplies an alternative target manifest.
 
 Checkout resolution is: `--cvc5`, `$DOKIMASIA_CVC5`, `$CVC5`, an entry in
-`scripts/repos.local`, then `deps/cvc5`. The ignored local map contains lines
+`scripts/repos.local`, the legacy `cvc5.path` in `tools/deps.local.json`, then
+`deps/cvc5`. The ignored local map contains lines
 like `cvc5 /path/to/cvc5`; relative paths are relative to the map. Override its
 location with `$DOKIMASIA_REPOS_FILE`. An explicitly selected missing checkout
 fails; it never silently switches to another. These commands never fetch,
 build, or change the target checkout.
+
+`prompts/process_dokimasia` uses this same resolver, with its positional `DIR`
+as the explicit override. New configurations should use `scripts/repos.local`;
+the legacy JSON entry remains a fallback for existing reporting setups.
+`~/cvc5` is no longer guessed: name it in the map if that is your checkout.
 
 `--dry-run` lists the input scope and missing required paths, without running
 checks or creating output files. Each scanner may read only part of that scope;
@@ -115,6 +121,8 @@ was reconfirmed. Absent observations remain in the database unchanged.
 `deps/koine`. It requires the exact pinned commit and a clean tracked tree. It
 does not clone or change a checkout. Set up that dependency before updating the
 database; `--dry-run` and analyzer `--no-update` do not require Koine.
+The [maintenance guide](maintenance.md#local-dependencies) describes setup and
+updating the pin with Koine's `eo_bump`.
 
 ```bash
 scripts/append_findings scratch/new-bugs.json --dry-run
@@ -168,3 +176,10 @@ Useful correspondences are `SEAM0001` with `i-7`, `INFER0002` with `i-22`,
 `i-2`. The `MODE0001` observation for `macrosQuantMode` still describes the
 defaults-only scanner's result; `s-4` records why interpreting it as a reachable
 defect was wrong. These are links between records, not new verdicts.
+
+To carry a structured observation into the reporting workflow, review its claim
+and archived evidence first. In the corresponding `issues.md` row, record the
+`dokimasia:*` identity, link the archived run, and state what would settle the
+claim. Reuse an existing row for the same question. The reporting launchers
+continue to take that row's `i-*` id; a database id alone is not a reviewed
+report. Keep replies and resolutions in the register and findings ledger.

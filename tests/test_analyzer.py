@@ -133,6 +133,52 @@ class AnalyzerTests(unittest.TestCase):
             census.unlink()
             self.assertEqual(targets.implementation_digest(), default)
 
+    def test_checkout_precedence_and_legacy_configuration(self):
+        (self.base / "scripts").mkdir()
+        (self.base / "tools").mkdir()
+        mapping = self.base / "scripts/repos.local"
+        legacy = self.base / "tools/deps.local.json"
+        env = {k: v for k, v in os.environ.items()
+               if k not in ("DOKIMASIA_CVC5", "CVC5", "DOKIMASIA_REPOS_FILE")}
+        with patch.object(targets, "ROOT", self.base), patch.dict(os.environ, env, clear=True):
+            self.assertEqual(targets.checkout()[0], self.base / "deps/cvc5")
+            write_json(legacy, {"cvc5": {"path": str(self.tree)}})
+            self.assertEqual(targets.checkout(), (self.tree, str(legacy)))
+            mapping.write_text("cvc5 ../mapped tree\n")
+            self.assertEqual(targets.checkout()[0], self.base / "mapped tree")
+            with patch.dict(os.environ, {"CVC5": str(self.base / "environment")}):
+                self.assertEqual(targets.checkout()[0], self.base / "environment")
+                with patch.dict(os.environ, {"DOKIMASIA_CVC5": str(self.base / "preferred")}):
+                    self.assertEqual(targets.checkout()[0], self.base / "preferred")
+                    self.assertEqual(targets.checkout(str(self.tree))[0], self.tree)
+            mapping.write_text("cvc5\n")
+            with self.assertRaisesRegex(ValueError, "needs a checkout path"):
+                targets.checkout()
+
+    def test_analysis_and_reporting_share_local_map_and_fail_on_missing_target(self):
+        mapped = self.base / "source tree"
+        self.tree.rename(mapped)
+        mapping = self.base / "repos.local"
+        mapping.write_text("cvc5 source tree\n")
+        env = {k: v for k, v in os.environ.items() if k not in ("DOKIMASIA_CVC5", "CVC5")}
+        env["DOKIMASIA_REPOS_FILE"] = str(mapping)
+        commands = [
+            [sys.executable, str(ROOT / script), "--dry-run", "--config", str(self.config)]
+            for script in ("scripts/dokimasia_analyzer", "prompts/dokimasia_analyzer_agent")]
+        commands.append(["bash", str(ROOT / "prompts/process_dokimasia"), "--dry-run"])
+        for command in commands:
+            p = subprocess.run(command, cwd=self.base, env=env, capture_output=True, text=True)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            self.assertIn(str(mapped), p.stdout)
+            self.assertIn(str(mapping), p.stdout)
+        # An explicit but missing environment choice must not fall back to the
+        # valid local map and accidentally analyze or report on another tree.
+        env["DOKIMASIA_CVC5"] = str(self.base / "missing")
+        for command in commands:
+            p = subprocess.run(command, cwd=self.base, env=env, capture_output=True, text=True)
+            self.assertEqual(p.returncode, 2, p.stdout + p.stderr)
+            self.assertIn(str(self.base / "missing"), p.stderr)
+
     def test_combined_report_defaults_and_optional_selection(self):
         from dokimasia import __main__ as cli
         with patch.object(cli, "_run", return_value=(0, "")) as run, \

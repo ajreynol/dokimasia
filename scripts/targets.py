@@ -6,11 +6,15 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
 
 from dokimasia.findings import ANALYSES, DEFAULT_ANALYSES
 from dokimasia.paths import CENSUS
 
-ROOT = Path(__file__).resolve().parent.parent
 CONFIG = ROOT / "scripts/targets.json"
 
 
@@ -35,6 +39,12 @@ def checkout(explicit=None):
                     raise ValueError(f"{mapping}: cvc5 needs a checkout path")
                 path = Path(parts[1]).expanduser()
                 return (mapping.parent / path).resolve(), str(mapping)
+    # Keep existing reporting setups usable while they move to repos.local.
+    legacy = ROOT / "tools/deps.local.json"
+    if legacy.exists():
+        path = json.loads(legacy.read_text()).get("cvc5", {}).get("path")
+        if path:
+            return Path(path).expanduser().resolve(), str(legacy)
     return ROOT / "deps/cvc5", "deps/cvc5"
 
 
@@ -120,7 +130,8 @@ def implementation_digest(analyses=DEFAULT_ANALYSES):
 
 
 def arguments(parser):
-    parser.add_argument("--cvc5", help="explicit checkout; otherwise environment, repos.local, then deps/cvc5")
+    parser.add_argument("--cvc5", help="explicit checkout; otherwise environment, repos.local, "
+                        "legacy deps.local.json, then deps/cvc5")
     parser.add_argument("--config", default=str(CONFIG))
     parser.add_argument("--target", action="append", default=[])
     parser.add_argument("--analysis", action="append", choices=ANALYSES,
@@ -129,3 +140,20 @@ def arguments(parser):
 
 def from_args(args):
     return resolve(args.config, args.target, args.cvc5)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Resolve the cvc5 checkout for reporting and analysis.")
+    parser.add_argument("checkout", nargs="?", help="explicit checkout, overriding local configuration")
+    args = parser.parse_args()
+    try:
+        path, via = checkout(args.checkout)
+        if not path.is_dir():
+            raise ValueError(f"no cvc5 checkout at {path} (from {via}); provide a path, "
+                             "set DOKIMASIA_CVC5, or configure scripts/repos.local")
+        print(via)
+        print(path)
+    except (OSError, ValueError) as e:
+        parser.exit(2, f"targets: {e}\n")
