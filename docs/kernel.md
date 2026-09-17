@@ -123,4 +123,4 @@ reachable.
 `set_defaults.cpp` with its guards, renders the per-mode delta, and ratchets
 it. Its `check` subcommand cross-references the machine-readable
 `no_support = ["proofs"]` annotations against what safe mode actually
-disables. Usage in [the README](../README.md#what-exists-today).
+disables. Usage in [the README](../README.md#what-the-analyzer-checks).

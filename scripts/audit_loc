@@ -196,13 +196,15 @@ def _attribute(rel: str) -> tuple[str, str]:
         return analysis, role
     if parts[0] == "tests":
         name = os.path.splitext(parts[-1])[0]
+        if parts[1] == "baselines":
+            return name, "baseline"
+        if parts[1] == "corpus":
+            return "latent", "data"
         return (name[5:] if name.startswith("test_") else "(shared)"), "tests"
     if parts[0] == "docs":
         return "(docs)", "docs"
     if parts[0] == "scripts":
         return "(scripts)", "scripts"
-    if rel.endswith("-baseline.json"):
-        return rel.split("-")[0], "baseline"
     return "(root)", "docs" if rel.endswith(".md") else "other"
 
 

@@ -1,17 +1,24 @@
-# Individual analysis commands
+# Developer analysis commands
 
 These examples describe the measurements at cvc5 `40a4bb7e4`, the revision in
 [`tools/cvc5.lock`](../tools/cvc5.lock). Run a command to measure another tree;
 the comments are recorded examples, not assertions about current upstream.
 For the collected observation workflow, see [the analyzer guide](analyzer.md).
 
-## What exists today
+## Reports and regression checks
+
+The advertised interface is `scripts/dokimasia_analyzer`, with the nine analyses
+listed in [the README](../README.md#what-the-analyzer-checks). The commands below
+expose their implementation details and optional measurements for development.
+Standalone `gates`, `fragment`, `tcb`, and `latent` reports are opt-in; none
+emits observation records. The TCB baseline remains part of the CI checks.
 
 No dependencies; Python 3.10+; reads a checkout, needs no build.
 
 ```bash
-python3 -m dokimasia check  <cvc5>   # every ratchet, one process — 2.4s
-python3 -m dokimasia report <cvc5>   # every analysis, printed
+python3 -m dokimasia check  <cvc5>   # eight baseline ratchets and one invariant
+python3 -m dokimasia report <cvc5>   # the nine advertised analyses, printed
+python3 -m dokimasia report <cvc5> --analysis tcb --analysis latent  # explicit selection
 ```
 
 **[`dokimasia.buildmode`](../dokimasia/buildmode/)** — is a safe *build* still an
@@ -25,9 +32,9 @@ python3 -m dokimasia.buildmode check <cvc5>       # 8 conditionals, all benign
 python3 -m dokimasia.buildmode sites <cvc5>       # each one, classified
 ```
 
-**[`dokimasia.latent`](../dokimasia/latent/)** — the subtraction the rest of the
-repository exists to make: *static inventory − what a corpus reached = the holes
-nothing has hit*.
+**[`dokimasia.latent`](../dokimasia/latent/)** — optional comparison of the static
+inventory with the historical runtime census in `tests/corpus/reach-corpus.json`.
+Its runtime evidence applies to the recorded build and corpus.
 
 ```bash
 python3 -m dokimasia.latent census <cvc5>          # 182 of 203 latent, 0 in safe mode
@@ -35,7 +42,7 @@ python3 -m dokimasia.latent list   <cvc5> --kind seam-rule
 scripts/sweep_corpus --cvc5 <binary> --corpus <dir>  # regenerate the census
 ```
 
-**[`dokimasia.tcb`](../dokimasia/tcb/)** — the trusted computing base of the
+**[`dokimasia.tcb`](../dokimasia/tcb/)** — optional measurement of the trusted computing base of the
 internal proof checker, the natural kernel candidate.
 
 ```bash
@@ -100,7 +107,7 @@ python3 -m dokimasia.rewrites coverage <cvc5>     # RARE vs hand-written vs appl
 python3 -m dokimasia.rewrites gaps     <cvc5>     # applied, and unprintable
 ```
 
-**[`dokimasia.fragment`](../dokimasia/fragment/)** — the logical fragment cvc5
+**[`dokimasia.fragment`](../dokimasia/fragment/)** — optional report of the logical fragment cvc5
 supports, per theory, and whether it is enforced. Generates
 [`docs/fragment.md`](fragment.md).
 
@@ -127,9 +134,9 @@ python3 -m dokimasia.signature skolems <cvc5>     # 24 constructed but unprintab
 python3 -m dokimasia.signature checker <cvc5>     # documented arity vs what the checker enforces
 ```
 
-**[`dokimasia.gates`](../dokimasia/gates/)** — the machinery the other tools kept
-needing: which option legalises each term kind, and so whether a rule can fire
-under `--safe-mode=safe`.
+**[`dokimasia.gates`](../dokimasia/gates/)** — optional standalone reports of which
+option legalises each term kind, and whether a rule can fire under
+`--safe-mode=safe`. The rewrite analysis also uses this machinery for evidence.
 
 ```bash
 python3 -m dokimasia.gates kinds    <cvc5>        # 59 kinds carry an option gate

@@ -9,7 +9,7 @@ import sys
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT), str(ROOT / "scripts")]
-from dokimasia.findings import ANALYSES
+from dokimasia.findings import DEFAULT_ANALYSES
 import targets
 from bug_reports import write_json
 
@@ -35,7 +35,7 @@ def main():
     ap.add_argument("--out", default=str(ROOT / "scratch/agent-bugs.json"))
     args = ap.parse_args()
     try:
-        analyses = list(dict.fromkeys(args.analysis or ANALYSES))
+        analyses = list(dict.fromkeys(args.analysis or DEFAULT_ANALYSES))
         resolved = targets.from_args(args)
         if any(Path(args.out).resolve().is_relative_to(Path(t["root"])) for t in resolved):
             raise ValueError("agent output must be outside the target checkout")

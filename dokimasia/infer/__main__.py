@@ -12,6 +12,8 @@ import json
 import os
 import sys
 
+from ..paths import baseline
+
 from .coverage import scan
 
 
@@ -125,7 +127,7 @@ def main(argv: list[str] | None = None) -> int:
     u.add_argument("--json", action="store_true")
     u.set_defaults(func=cmd_unhandled)
     b = sub.add_parser("baseline", help="ratchet the fall-through set")
-    b.add_argument("cvc5"); b.add_argument("--file", default="infer-baseline.json")
+    b.add_argument("cvc5"); b.add_argument("--file", default=baseline("infer"))
     b.add_argument("--write", action="store_true"); b.add_argument("--check", action="store_true")
     b.set_defaults(func=cmd_baseline)
     args = ap.parse_args(argv)

@@ -1,7 +1,7 @@
 # Documentation
 
 The index of `docs/`. The front page is [`README.md`](../README.md), which says
-what the analyzer is and what exists today; everything here is the reasoning
+what the analyzer is and which checks it runs; everything here is the reasoning
 behind it.
 
 ## Start here
@@ -9,7 +9,7 @@ behind it.
 | | |
 | --- | --- |
 | [`analyzer.md`](analyzer.md) | run the structured analyzer, append through Koine, and compare an independent producer |
-| [`usage.md`](usage.md) | individual analysis commands and examples at the pinned cvc5 revision |
+| [`usage.md`](usage.md) | developer reports, optional measurements and examples at the pinned cvc5 revision |
 | [`maintenance.md`](maintenance.md) | development checks, dependency pins and the script catalogue |
 | [`reports/static-analysis.md`](reports/static-analysis.md) | generated observation database view; evidence is archived under `reports/runs/` |
 | [`why.md`](why.md) | **why cvc5 should care** — the three claims this repository can back, what it has not delivered, and what would show it is wrong |

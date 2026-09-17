@@ -4,8 +4,8 @@ A static analyzer for **cvc5’s proof-production code**: the C++ that construct
 proofs and the seam that prints them in Eunoia for ethos to check.
 
 It looks for gaps in proof coverage, inconsistencies in the safe-mode contract,
-and changes to the machinery that checks proofs. It reads a source checkout;
-it needs no cvc5 build. The analysis is partial: a clean run means the selected
+and mismatches between proof production, checking and printing. It reads a
+source checkout; it needs no cvc5 build. The analysis is partial: a clean run means the selected
 checks found nothing, and a reported static gap still needs evidence of reachability.
 
 Modelled on [anoieu](https://github.com/ajreynol/anoieu), whose subject is
@@ -22,8 +22,8 @@ scripts/dokimasia_analyzer --cvc5 /path/to/cvc5
 ```
 
 The first command shows the source scope and missing inputs. The second runs
-all 13 analyses and writes a dump with a matching evidence record. The third
-also appends observations to [the database](docs/reports/bugs.json) through
+the nine analyses below and writes a dump with a matching evidence record.
+The third also appends observations to [the database](docs/reports/bugs.json) through
 [Koine](https://github.com/ajreynol/koine) and regenerates
 [the readable table](docs/reports/static-analysis.md).
 
@@ -35,24 +35,26 @@ ignored `scripts/repos.local` to omit `--cvc5` on subsequent runs.
 See [the analyzer guide](docs/analyzer.md) for target selection, evidence,
 identity, database conflicts and comparison of independent producers.
 
-## What exists today
+## What the analyzer checks
 
-The existing commands remain available:
+The default run covers the nine analyses that emit documented observations:
 
-```bash
-python3 -m dokimasia check  /path/to/cvc5  # eight baseline ratchets and one invariant
-python3 -m dokimasia report /path/to/cvc5  # individual analysis reports
-```
+| analysis | observations |
+| --- | --- |
+| `ledger` | produced proof rules missing checkers or detected macro expansion, trusted registrations, and printer refusals |
+| `ci` | gaps in proof-testing configuration and its completeness chain |
+| `buildmode` | changes that need review against the safe-build invariant |
+| `modes` | proof-unsupported options enabled without a direct safe-mode override |
+| `rewrites` | implemented rewrites refused by the printer or restricted to unrestricted mode |
+| `trust` | trust steps constructed without a reason id |
+| `infer` | emitted inferences missing cases in a reconstructor with a trust fallback |
+| `inferid` | inference ids shared across production sites, or sentinel ids used in production |
+| `signature` | missing signature declarations, refused skolems, and rule-arity disagreements |
 
-The analyses cover proof-rule and rewrite coverage, inference reconstruction,
-trust steps, option gates, the supported fragment, safe-build behavior,
-signature agreement, proof CI and the checker’s dependency surface.
-[Individual commands](docs/usage.md) expose the details;
-[the check catalogue](docs/checks.md) states their limitations.
-
-`scripts/sweep_corpus` records runtime counters from an existing cvc5 binary.
-The latent analysis compares its historical census with the static inventory;
-a source-only analyzer run does not refresh that runtime evidence.
+Both producers use this scope by default. `--analysis` selects a subset;
+[the check catalogue](docs/checks.md#structured-observations) explains the
+claims and their limitations. Developer reports and regression checks are
+documented in [the command reference](docs/usage.md).
 
 ## An independent reading
 
@@ -86,7 +88,7 @@ claims and leaves publication to a human.
 | document | purpose |
 | --- | --- |
 | [Analyzer guide](docs/analyzer.md) | targets, observation records and producer comparison |
-| [Individual commands](docs/usage.md) | existing analysis interfaces |
+| [Developer commands](docs/usage.md) | detailed reports and optional measurements |
 | [Checks](docs/checks.md) | emitted checks and their limits |
 | [Maintenance](docs/maintenance.md) | tests, pins and script catalogue |
 | [Documentation index](docs/README.md) | findings, case studies and design notes |

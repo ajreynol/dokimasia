@@ -12,8 +12,7 @@ import json, os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from dokimasia.inferid.scan import _declared  # noqa: E402
 from dokimasia.inferid.__main__ import _src  # noqa: E402
-
-ROOT = os.path.join(os.path.dirname(__file__), "..")
+from dokimasia.paths import baseline  # noqa: E402
 FAILURES = []
 
 
@@ -49,8 +48,8 @@ def test_cvc5(root):
 
     # Theory names and bookkeeping keys are not ids; an id is SHOUTY_SNAKE and
     # is not one of the theory buckets the baselines are keyed by.
-    for name in ("infer-baseline.json", "inferid-baseline.json"):
-        path = os.path.join(ROOT, name)
+    for name in ("infer", "inferid"):
+        path = baseline(name)
         with open(path, encoding="utf-8") as fh:
             data = json.load(fh)
         buckets = set(data) if isinstance(data, dict) else set()

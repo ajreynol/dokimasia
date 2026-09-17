@@ -25,7 +25,7 @@ settles a row here, where we diverge, and the two prompts. It assumes an expert
 | **the id** | the `i-N` of the row, assigned by hand and stable across edits elsewhere in the file |
 | **the catalogue** | the analyses table in [`README.md`](../README.md), and the *found by* column naming the command that produced the row |
 | **re-measuring** | point the command at a cvc5 checkout at the commit the README names |
-| **the regression** | `tests/test_*.py` and the `*-baseline.json` beside them |
+| **the regression** | `tests/test_*.py` and `tests/baselines/*.json` |
 | **the ledger** | [`findings.md`](findings.md) for what was filed and what was retracted; `upstream.md` for the history of a reply, as soon as there is one |
 | **the frame** | `TRIAGE:` and `HUMAN RESPONSE:`, exactly as the policy defines them |
 

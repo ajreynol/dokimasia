@@ -14,6 +14,8 @@ import json
 import os
 import sys
 
+from ..paths import baseline
+
 from .census import SENTINELS, census
 
 
@@ -176,7 +178,7 @@ def main(argv: list[str] | None = None) -> int:
 
     b = sub.add_parser("baseline", help="ratchet the census")
     b.add_argument("cvc5")
-    b.add_argument("--file", default="trust-baseline.json")
+    b.add_argument("--file", default=baseline("trust"))
     b.add_argument("--write", action="store_true")
     b.add_argument("--check", action="store_true")
     b.set_defaults(func=cmd_baseline)

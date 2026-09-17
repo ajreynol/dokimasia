@@ -13,6 +13,8 @@ import json
 import os
 import sys
 
+from ..paths import baseline
+
 from .scan import CHECKING_TESTER, PROOF_TESTERS, scan
 
 
@@ -168,7 +170,7 @@ def main(argv: list[str] | None = None) -> int:
 
     b = sub.add_parser("baseline", help="ratchet proof-test coverage")
     b.add_argument("cvc5")
-    b.add_argument("--file", default="ci-baseline.json")
+    b.add_argument("--file", default=baseline("ci"))
     b.add_argument("--write", action="store_true")
     b.add_argument("--check", action="store_true")
     b.set_defaults(func=cmd_baseline)

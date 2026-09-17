@@ -12,6 +12,8 @@ import json
 import os
 import sys
 
+from ..paths import baseline
+
 from .closure import SEED_SETS, Closure, IncludeGraph, resolve_src
 
 CAVEAT = (
@@ -226,7 +228,7 @@ def main(argv: list[str] | None = None) -> int:
 
     b = sub.add_parser("baseline", help="write or check a TCB ratchet")
     b.add_argument("cvc5")
-    b.add_argument("--file", default="tcb-baseline.json")
+    b.add_argument("--file", default=baseline("tcb"))
     b.add_argument("--write", action="store_true",
                    help="write the baseline instead of checking it")
     b.add_argument("--check", action="store_true",

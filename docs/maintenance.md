@@ -9,6 +9,19 @@ and analysis implementations in `dokimasia/`. Add documents to the
 [documentation index](README.md). The existing reporting workflow and its
 human review boundary remain in [workflows.md](workflows.md).
 
+Regression baselines live in `tests/baselines/<analysis>.json`; the historical
+runtime census lives in `tests/corpus/reach-corpus.json`. These used to sit at
+the repository root because the commands used bare filenames. Default paths
+now resolve from the repository location, so checks work from other working
+directories. Baseline `--file` and corpus-sweep `--out` still accept overrides.
+Re-record baselines with `python3 -m dokimasia write /path/to/cvc5` only after
+reviewing the change they describe.
+
+The analyzer and assistant default to the nine analyses in the README.
+Standalone gates, fragment, TCB and latent reports are optional developer
+measurements; the eight baseline ratchets and build invariant remain the CI
+regression suite. See [the command reference](usage.md).
+
 ## Checks before handing off a change
 
 ```bash

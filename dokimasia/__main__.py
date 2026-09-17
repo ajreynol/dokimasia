@@ -14,6 +14,7 @@ import time
 from contextlib import redirect_stdout
 
 from . import source
+from .findings import ANALYSES, DEFAULT_ANALYSES
 
 #: The subtools carrying a `baseline --check` ratchet, in the order a reader
 #: wants them: contract first, then inventory, then hygiene.
@@ -22,9 +23,6 @@ RATCHETS = ("modes", "ci", "ledger", "rewrites", "trust", "infer", "inferid", "t
 #: Checks that assert an invariant outright rather than against a baseline.
 #: They pass or fail on the tree alone, so there is nothing to re-record.
 INVARIANTS = ("buildmode",)
-
-#: Everything, including the tools with no baseline to ratchet against.
-ALL = RATCHETS + INVARIANTS + ("gates", "fragment", "signature", "latent")
 
 
 def _run(mod: str, argv: list[str]) -> tuple[int, str]:
@@ -86,7 +84,7 @@ def cmd_write(args) -> int:
 
 
 def cmd_report(args) -> int:
-    """Every analysis, printed. The 'what does cvc5 look like today' pass."""
+    """Print selected reports; default to the advertised observation analyses."""
     views = {
         "modes": ["check"], "ci": ["proofs"], "ledger": ["holes"],
         "rewrites": ["gaps"], "trust": ["census"], "infer": ["coverage"],
@@ -94,7 +92,7 @@ def cmd_report(args) -> int:
         "fragment": ["check"], "signature": ["skolems"],
         "latent": ["census"], "buildmode": ["check"],
     }
-    for mod in ALL:
+    for mod in dict.fromkeys(args.analysis or DEFAULT_ANALYSES):
         print(f"\n{'=' * 72}\n== {mod}\n{'=' * 72}")
         _, out = _run(mod, views[mod] + [args.cvc5])
         print(out.rstrip())
@@ -109,10 +107,13 @@ def main(argv: list[str] | None = None) -> int:
     for name, fn, helptext in (
             ("check", cmd_check, "run every ratchet (the CI check)"),
             ("write", cmd_write, "re-record every baseline"),
-            ("report", cmd_report, "print every analysis")):
+            ("report", cmd_report, "print the advertised analyses, or select reports explicitly")):
         p = sub.add_parser(name, help=helptext)
         p.add_argument("cvc5")
         p.add_argument("-v", "--verbose", action="store_true")
+        if name == "report":
+            p.add_argument("--analysis", action="append", choices=ANALYSES,
+                           help="select a report; repeatable; default: " + ", ".join(DEFAULT_ANALYSES))
         p.set_defaults(fn=fn)
     args = ap.parse_args(argv)
     return args.fn(args)

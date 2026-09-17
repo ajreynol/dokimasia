@@ -14,6 +14,8 @@ import json
 import os
 import sys
 
+from ..paths import baseline
+
 from .scan import SENTINELS, scan
 
 CONTRACT = (
@@ -204,7 +206,7 @@ def main(argv: list[str] | None = None) -> int:
 
     b = sub.add_parser("baseline", help="ratchet violations and dead markers")
     b.add_argument("cvc5")
-    b.add_argument("--file", default="inferid-baseline.json")
+    b.add_argument("--file", default=baseline("inferid"))
     b.add_argument("--write", action="store_true")
     b.add_argument("--check", action="store_true")
     b.set_defaults(func=cmd_baseline)

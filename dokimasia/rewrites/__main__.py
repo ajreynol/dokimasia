@@ -12,6 +12,8 @@ import json
 import os
 import sys
 
+from ..paths import baseline
+
 from .scan import scan
 
 
@@ -188,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
     c2.add_argument("cvc5"); c2.add_argument("--json", action="store_true")
     c2.set_defaults(func=cmd_correspondence)
     b = sub.add_parser("baseline", help="ratchet the gaps")
-    b.add_argument("cvc5"); b.add_argument("--file", default="rewrites-baseline.json")
+    b.add_argument("cvc5"); b.add_argument("--file", default=baseline("rewrites"))
     b.add_argument("--write", action="store_true"); b.add_argument("--check", action="store_true")
     b.set_defaults(func=cmd_baseline)
     args = ap.parse_args(argv)

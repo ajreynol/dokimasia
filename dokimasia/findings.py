@@ -11,6 +11,7 @@ from collections import Counter
 from pathlib import PurePosixPath
 
 from . import source
+from .paths import CENSUS, ROOT
 
 # Code -> (analysis, claim). These are also the agent's allowed questions.
 CHECKS = {
@@ -34,8 +35,10 @@ CHECKS = {
     "SIG0002": ("signature", "Constructed skolem is refused by the Eunoia seam"),
     "SIG0003": ("signature", "Documented rule arity disagrees with detected checker arity"),
 }
-ANALYSES = ("ledger", "ci", "buildmode", "modes", "rewrites", "trust",
-            "infer", "inferid", "signature", "gates", "fragment", "tcb", "latent")
+# The advertised scope follows the observation catalogue. Measurement-only
+# reports are opt-in, but remain valid selections for old and new run records.
+DEFAULT_ANALYSES = tuple(dict.fromkeys(analysis for analysis, _ in CHECKS.values()))
+ANALYSES = DEFAULT_ANALYSES + ("gates", "fragment", "tcb", "latent")
 
 
 def finding_id(code: str, entity: str, owner: str = "cvc5") -> str:
@@ -74,7 +77,7 @@ class Findings:
         return sorted(self.bugs.values(), key=lambda b: (b["code"], b["entity"]))
 
 
-def collect(root: str, analyses=ANALYSES) -> Findings:
+def collect(root: str, analyses=DEFAULT_ANALYSES) -> Findings:
     """A complete selected run or an exception. Partial runs are never appended."""
     unknown = set(analyses) - set(ANALYSES)
     if unknown:
@@ -256,7 +259,7 @@ def collect_latent(root, out):
     from .latent.latent import scan, provenance
     r = scan(root)
     recorded = {k: v for k, v in provenance().items() if k != "corpus"}
-    recorded.update(corpus=r.corpus, source_record="reach-corpus.json")
+    recorded.update(corpus=r.corpus, source_record=CENSUS.relative_to(ROOT).as_posix())
     out.measurements["latent"] = {"counts": dict(Counter(h.state for h in r.holes)),
         "census_provenance": recorded, "have_census": r.have_census,
         "limitation": "Historical runtime census, potentially a different revision/build; not fresh evidence of reachability."}

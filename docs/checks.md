@@ -5,7 +5,7 @@ a witness; each says something about the pipeline that is true or false.
 
 This is the catalogue. What it is *for* — why a cvc5 maintainer should spend
 time on any of it — is [`why.md`](why.md); the commands that exist today are on
-the [front page](../README.md#what-exists-today); the individual claims are in
+the [front page](../README.md#what-the-analyzer-checks); the individual claims are in
 [`issues.md`](issues.md).
 
 ✅ live · ◐ partial · ○ designed
@@ -110,7 +110,8 @@ program and the independent agent use this catalogue. The
 | `SIG0003` | parseable documentation disagrees with detectable checker arity | both parsers are partial; this does not compare the printer's reshaped signature arity |
 
 `RULE0003` remains an inventory of declared but unproduced rules in the existing
-ledger. It is not emitted into the database. Gates, fragments, TCB size and the
-historical latent census likewise produce measurements, not new bug identities.
+ledger. It is not emitted into the database. Standalone gates, fragment, TCB
+and historical latent-census reports are opt-in developer measurements with
+no bug identities; the default analyzer does not run those reports.
 Dead trust/inference ids and theories without a reconstructor are recorded as
 measurements: lack of that mechanism does not establish lack of a proof.

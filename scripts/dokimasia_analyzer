@@ -9,7 +9,7 @@ import sys
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from dokimasia.findings import ANALYSES, collect
+from dokimasia.findings import DEFAULT_ANALYSES, collect
 from dokimasia import source
 import targets
 from bug_reports import DB, PAGE, append, write_json
@@ -29,7 +29,7 @@ def main(argv=None):
         outputs = [Path(p).resolve() for p in (args.dump, str(args.dump) + ".run.json", args.db, args.page)]
         if len(set(outputs)) != len(outputs):
             raise ValueError("dump, evidence, database and page must be different files")
-        analyses = list(dict.fromkeys(args.analysis or ANALYSES))
+        analyses = list(dict.fromkeys(args.analysis or DEFAULT_ANALYSES))
         resolved = targets.from_args(args)
         if any(p.is_relative_to(Path(t["root"])) for p in outputs for t in resolved):
             raise ValueError("output files must be outside the target checkout")
@@ -39,7 +39,7 @@ def main(argv=None):
             return 0
         targets.require_targets(resolved)
         before = targets.snapshot(resolved)
-        implementation = targets.implementation_digest()
+        implementation = targets.implementation_digest(analyses)
         bugs, evidence, measurements, coverage = {}, {}, {}, {}
         for t in resolved:
             print(f"-- {t['id']} at {t['commit'] or '(not git)'}; dirty={t['dirty']}", flush=True)
@@ -55,7 +55,7 @@ def main(argv=None):
             measurements[t["id"]] = r.measurements
         if before != targets.snapshot(targets.from_args(args)):
             raise ValueError("target changed during analysis; no dump or database update was written")
-        if implementation != targets.implementation_digest():
+        if implementation != targets.implementation_digest(analyses):
             raise ValueError("analyzer changed during analysis; rerun before updating the database")
         dump = sorted(bugs.values(), key=lambda r: (r["code"], r["entity"]))
         record = {"producer": "program", "analyses": analyses, "targets": before,

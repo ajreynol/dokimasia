@@ -10,12 +10,14 @@ named argument, not a task.
 
 *Numbers below are measured against cvc5 `40a4bb7e4` unless stated.*
 
-## What exists
+## Implementation inventory
 
-Thirteen subtools, dependency-free, reading a checkout with no build. Eight carry a
-`baseline --check` ratchet.
+The advertised analyzer runs [nine observation-producing analyses](README.md#what-the-analyzer-checks).
+Thirteen modules exist internally; standalone `gates`, `fragment`, `tcb`, and
+`latent` reports are optional developer measurements. Eight modules carry a
+`baseline --check` ratchet for CI, with snapshots under `tests/baselines/`.
 
-| tool | answers | ratchet |
+| module | answers | ratchet |
 | --- | --- | --- |
 | `tcb` | the proof checker's dependency closure, and what each edge costs | ✅ |
 | `ledger` | one row per `ProofRule`: produced, checked, elaborated, printed | ✅ |
@@ -169,7 +171,8 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
   standing decision and the register are [`docs/cases/`](docs/cases/).
 - **One command.** `python3 -m dokimasia check <cvc5>` runs every ratchet in a
   single process, reading `src/` once instead of once per tool: **2.4s, down
-  from 7.4s**. `report` prints every analysis; `write` re-records baselines.
+  from 7.4s**. `report` prints the advertised analyses by default;
+  `--analysis` selects reports explicitly, and `write` re-records baselines.
 - **Ratchets, in CI.** Eight tools carry `baseline --check`. `.github/workflows/checks.yml`
   runs the whole suite and every ratchet on each push, against the commit
   [`tools/cvc5.lock`](tools/cvc5.lock) pins. Re-run the corpus census per cvc5

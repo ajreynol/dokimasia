@@ -11,9 +11,7 @@ from ..infer.coverage import scan as iscan
 from ..ledger.build import build as lbuild
 from ..rewrites.scan import scan as rscan
 from ..trust.census import census
-
-#: Where a corpus census is recorded. Produced by `scripts/sweep_corpus`.
-CENSUS = "reach-corpus.json"
+from ..paths import CENSUS
 
 
 class State:
@@ -67,7 +65,7 @@ class Latent:
 
 def _census(root: str) -> tuple[dict, dict, bool]:
     """(safe counters, unrestricted counters, found) from the recorded sweep."""
-    path = os.path.join(os.path.dirname(__file__), "..", "..", CENSUS)
+    path = CENSUS
     if not os.path.exists(path):
         return {}, {}, False
     with open(path, encoding="utf-8") as fh:
@@ -78,7 +76,7 @@ def _census(root: str) -> tuple[dict, dict, bool]:
 
 def provenance(root: str = "") -> dict:
     """What build and corpus produced the recorded census, if it says."""
-    path = os.path.join(os.path.dirname(__file__), "..", "..", CENSUS)
+    path = CENSUS
     if not os.path.exists(path):
         return {}
     with open(path, encoding="utf-8") as fh:

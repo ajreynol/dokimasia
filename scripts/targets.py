@@ -7,7 +7,8 @@ import os
 from pathlib import Path
 import subprocess
 
-from dokimasia.findings import ANALYSES
+from dokimasia.findings import ANALYSES, DEFAULT_ANALYSES
+from dokimasia.paths import CENSUS
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG = ROOT / "scripts/targets.json"
@@ -104,11 +105,13 @@ def snapshot(resolved):
     return result
 
 
-def implementation_digest():
+def implementation_digest(analyses=DEFAULT_ANALYSES):
     """Identify the exact analyzer implementation, including uncommitted edits."""
     files = sorted((ROOT / "dokimasia").rglob("*.py")) + [ROOT / p for p in (
         "scripts/dokimasia_analyzer", "scripts/targets.py", "scripts/targets.json",
-        "scripts/bug_reports.py", "scripts/koine.py", "scripts/koine.lock", "reach-corpus.json")]
+        "scripts/bug_reports.py", "scripts/koine.py", "scripts/koine.lock")]
+    if "latent" in analyses:
+        files.append(CENSUS)
     h = hashlib.sha256()
     for p in sorted(files):
         h.update(p.relative_to(ROOT).as_posix().encode() + b"\0")
@@ -121,7 +124,7 @@ def arguments(parser):
     parser.add_argument("--config", default=str(CONFIG))
     parser.add_argument("--target", action="append", default=[])
     parser.add_argument("--analysis", action="append", choices=ANALYSES,
-                        help="select an analysis; repeatable; default all")
+                        help="select an analysis; repeatable; default: " + ", ".join(DEFAULT_ANALYSES))
 
 
 def from_args(args):

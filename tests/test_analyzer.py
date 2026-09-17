@@ -14,7 +14,7 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT), str(ROOT / "scripts")]
-from dokimasia.findings import CHECKS, collect, finding_id, observation
+from dokimasia.findings import ANALYSES, DEFAULT_ANALYSES, CHECKS, collect, finding_id, observation
 from dokimasia.sanity import ExtractionError
 from bug_reports import append, read_dump, read_run, render, write_json
 import koine
@@ -107,7 +107,42 @@ class AnalyzerTests(unittest.TestCase):
             self.assertEqual(p.returncode, 0, p.stderr)
             outputs.append(p.stdout)
         self.assertEqual(*outputs)
+        self.assertEqual(set(DEFAULT_ANALYSES),
+                         {"ledger", "ci", "buildmode", "modes", "rewrites",
+                          "trust", "infer", "inferid", "signature"})
+        self.assertIn(", ".join(DEFAULT_ANALYSES), outputs[0])
         self.assertFalse((self.base / "agent.json").exists())
+
+    def test_census_is_an_input_only_when_selected(self):
+        census = self.base / "census.json"
+        census.write_text("first sweep")
+        with patch.object(targets, "CENSUS", census), patch.object(targets, "ROOT", self.base):
+            # Supply implementation files expected by the digest without copying
+            # the repository; only the census changes between these snapshots.
+            for name in ("dokimasia/x.py", "scripts/dokimasia_analyzer", "scripts/targets.py",
+                         "scripts/targets.json", "scripts/bug_reports.py", "scripts/koine.py",
+                         "scripts/koine.lock"):
+                path = self.base / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("implementation")
+            default = targets.implementation_digest()
+            latent = targets.implementation_digest(["latent"])
+            census.write_text("second sweep")
+            self.assertEqual(targets.implementation_digest(), default)
+            self.assertNotEqual(targets.implementation_digest(["latent"]), latent)
+            census.unlink()
+            self.assertEqual(targets.implementation_digest(), default)
+
+    def test_combined_report_defaults_and_optional_selection(self):
+        from dokimasia import __main__ as cli
+        with patch.object(cli, "_run", return_value=(0, "")) as run, \
+                contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(cli.main(["report", str(self.tree)]), 0)
+            self.assertEqual([call.args[0] for call in run.call_args_list], list(DEFAULT_ANALYSES))
+            run.reset_mock()
+            self.assertEqual(cli.main(["report", str(self.tree), "--analysis", "tcb",
+                                       "--analysis", "latent"]), 0)
+            self.assertEqual([call.args[0] for call in run.call_args_list], ["tcb", "latent"])
 
     def test_prompt_preview_has_no_side_effects(self):
         agent = self.base / "agent.json"
@@ -261,18 +296,39 @@ class AnalyzerTests(unittest.TestCase):
 
     @unittest.skipUnless(REAL_CVC5, "provide pinned cvc5 to check all adapters")
     def test_real_checkout_all_adapters_and_fresh_evidence(self):
-        r = collect(REAL_CVC5)
+        r = collect(REAL_CVC5, ANALYSES)
         self.assertTrue(r.dump())
-        self.assertEqual(set(r.measurements), set(__import__("dokimasia.findings", fromlist=["ANALYSES"]).ANALYSES))
+        self.assertEqual(set(r.measurements), set(ANALYSES))
         self.assertEqual(len({b["id"] for b in r.dump()}), len(r.dump()))
         self.assertTrue(any(b["code"] == "SIG0003" and b["entity"] == "SUBS" for b in r.dump()))
         self.assertFalse(any(b["code"] == "BUILD0001" for b in r.dump()))
         self.assertEqual(r.measurements["latent"]["census_provenance"]["corpus"], "regress0")
+        self.assertEqual(r.measurements["latent"]["census_provenance"]["source_record"],
+                         "tests/corpus/reach-corpus.json")
+        default = collect(REAL_CVC5)
+        self.assertEqual(default.dump(), r.dump())
+        self.assertEqual(set(default.measurements), set(DEFAULT_ANALYSES))
+        p = subprocess.run([sys.executable, str(ROOT / "scripts/dokimasia_analyzer"),
+                            "--cvc5", str(Path(REAL_CVC5).resolve()), "--no-update",
+                            "--dump", str(self.dump)], cwd=self.base, capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertEqual(read_dump(self.dump), r.dump())
+        run = read_run(self.dump, r.dump())
+        self.assertEqual(run["analyses"], list(DEFAULT_ANALYSES))
+        self.assertEqual(set(run["measurements"]["cvc5"]), set(DEFAULT_ANALYSES))
         for rows in r.evidence.values():
             for row in rows:
                 locations = row.get("locations", []) + ([row["location"]] if "location" in row else [])
                 for loc in locations:
                     self.assertTrue((Path(REAL_CVC5) / loc.split(":", 1)[0]).exists(), loc)
+
+    @unittest.skipUnless(REAL_CVC5, "provide pinned cvc5 to check baseline lookup")
+    def test_baselines_work_outside_repository(self):
+        p = subprocess.run([sys.executable, "-m", "dokimasia", "check",
+                            str(Path(REAL_CVC5).resolve())], cwd=self.base,
+                           env=os.environ | {"PYTHONPATH": str(ROOT)}, capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+        self.assertFalse(list(self.base.glob("*-baseline.json")))
 
 
 if __name__ == "__main__":

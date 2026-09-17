@@ -11,8 +11,16 @@ scripts/dokimasia_analyzer --cvc5 /path/to/cvc5
 scripts/dokimasia_analyzer --analysis ledger --analysis ci
 ```
 
-The last command selects analyses explicitly; omitting `--analysis` runs all
-13 current analyses. `--target` selects a named target from
+The last command selects analyses explicitly; omitting `--analysis` runs the
+nine [advertised analyses](../README.md#what-the-analyzer-checks): `ledger`,
+`ci`, `buildmode`, `modes`, `rewrites`, `trust`, `infer`, `inferid`, and `signature`.
+The program and assistant launcher share this default. Standalone `gates`,
+`fragment`, `tcb`, and `latent` measurements are developer tools, included only
+when explicitly selected with `--analysis`. Explicit selections replace the
+default list. Gate reasoning needed by rewrite checks still runs as part of
+those checks.
+
+`--target` selects a named target from
 [`targets.json`](../scripts/targets.json); initially there is one, `cvc5`.
 `--config` supplies an alternative target manifest.
 
@@ -49,13 +57,15 @@ checks it without writing. `--db` and `--page` redirect both outputs for trials;
 archives live beside the selected database.
 
 The database contains **static observations**, including candidates and hygiene
-or instrumentation gaps. It carries no current verdict. TCB size, dead entities,
-fragment coverage and historical corpus measurements remain in the run record.
+or instrumentation gaps. It carries no current verdict. Supporting measurements
+such as dead entities remain in the run record. TCB size, standalone gate and
+fragment reports, and historical corpus measurements appear only when selected.
 Baseline changes remain the job of `python3 -m dokimasia check`.
 
-The latent analysis uses the existing recorded corpus and preserves its build
-provenance and limitations. Running the analyzer does not rerun that corpus or
-establish that its runtime results hold at the current source revision.
+The optional latent analysis uses [the recorded corpus](../tests/corpus/reach-corpus.json)
+and preserves its build provenance and limitations. It does not rerun that
+corpus or establish that its runtime results hold at the current source revision.
+The default run does not read the historical census.
 
 ## Identity and evidence
 
