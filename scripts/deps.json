@@ -12,7 +12,7 @@
     "url": "https://github.com/ajreynol/koine.git",
     "ref": "main",
     "lock": "scripts/koine.lock",
-    "reads": "koine_append_db"
+    "reads": "bug_db/koine_append_db"
   },
   "cvc5": {
     "url": "https://github.com/cvc5/cvc5.git",

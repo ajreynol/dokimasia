@@ -122,10 +122,11 @@ scripts/append_findings scratch/new-bugs.json
 ```
 
 The wrapper validates both files and the dump's content hash before calling
-`koine_append_db`. Malformed records or duplicate ids apply nothing. It serializes
-its own writers with a file lock. Use the wrapper for writes to this database;
-direct Koine invocations do not participate in that lock. `--date YYYY-MM-DD`
-is for deliberate replay, not for inventing historical discovery dates.
+`bug_db/koine_append_db`. Malformed records or duplicate ids apply nothing. It
+serializes its own writers with a file lock. Use the wrapper for writes to this
+database; direct Koine invocations do not participate in that lock.
+`--date YYYY-MM-DD` is for deliberate replay, not for inventing historical
+discovery dates.
 
 ## An independent second producer
 

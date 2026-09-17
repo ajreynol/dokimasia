@@ -237,7 +237,7 @@ class AnalyzerTests(unittest.TestCase):
         self.assertEqual(before, sorted(str(p) for p in self.base.rglob("*")))
 
     def test_wrong_koine_pin_refused(self):
-        path = self.need_koine().parent
+        path = self.need_koine().parents[len(koine.SCRIPT.parts) - 1]
         with patch.object(koine, "ROOT", self.base):
             (self.base / "scripts").mkdir()
             (self.base / "scripts/koine.lock").write_text("0" * 40)
