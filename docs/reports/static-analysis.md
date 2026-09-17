@@ -1,6 +1,6 @@
 # Static analysis observations
 
-Generated from [bugs.json](bugs.json) by `scripts/append_findings --render-only`.
+Generated from [bugs.json](bugs.json) by `scripts/append_findings --render-only`, and **rewritten whole**: anything typed in here is lost on the next run.
 
 This is observation history, not a list of confirmed defects or open reports.
 Koine preserves the first claim and updates sighting dates. Disappearance does not close a finding.

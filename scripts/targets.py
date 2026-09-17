@@ -39,7 +39,7 @@ def checkout(explicit=None):
                     raise ValueError(f"{mapping}: cvc5 needs a checkout path")
                 path = Path(parts[1]).expanduser()
                 return (mapping.parent / path).resolve(), str(mapping)
-    # Keep existing reporting setups usable while they move to repos.local.
+    # The last fallback, and the one a reporting setup may already name.
     legacy = ROOT / "tools/deps.local.json"
     if legacy.exists():
         path = json.loads(legacy.read_text()).get("cvc5", {}).get("path")
@@ -131,7 +131,7 @@ def implementation_digest(analyses=DEFAULT_ANALYSES):
 
 def arguments(parser):
     parser.add_argument("--cvc5", help="explicit checkout; otherwise environment, repos.local, "
-                        "legacy deps.local.json, then deps/cvc5")
+                        "deps.local.json, then deps/cvc5")
     parser.add_argument("--config", default=str(CONFIG))
     parser.add_argument("--target", action="append", default=[])
     parser.add_argument("--analysis", action="append", choices=ANALYSES,

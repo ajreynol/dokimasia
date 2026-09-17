@@ -1,4 +1,11 @@
-"""Dokimasia's dump validation and report rendering; Koine alone edits the DB."""
+"""Dokimasia's dump validation and report rendering; Koine alone edits the DB.
+
+`render` generates one file, `docs/reports/static-analysis.md`, and **rewrites
+it whole**: it is a view of the database and carries nothing anybody typed into
+it. It refuses to write the database itself -- every row there is Koine's, which
+is what keeps a triage disagreement out of the generated page and in the
+register where somebody signs it.
+"""
 from contextlib import contextmanager
 import fcntl
 import hashlib
@@ -89,7 +96,8 @@ def read_run(path, bugs):
 def render(db=DB):
     bugs = json.loads(Path(db).read_text())["bugs"]
     lines = ["# Static analysis observations", "",
-        "Generated from [bugs.json](bugs.json) by `scripts/append_findings --render-only`.", "",
+        "Generated from [bugs.json](bugs.json) by `scripts/append_findings --render-only`, "
+        "and **rewritten whole**: anything typed in here is lost on the next run.", "",
         "This is observation history, not a list of confirmed defects or open reports.",
         "Koine preserves the first claim and updates sighting dates. Disappearance does not close a finding.",
         "[Archived run records](runs/) contain the source revisions, actual coverage and evidence keyed by id.",

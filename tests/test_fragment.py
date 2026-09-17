@@ -2,11 +2,18 @@
 
 Run: python3 tests/test_fragment.py [<cvc5>]
 """
+import json
 import os
+import subprocess
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+sys.path.insert(0, ROOT)
+from dokimasia.fragment.__main__ import document  # noqa: E402
 from dokimasia.fragment.fragment import EXPERT_OPTIONS, scan  # noqa: E402
+
+PAGE = os.path.join(ROOT, "docs", "fragment.md")
+LOCK = os.path.join(ROOT, "tools", "cvc5.lock")
 
 FAILURES = []
 
@@ -70,12 +77,36 @@ def test_cvc5(root):
           f"{len(EXPERT_OPTIONS)} expert options")
 
 
+def test_generated_page(root):
+    """`docs/fragment.md` is generated, so it is regenerated and diffed.
+
+    Only at the pinned commit: the page records the fragment at one revision,
+    so a diff taken against any other checkout says nothing about drift. The
+    skip names itself rather than passing quietly.
+    """
+    pin = json.load(open(LOCK))["cvc5"]["commit"]
+    head = subprocess.run(["git", "-C", root, "rev-parse", "HEAD"],
+                          capture_output=True, text=True).stdout.strip()
+    if not head.startswith(pin):
+        print(f"  skip  the generated page: {root} is at {head[:10] or 'no commit'}, "
+              f"not the pinned {pin}")
+        return
+    with open(PAGE, encoding="utf-8") as fh:
+        committed = fh.read()
+    check("docs/fragment.md is what the generator writes at the pin",
+          document(scan(root)) == committed, True)
+    if document(scan(root)) != committed:
+        print("        regenerate it: "
+              "python3 -m dokimasia.fragment doc <cvc5> --out docs/fragment.md")
+
+
 if __name__ == "__main__":
     root = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("CVC5")
     if not (root and os.path.isdir(root)):
         print("needs a cvc5 checkout: python3 tests/test_fragment.py <cvc5>")
         sys.exit(0)
     test_cvc5(root)
+    test_generated_page(root)
     print()
     if FAILURES:
         print(f"FAILED: {len(FAILURES)}: {', '.join(FAILURES)}")

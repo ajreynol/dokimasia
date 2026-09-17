@@ -56,7 +56,7 @@ python3 -m dokimasia.tcb baseline <cvc5> --check    # ratchet, for CI
 about the defaults, from all 172 option-setting sites in `set_defaults.cpp`.
 
 ```bash
-python3 -m dokimasia.modes delta    <cvc5>          # safe mode: 24 option changes
+python3 -m dokimasia.modes delta    <cvc5>          # safe mode: 27 rows, 24 distinct settings
 python3 -m dokimasia.modes check    <cvc5>          # options that escape the promise
 python3 -m dokimasia.modes baseline <cvc5> --check  # ratchet, for CI
 ```
@@ -108,8 +108,9 @@ python3 -m dokimasia.rewrites gaps     <cvc5>     # applied, and unprintable
 ```
 
 **[`dokimasia.fragment`](../dokimasia/fragment/)** — optional report of the logical fragment cvc5
-supports, per theory, and whether it is enforced. Generates
-[`docs/fragment.md`](fragment.md).
+supports, per theory, and whether it is enforced. `doc` generates
+[`docs/fragment.md`](fragment.md), rewriting it whole;
+`tests/test_fragment.py` regenerates and diffs it at the pinned commit.
 
 ```bash
 python3 -m dokimasia.fragment theories <cvc5>     # 341 kinds over 14 theories

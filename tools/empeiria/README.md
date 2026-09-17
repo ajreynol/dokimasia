@@ -1,6 +1,10 @@
 # empeiria
 
-**Eunoia listing:** unadvertised
+**Footing:** `unadvertised-child` — the parent's front page does not name
+this project, and nothing a user of dokimasia reads links inward to it. A
+fix for somebody's bug is speculative work that would borrow the parent's
+credibility the moment it were pointed at, and it has earned none yet.
+`tools/` is how it is discovered, and that is enough.
 
 *Can a front end fix cvc5's public bugs, and get better at it by learning from
 how the maintainers answered the last ones?*
@@ -197,7 +201,15 @@ an issue this repository cannot take and should not ignore. The routing question
 it raised is written up in
 [`docs/cases/`](../../docs/cases/out-of-scope-bug-report.md).
 
-Nothing has been built. There is no ledger yet, no case worked, and no result.
+**What exists is the interface and nothing it was built to produce.**
+`run_empeiria` works — it guards the tree, makes the branch and hands over the
+prompt — and `--show-prompt` prints what it would say. [`triage.md`](triage.md)
+exists and says of itself that it has never been refreshed against the tracker:
+it holds one row, written by hand. **No issue has been worked in either half,
+the ledger is empty, and there is no result.** The ledger format is a first
+guess made before a single case, which is exactly the condition under which a
+format is wrong.
+
 There are three endings and a person picks: it graduates into its own
 repository, it is folded into the parent, or it is retired in place with a note
 saying what was learned. Going quiet is not one of them.

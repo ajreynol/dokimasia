@@ -25,7 +25,7 @@ behind it.
 
 | | |
 | --- | --- |
-| [`goals.md`](goals.md) | the stance, the goal, the agility constraint, and how we would know it is working |
+| [`goals.md`](goals.md) | the stance, the goal, the agility constraint, how we would know it is working, and whether there is a paper in it |
 | [`contract.md`](contract.md) | what cvc5 promises, where, and the three ways completeness breaks |
 | [`pipeline.md`](pipeline.md) | the stages of proof production and where each leaks |
 | [`kernel.md`](kernel.md) | the two wishues: a kernel you can argue about, and a safe build that cannot be unsafe |

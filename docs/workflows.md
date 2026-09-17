@@ -33,11 +33,13 @@ Closing, here, is **moving a row to *Settled*** with what settled it, or to
 *Filed* if it became a finding. Both tables are already in `issues.md`.
 
 Two slots are weak, and are a separate job rather than a caveat: nothing
-restores the cvc5 commit a row was measured against ([`TODO.md`](../TODO.md)'s
-`M0.5` and `A.3`), and a hand-written row has no fingerprint anybody can
-reproduce — so the policy's *do not add a row by hand* is the one convention
-that does not yet bind. *Every claim is re-checkable without us* is the position
-behind both, and the one we are furthest from keeping.
+restores the cvc5 commit a row was measured against, and a hand-written row has
+no fingerprint anybody can reproduce — so the policy's *do not add a row by
+hand* is the one convention that does not yet bind. *Every claim is re-checkable
+without us* is the position behind both, and the one we are furthest from
+keeping. Both are booked as [open debts](postmortem.md#open-debts) with what
+would settle each, so the first round is measured against a record that already
+knows what it is missing.
 
 ## What settles a row
 
@@ -51,8 +53,10 @@ the row stays open.
 
 ## Where we diverge
 
-Two things, both departures from the policy's mechanics rather than from the
-position, and named here because the second prompt depends on them.
+Three things, all departures from the policy's mechanics rather than from the
+position, and named here because the prompts depend on the first two. A
+divergence nobody wrote down is drift, and an agent reading a format nobody
+produces improvises rather than stops.
 
 **A row may be a question rather than a defect report.** `i-2` asks whether an
 annotation is stale. So the triage line carries a fourth label, `answered`,
@@ -60,6 +64,13 @@ which anoieu's does not, and such a reply names no branch.
 
 **Not every row names a file and a line.** Some name a mechanism — an option
 that escapes a promise, a fragment no list of kinds can express.
+
+**The postmortem carries a register of open debts**, which anoieu's does not:
+each is what the workflow is known to be missing, with the condition that writes
+it off. It is there because the two weak slots above were prose in this document
+before they were rows anybody could count, and prose in a design document is
+where a debt goes to be forgotten. Proposed by koine, which read this tree
+closely enough to notice.
 
 ## Prompt one: in cvc5
 

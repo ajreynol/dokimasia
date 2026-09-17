@@ -9,18 +9,24 @@ and analysis implementations in `dokimasia/`. Add documents to the
 [documentation index](README.md). The existing reporting workflow and its
 human review boundary remain in [workflows.md](workflows.md).
 
-Regression baselines live in `tests/baselines/<analysis>.json`; the historical
-runtime census lives in `tests/corpus/reach-corpus.json`. These used to sit at
-the repository root because the commands used bare filenames. Default paths
-now resolve from the repository location, so checks work from other working
-directories. Baseline `--file` and corpus-sweep `--out` still accept overrides.
-Re-record baselines with `python3 -m dokimasia write /path/to/cvc5` only after
-reviewing the change they describe.
+Regression baselines live in `tests/baselines/<analysis>.json`; the runtime
+census lives in `tests/corpus/reach-corpus.json`. Default paths resolve from the
+repository location, so checks work from any working directory; baseline
+`--file` and corpus-sweep `--out` accept overrides. Re-record baselines with
+`python3 -m dokimasia write /path/to/cvc5` only after reviewing the change they
+describe.
 
 The analyzer and assistant default to the nine analyses in the README.
 Standalone gates, fragment, TCB and latent reports are optional developer
-measurements; the eight baseline ratchets and build invariant remain the CI
+measurements; the eight baseline ratchets and build invariant are the CI
 regression suite. See [the command reference](usage.md).
+
+Two documents are generated and neither is edited by hand:
+[`fragment.md`](fragment.md), written whole by
+`python3 -m dokimasia.fragment doc`, and
+[`reports/static-analysis.md`](reports/static-analysis.md), written whole by
+`scripts/append_findings --render-only`. Both are regenerated and diffed by the
+checks below, so neither can drift from the code beside it.
 
 ## Local dependencies
 
@@ -49,9 +55,9 @@ an ignored `scripts/repos.local` containing `cvc5 /path/to/cvc5`. Alternatively,
 put a dedicated checkout at `deps/cvc5`; the revision in `tools/cvc5.lock` is
 the one for baseline checks. Ordinary analysis records the revision actually
 read. Both analysis producers and `prompts/process_dokimasia` use the same
-resolver, including a fallback to the legacy `tools/deps.local.json` cvc5 entry.
-The environment now takes precedence in the reporting launcher too. If you
-previously relied on `~/cvc5`, add it to the local map.
+resolver, in which the environment takes precedence and a `cvc5` entry in
+`tools/deps.local.json` is the last fallback. No path is guessed: a checkout
+this repository is not told about is not found.
 
 Check the setup and try a run before appending:
 
@@ -74,6 +80,12 @@ for test in tests/test_*.py; do python3 "$test" /path/to/pinned-cvc5 || exit; do
 scripts/append_findings --render-only --check
 scripts/bump_anoieu --local /path/to/anoieu --offline --check
 ```
+
+Both generated documents are covered by that list: the observation page by
+`append_findings --render-only --check`, and `fragment.md` by
+`tests/test_fragment.py` when it is given the pinned checkout. Against any other
+revision that one names itself as skipped rather than passing quietly, because a
+diff taken elsewhere says nothing about drift.
 
 Use the revision in `tools/cvc5.lock` for the real-checkout tests. Do not move a
 working checkout to satisfy a test. The analyzer integration tests use temporary
@@ -101,10 +113,12 @@ database integration.
 | `prompts/process_dokimasia` | process that reply here |
 | `prompts/check_cvc5_issue` | examine a cvc5 issue and draft a response |
 
-The assistant launchers previously lived in `scripts/prompts/`. Update local
-aliases to the paths above. The reporting prompts still match their definitions
-in `docs/workflows.md`; `tests/test_workflow.py` checks that agreement. The new
-analyzer prompt is read directly from `prompts/analyzer.txt` and has no second copy.
+Commands that run live in `scripts/`; launchers that spend a turn on an
+assistant live in `prompts/`, so a reader can tell which is which without
+opening a directory. The reporting prompts match their definitions in
+`docs/workflows.md`, and `tests/test_workflow.py` checks that agreement. The
+analyzer prompt is read directly from `prompts/analyzer.txt` and has no second
+copy, so there is nothing there to drift.
 
 ## Pins and generated records
 
@@ -119,26 +133,34 @@ python3 ../koine/eo_cmd/eo_bump --dry-run
 python3 ../koine/eo_cmd/eo_bump
 ```
 
-This maintenance command is provided separately from the pinned append utility;
-the current database pin predates `eo_bump`. After a successful bump, refresh
-the dedicated checkout as above and run the integration checks. A failed or
-unknown upstream check leaves the pin unchanged. The configuration's `tests`
-value names Koine's test job, which is the check name the current updater reads.
+This maintenance command is separate from the pinned append utility. After a
+successful bump, refresh the dedicated checkout as above and run the integration
+checks. A failed or unknown upstream check leaves the pin unchanged. The
+configuration's `tests` value names Koine's test job, which is the check name
+the updater reads.
 
-The policy-checker pin remains in `scripts/deps.lock`. The checker now lives at
-`scripts/policy_check.py` in Anoieu. To validate and move the pin using an
-existing clean checkout without contacting the remote:
+The policy-checker pin is `scripts/deps.lock`, and it names
+`scripts/policy_check.py` in Anoieu. `scripts/bump_anoieu` is the one command
+that moves it, and it moves it only onto a commit that passes **both** gates:
+Anoieu's own CI was green at that commit, and the checker at that commit passes
+against this tree.
 
 ```bash
-scripts/bump_anoieu --local /path/to/anoieu --offline
+scripts/bump_anoieu --show                             # pinned, local, upstream
+scripts/bump_anoieu --local /path/to/anoieu --offline --check
+scripts/bump_anoieu                                    # ask, check, then move
 ```
 
-Offline mode does not establish remote availability or remote CI status; those
-remain separate from checking this tree against that revision. Ordinary online
-mode still checks the tracked tip. Never change checks merely to get a green pin.
-`eo_bump` currently handles plain-text pins and checks upstream CI; it does not
-handle this JSON lock or run our compatibility check. Keep `bump_anoieu` until
-those requirements are supported. The proposed shared work is recorded in
+**Unknown is not green.** No network, an unfinished run, or a commit GitHub
+reports nothing about all refuse, and a refusal for that reason exits `2` rather
+than `1` so a run can log which of the two it hit. `--offline` asks nothing, so
+it can check but cannot bump; `--force` is the way past either gate and is a
+person's decision. This never runs in CI, because it reads a remote. Never
+change a check merely to get a green pin.
+
+`eo_bump` handles plain-text pins and checks upstream CI; it does not handle
+this JSON lock or run our compatibility check, which is why `bump_anoieu` stays.
+The shared work that would retire it is
 [discussion D6](discussion.md#d6--shared-dependency-and-database-mechanics).
 
 Only `bugs.json` determines database membership. The generated page is a view,

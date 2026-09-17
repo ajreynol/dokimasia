@@ -55,9 +55,14 @@ def cmd_check(args) -> int:
             print(f"        {u.where()}")
         if len(sites) > args.max_sites:
             print(f"        ... {len(sites) - args.max_sites} more (--max-sites)")
-    ok = total - len(v)
+    # An id produced nowhere identifies no program point either, so it does not
+    # satisfy the contract; `dead` counts it once here rather than letting the
+    # summary read as though a declared-and-unemitted marker were fine.
+    dead = m.unused()
+    ok = total - len(v) - len(dead)
     print(f"\n  {ok} of {total} ids satisfy the contract "
-          f"({100 * ok / total:.0f}%); {len(v)} do not.")
+          f"({100 * ok / total:.0f}%): {len(v)} have more than one production "
+          f"site and {len(dead)} have none.")
     sent = m.sentinel_uses()
     if sent:
         n = sum(len(s) for s in sent.values())

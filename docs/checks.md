@@ -43,7 +43,7 @@ The register row for each is in [`issues.md`](issues.md).
 | prefix | tool | measured at `40a4bb7e4` | rows |
 | --- | --- | --- | --- |
 | `TCB` | `dokimasia.tcb` | 179 files, 41,446 lines, 8.0% of `src/`; 6 rule checkers compile against the solvers they check | [`f-1`](findings/tcb-001.md) |
-| `MODE` | `dokimasia.modes` | 24 option changes in safe mode; 2 options declare no proof support and stay on, of which 1 survives review | `i-2`, `i-5` |
+| `MODE` | `dokimasia.modes` | 24 distinct option settings changed in safe mode; 2 options declare no proof support and stay on, of which 1 survives review | `i-2`, `i-5` |
 | `RULE` | `dokimasia.ledger` | 170 rules: 113 always printable, 17 conditionally, 40 never — 14 by design, 12 unreachable, **14 real gaps** | `i-7`, `i-12` |
 | `TRUST` | `dokimasia.trust` | 75 declared ids: 70 live, 4 dead, 8 sites built with `TrustId::NONE` | `i-9`, `i-10`, `i-11` |
 | `INFER` | `dokimasia.infer` | 79 inferences fall through to a trust step by construction; 10 theories have no `InferProofCons` at all | `i-22`, `i-6` |
@@ -51,7 +51,7 @@ The register row for each is in [`issues.md`](issues.md).
 | `INFERID` | `dokimasia.inferid` | 51 ids produced at more than one site, 14 produced nowhere, 21 emitted with a sentinel | `i-8` |
 | `CI` | `dokimasia.ci` | 4 of 22 jobs run a proof tester; 4 of 5 completeness links hold, the fifth is never named | `i-3`, `i-13`, `i-14` |
 | `GATE` | `dokimasia.gates` | 59 term kinds carry an option gate; verdicts blocked / partial / open per rule | `i-1`, `s-1`–`s-5` |
-| `FRAG` | `dokimasia.fragment` | 341 kinds over 14 theories (223 available, 118 blocked); two safe-mode options gate no kind at all | `i-15` |
+| `FRAG` | `dokimasia.fragment` | 341 kinds over 14 theories (216 available, 125 blocked); two safe-mode options gate no kind at all | `i-15` |
 | `BUILD` | `dokimasia.buildmode` | **8 conditionals on the safe-build macro, all benign**; 0 excluded sources; 0 behavioural readers of `isSafeBuild()` | [`cases/safe-build-vs-safe-mode.md`](cases/safe-build-vs-safe-mode.md) |
 | `LATENT` | `dokimasia.latent` | **182 of 203 declared holes reached by no input**; 21 reached only outside safe mode; 0 in safe mode | [`reachability.md`](reachability.md) |
 | `SIG` | `dokimasia.signature` | 0 printable rules undeclared; 24 skolems constructed and unprintable; 1 documented arity disagreement | `i-19`, `i-20`, `i-21` |
@@ -59,7 +59,7 @@ The register row for each is in [`issues.md`](issues.md).
 The `MODE` row is the shape to notice: the check returned two options and one of
 them ([`s-4`](issues.md#settled), `macrosQuantMode`) was spurious — its effect is
 gated by a flag defaulting to `false`, which a defaults-only comparison cannot
-see. The tool now prints that limit beside the result.
+see. The tool prints that limit beside the result.
 
 ## What a partial or designed facet is waiting on
 

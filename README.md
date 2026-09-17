@@ -94,6 +94,7 @@ claims and leaves publication to a human.
 | [Developer commands](docs/usage.md) | detailed reports and optional measurements |
 | [Checks](docs/checks.md) | emitted checks and their limits |
 | [Maintenance](docs/maintenance.md) | tests, pins and script catalogue |
+| [The plan](TODO.md) | what is measured today, what is queued, and what we have decided not to do |
 | [Documentation index](docs/README.md) | findings, case studies and design notes |
 
 ## The name

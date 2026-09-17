@@ -1,6 +1,10 @@
 # anakrisis
 
-**Eunoia listing:** unadvertised
+**Footing:** `unadvertised-child` — the parent's front page does not name
+this project, and nothing a user of dokimasia reads links inward to it. A
+review of somebody's pull request is speculative work that would borrow the
+parent's credibility the moment it were pointed at, and it has earned none
+yet. `tools/` is how it is discovered, and that is enough.
 
 *What does this pull request do to cvc5's proof-completeness inventory — and is
 that worth a maintainer's time?*

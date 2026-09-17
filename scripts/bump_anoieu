@@ -11,13 +11,25 @@ command that takes it.
     scripts/bump_anoieu             # move the pin to the tip of the tracked ref
     scripts/bump_anoieu --check     # the check at the pinned commit, as CI runs it
     scripts/bump_anoieu --show      # what is pinned, what is upstream, what is between
-    scripts/bump_anoieu --force     # move the pin even though the check fails
+    scripts/bump_anoieu --force     # move the pin past either refusal below
 
-The pin moves only onto a commit the check passes at, unless --force says
-otherwise: a lock naming a version we never passed against is worse than no lock
-at all. When the check fails, its output is the point of the run -- the pin
-stays where it is, which is the version CI keeps testing, and the failures are
-what to fix before trying again.
+The pin moves only onto a commit that passes **two** gates, and --force is the
+one way past either.
+
+**Ours: the checker at that commit passes against this tree.** A lock naming a
+version we never passed against is worse than no lock at all. When the check
+fails, its output is the point of the run -- the pin stays where it is, which is
+the version CI keeps testing, and the failures are what to fix before trying
+again.
+
+**Theirs: anoieu's own CI was green at that commit.** Work anoieu could not get
+past its own build is not work to take on, and this is the half only they can
+see. It is asked about the *commit* and never about their tip, so the answer
+never changes after we have taken it. **Unknown is not green**: no network, an
+unfinished run or a commit GitHub reports nothing about all refuse, which is
+affordable because bumping is optional and deferrable. **This never runs in
+CI** -- it reads a remote, and a build that can go red for somebody else's
+network is a build people learn to ignore.
 
 **A checkout on this machine, if there is one.** `tools/deps.local.json` is
 untracked and true only here. It says where anoieu already lives:
@@ -40,6 +52,8 @@ import os
 import shutil
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -51,6 +65,12 @@ LOCAL = os.path.join(ROOT, "tools", "deps.local.json")
 CLONE = "/tmp/anoieu"
 NAME = "anoieu"
 CHECKER = os.path.join("scripts", "policy_check.py")
+API = "https://api.github.com"
+#: Exit code for a bump refused because we could not establish the upstream CI
+#: state, as distinct from establishing that it failed. *We asked and it is not
+#: green* and *we could not ask* are different facts, and a run should be able
+#: to say which it hit.
+UNVERIFIED = 2
 
 
 def load(path: str, default=None):
@@ -109,6 +129,45 @@ def fetch(dep: dict, rev: str) -> str:
     return CLONE
 
 
+def owner_repo(url: str) -> tuple[str, str]:
+    owner, _, repo = url.rstrip("/").removesuffix(".git").rpartition("/")
+    return owner.rpartition("/")[2], repo
+
+
+def green(dep: dict, commit: str) -> tuple[bool | None, str]:
+    """Was upstream's own CI green at this commit?
+
+    `True`, `False` or **`None`, which is not `False`**: a state we could not
+    establish is not a state we may act on. Every check GitHub reports at the
+    commit has to have concluded successfully, because *green* is a claim about
+    their build and not about whichever job we happened to name.
+    """
+    owner, repo = owner_repo(dep["url"])
+    url = f"{API}/repos/{owner}/{repo}/commits/{commit}/check-runs?per_page=100"
+    request = urllib.request.Request(url, headers={
+        "Accept": "application/vnd.github+json", "User-Agent": "bump_anoieu"})
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            data = json.load(response)
+    except (urllib.error.URLError, OSError, ValueError) as exc:
+        return None, f"could not ask GitHub about {commit[:10]} ({exc})"
+    runs = data.get("check_runs", [])
+    if not runs:
+        return None, f"GitHub reports no checks at {commit[:10]}"
+    if data.get("total_count", 0) > len(runs):
+        return None, (f"{data['total_count']} checks at {commit[:10]} and "
+                      f"{len(runs)} returned, so this run did not see them all")
+    unfinished = [r for r in runs if r.get("status") != "completed"]
+    if unfinished:
+        return None, (f"{unfinished[0].get('name')} has not finished at "
+                      f"{commit[:10]}")
+    bad = [r for r in runs if r.get("conclusion") != "success"]
+    if bad:
+        return False, (f"{bad[0].get('name')} concluded "
+                       f"{bad[0].get('conclusion')} at {commit[:10]}")
+    return True, f"all {len(runs)} checks passed at {commit[:10]}"
+
+
 def run_check(path: str) -> int:
     """anoieu's checker, read from `path`, run against this repository."""
     checker = os.path.join(path, CHECKER)
@@ -162,12 +221,14 @@ def main() -> int:
     ap.add_argument("--show", action="store_true",
                     help="what is pinned, what is upstream, and what is between")
     ap.add_argument("--force", action="store_true",
-                    help="move the pin even though the check fails")
+                    help="move the pin past a failing check or an unverified "
+                         "upstream CI state")
     ap.add_argument("--no-local", action="store_true",
                     help="ignore tools/deps.local.json and fetch a copy")
     ap.add_argument("--local", help="use this existing checkout without changing it")
     ap.add_argument("--offline", action="store_true",
-                    help="with a local checkout: do not query the remote")
+                    help="with a local checkout: ask the remote nothing, which "
+                         "means a bump refuses as unverified")
     args = ap.parse_args()
 
     dep = load(MANIFEST)[NAME]
@@ -226,9 +287,28 @@ def main() -> int:
     if commit == pinned["commit"]:
         print(f"\n-- the pin is unchanged at {commit[:10]}")
         return rc
+
+    # Their gate, asked only once the pin would actually move: it costs a
+    # network round trip and says nothing about a commit we are already on.
+    if args.offline:
+        ok, why = None, "--offline, so nothing was asked about their CI"
+    else:
+        ok, why = green(dep, commit)
+    if ok is not True and not args.force:
+        verdict = ("anoieu's CI is not green" if ok is False
+                   else "anoieu's CI state could not be established")
+        print(f"\n-- {why}")
+        print(f"   {verdict} at {commit[:10]}, so the pin stays at "
+              f"{pinned['commit'][:10]}")
+        print("   bumping is optional: wait for a green commit, or --force to "
+              "move anyway")
+        return 1 if ok is False else UNVERIFIED
+    print(f"\n-- {why}")
+
     write_lock(dep, commit, date)
-    verdict = "though the check fails" if rc else "and the check passes"
-    print(f"\n-- scripts/deps.lock now pins {commit[:10]} ({date}), {verdict}")
+    ours = "though our check fails" if rc else "and our check passes"
+    theirs = "and their CI was green" if ok else f"though {why}"
+    print(f"-- scripts/deps.lock now pins {commit[:10]} ({date}), {ours} {theirs}")
     print("   stage it: git add scripts/deps.lock")
     return rc if args.force else 0
 

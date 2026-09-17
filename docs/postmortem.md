@@ -7,9 +7,11 @@ Newest first.
 
 **This is not where a reply is written up.** That is `docs/upstream.md`, which
 carries the reasoning, the commits and the evidence at whatever length they
-need. Entries here are short and point there. The two files answer different
-questions: *what happened to this row* is the log in `docs/upstream.md`; *what
-this run taught us about working rows* is here.
+need. **It does not exist yet**, because nothing has been worked; the first run
+creates it, and until then there is no file to link to. Entries here are short
+and point there. The two files answer different questions: *what happened to
+this row* is the log in `docs/upstream.md`; *what this run taught us about
+working rows* is here.
 
 The separation is anoieu's, and so is the shape below.
 
@@ -57,11 +59,21 @@ not in the summary.
 ### <row id, or a phrase for a group of them> — <what it was>
 
 <What happened — only enough to make the resolution make sense.>
+
+**Learned:** <the general fact, stated so it applies to the next row rather than
+to this one.>
 ```
+
+**`Learned:` is the field that makes this a postmortem rather than a log.** An
+entry without it records that an event occurred and never what the next person
+should do differently, which is the only thing anybody opens this file for. It
+sits on the sections beneath an entry, not on the block above them, because what
+was learned is about a row and not about a round.
 
 [`tests/test_workflow.py`](../tests/test_workflow.py) checks that much of the
 shape a reader cannot enforce by reading: one field block per run, none on the
-sections beneath it, and a summary short enough to still be one.
+sections beneath it, a `Learned:` on every section, and a summary short enough
+to still be one.
 
 ## Where the workflow stands
 
@@ -69,9 +81,19 @@ sections beneath it, and a summary short enough to still be one.
 pair of scripts, so the log below is empty because there is nothing in it, not
 because nobody wrote it up. The first run writes the first entry.
 
-Two things are known to be missing before then, and both are named in
-[`workflows.md`](workflows.md): nothing restores the cvc5 commit a row was
-measured against, and a curated row has no fingerprint anybody can reproduce.
-Either could be what the first postmortem is about.
+## Open debts
+
+**What the workflow is known to be missing, booked before the first round rather
+than discovered during it.** A debt is prose in a design document until it has a
+*settles when*; then it is a row somebody can count. Each is written off by
+deleting it here, in the change that settles it.
+
+| debt | settles when |
+| --- | --- |
+| **Nothing restores the cvc5 commit a row was measured against.** A reply is worked against whatever checkout is to hand, so *we re-measured* and *we measured the same thing* are not the same claim. | one command restores the revision a row's number was taken at, and the second prompt's step 2 names it |
+| **A curated row has no fingerprint anybody can reproduce.** Rows in `issues.md` are written by hand, so the reporting policy's *do not add a row by hand* is the one convention that does not yet bind here. | a row carries an identity somebody else can recompute from a checkout — the `dokimasia:*` identity the analyzer already emits, carried into the register |
+
+Both are named in [`workflows.md`](workflows.md) as the two weak slots, and
+either could be what the first postmortem entry is about.
 
 ## The log

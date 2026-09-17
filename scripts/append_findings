@@ -27,7 +27,15 @@ if __name__ == "__main__":
                 ap.error("--render-only cannot be combined with a dump or --dry-run")
             body = render(args.db)
             if args.check:
-                sys.exit(0 if Path(args.page).read_text() == body else 1)
+                if Path(args.page).read_text() == body:
+                    sys.exit(0)
+                # The page is generated, so a mismatch means somebody edited it
+                # or the database moved without it. Say which command fixes it:
+                # an exit code alone sends a reader to the source to find out.
+                print(f"append_findings: {args.page} is not what "
+                      f"{args.db} renders to; regenerate it with "
+                      "scripts/append_findings --render-only", file=sys.stderr)
+                sys.exit(1)
             write(args.page, body)
             sys.exit(0)
         if not args.dump or args.check:

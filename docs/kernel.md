@@ -7,10 +7,10 @@ verification tools.
 A **wishue** is a goal you would take if the work went unusually well and are
 not committing to — a wish written down as an issue. The word is cvc5's own:
 it keeps a `cvc5-wishues` tracker and its source carries seventeen
-`TODO (wishue #N)` comments, at `40a4bb7e4`. This repository used to call these
-two *stretch goals*, and stopped because *stretch* now names something else
-across the Eunoia ecosystem — the span between two announcements. Same two
-goals, one less collision.
+`TODO (wishue #N)` comments, at `40a4bb7e4`. The word is used here rather than
+*stretch goal* because *stretch* names something else across the Eunoia
+ecosystem — the span between two announcements — and a collision in a shared
+vocabulary costs more than a synonym does.
 
 
 ## A kernel you can argue about

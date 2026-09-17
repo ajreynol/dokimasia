@@ -25,7 +25,7 @@ those checks.
 `--config` supplies an alternative target manifest.
 
 Checkout resolution is: `--cvc5`, `$DOKIMASIA_CVC5`, `$CVC5`, an entry in
-`scripts/repos.local`, the legacy `cvc5.path` in `tools/deps.local.json`, then
+`scripts/repos.local`, a `cvc5.path` in `tools/deps.local.json`, then
 `deps/cvc5`. The ignored local map contains lines
 like `cvc5 /path/to/cvc5`; relative paths are relative to the map. Override its
 location with `$DOKIMASIA_REPOS_FILE`. An explicitly selected missing checkout
@@ -33,9 +33,10 @@ fails; it never silently switches to another. These commands never fetch,
 build, or change the target checkout.
 
 `prompts/process_dokimasia` uses this same resolver, with its positional `DIR`
-as the explicit override. New configurations should use `scripts/repos.local`;
-the legacy JSON entry remains a fallback for existing reporting setups.
-`~/cvc5` is no longer guessed: name it in the map if that is your checkout.
+as the explicit override. Write new configurations in `scripts/repos.local`; the
+JSON entry is the last fallback. **No path is guessed**, including `~/cvc5`: a
+checkout this repository is not told about is not found, because a resolver that
+guesses can measure a tree nobody named.
 
 `--dry-run` lists the input scope and missing required paths, without running
 checks or creating output files. Each scanner may read only part of that scope;

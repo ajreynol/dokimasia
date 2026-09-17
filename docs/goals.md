@@ -85,3 +85,27 @@ cvc5 already instruments the second half of the measurement:
 that gives the baseline; the interesting number is the *difference* between what
 static analysis says is reachable and what the corpus actually hit.
 
+## Is there a paper in it?
+
+**Yes, and not yet** — the stance for this repository. Each research project
+under [`tools/`](../tools/) answers the same question for itself, on its own
+front page, and neither answer is this one.
+
+The paper would be the one question here that is legible to somebody who has
+never heard of Eunoia: **how much of a production solver's proof production has
+no proof step behind it**, measured by reading the code that emits proofs rather
+than the proofs it emits. The inventory exists, it runs in seconds against a
+checkout, and every number in it names a commit anybody can fetch.
+
+**What is missing is the denominator, and it is ours to fix.** An inventory of
+declared holes without reachability is the most quotable wrong number this
+repository could produce, and our reachability census was taken with a binary
+built from a branch with local modifications — the one set of numbers a reader
+cannot re-check by fetching the pin (`t-2` in [`TODO.md`](../TODO.md), booked as
+a debt in [`tools/cvc5.lock`](../tools/cvc5.lock)). Beside that sits our own
+record of three static arguments that read correctly and were false, every one
+caught by running something.
+
+**So the falsifier is small and it is not an argument:** re-run the census on a
+clean upstream build. Until then *not yet* is the honest answer, and it is a
+position applied rather than a convention failed.

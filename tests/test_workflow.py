@@ -127,13 +127,43 @@ def test_prompts():
         same(label, want, fix(spoken(argv)))
 
 
+def test_debts(text):
+    """Every booked debt names what would settle it.
+
+    A debt with no settling condition is a complaint that has been written down,
+    and the whole reason for booking these before the first round is that the
+    first round is then measured against a record that already knows what it is
+    missing. The section may be empty; a row in it may not be half-written.
+    """
+    chunk = text.partition("## Open debts")[2].partition("\n## ")[0]
+    if not chunk.strip():
+        print("  ok   no debts booked")
+        return
+    rows = [r for r in re.findall(r"^\| (.+?) \| (.+?) \|\s*$", chunk, re.M)
+            if not set(r[0].strip()) <= {"-"} and r[0].strip() != "debt"]
+    check("at least one debt is booked", bool(rows), "the table has no rows")
+    for what, settles in rows:
+        name = " ".join(what.split())[:56]
+        check(f"the debt '{name}' names what settles it",
+              len(settles.strip()) > 10, f"{settles.strip()!r}")
+
+
 def test_postmortem():
     """One field block per run, none on the sections beneath, summary short."""
     print("\nthe postmortem log:")
     LIMIT, SENTENCES = 250, 2
-    text = re.sub(r"```.*?```", "", read(POSTMORTEM), flags=re.S)  # not the template
+    raw = read(POSTMORTEM)
+    text = re.sub(r"```.*?```", "", raw, flags=re.S)  # not the template
     check("it says where the workflow stands",
           "## Where the workflow stands" in text, "no such section")
+    # The field that makes an entry a postmortem rather than a log. It is the
+    # one a copy of somebody else's template loses silently, so the template is
+    # checked as well as the entries -- there may be no entries for a long time.
+    template = re.search(r"```text\n(.*?)\n```", raw, re.S)
+    check("the entry template carries **Learned:**",
+          bool(template) and "**Learned:**" in template.group(1),
+          "a section with no Learned: records an event and not a lesson")
+    test_debts(text)
 
     runs = re.split(r"^## (?=\d{4}-\d{2}-\d{2} )", text, flags=re.M)[1:]
     if not runs:
@@ -147,6 +177,10 @@ def test_postmortem():
             check(f"{title}: one **{field}** above the sections", n == 1, f"found {n}")
         stray = sorted(set(re.findall(r"^\*\*(Tool|Summary|Resolution):\*\*", rest, re.M)))
         check(f"{title}: no fields on the sections beneath", not stray, f"{stray}")
+        for section in ("### " + s for s in rest.split("\n### ") if s.strip()):
+            name = section.splitlines()[0][4:].strip()
+            n = len(re.findall(r"^\*\*Learned:\*\*", section, re.M))
+            check(f"{title}: '{name}' says what was learned", n == 1, f"found {n}")
         m = re.search(r"^\*\*Summary:\*\*(.*?)(?=\n\*\*|\Z)", head, re.M | re.S)
         if m:
             s = " ".join(m.group(1).split())
