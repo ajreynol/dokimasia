@@ -283,8 +283,8 @@ designed to be watched over time rather than resolved once.
 
 ### H11 — The RARE correspondence is stated, not inferred
 
-**Every `ProofRewriteRule` says where it came from, and a RARE rule's owning
-theory is recoverable from its name or its marker.**
+**Every `ProofRewriteRule` says whether it came from RARE or from C++, and says
+it explicitly rather than by the absence of a marker.**
 
 *Evidence.* 533 rules: **439 generated from RARE, 94 hand-written.** The
 correspondence for the generated half already exists and is **exact in both
@@ -317,15 +317,24 @@ a consumer:
    `booleans` and `builtin`; `strings` uses three prefixes (`str`, `re`, `seq`),
    `uf` three (`uf`, `eq`, `distinct`), `booleans` two.
 
-*The convention, in the order worth doing it.*
+*The convention. C1 is withdrawn and kept for the reasoning; C2 is the one to
+ask for.*
 
-- **C1 — put the source file in the marker.** One line in `mkrewrites.py`:
-  `/** Auto-generated from RARE rule bool-double-not-elim (theory/booleans/rewrites) */`.
-  Fixes (2) and makes (3) and (4) not matter to any consumer of the header,
-  because ownership stops being something you have to reconstruct. **Highest
-  value per effort by a distance.**
+- **C1 — put the source file in the marker. ~~One line in `mkrewrites.py`~~ —
+  withdrawn.** The proposal was
+  `/** Auto-generated from RARE rule bool-double-not-elim (theory/booleans/rewrites) */`,
+  which would have fixed (2) and made (3) and (4) not matter to any consumer of
+  the header. **It is the wrong surface.** The marker is emitted into
+  `include/cvc5/cvc5_proof_rule.h`, and `ProofRewriteRule` is published as part
+  of cvc5's C++ API documentation — so the change would put the internal RARE
+  file layout in front of every API reader to save *us* a directory scan. The
+  ask is [withdrawn](issues.md#withdrawn); (2) is a cost we absorb.
 - **C2 — mark the hand-written entries too**, with something as plain as
-  `/** Hand-written theory rewrite */`. Turns (1) from an inference into a fact.
+  `/** Hand-written theory rewrite */`. Turns (1) from an inference into a fact,
+  and it is now **the one in this list worth asking for.** It survives the test
+  C1 failed: it states a property *of the rule* — whether a declarative
+  definition exists for it — which is a fact an API reader can legitimately act
+  on, and it names no internal path.
 - **C3 — one prefix, one theory.** `ite-` is the only outright collision;
   several theories using several prefixes is untidy but unambiguous, so this is
   worth doing only if it is cheap.
@@ -336,8 +345,10 @@ a consumer:
 *What this buys.* The rewrite vocabulary is the largest in the calculus and the
 one where "is this rule declarative or is it C++ someone must teach the seam
 about" decides whether a proof can be printed. Today that question is answered
-by cross-referencing two directories. C1 and C2 make it a property of the
-header.
+by *absence* of a marker, which is inference from silence. **C2 makes it a
+stated property of the header**, and that is the whole of what H11 now asks
+for — which theory file a declarative rule came from is our problem to solve by
+scanning, not cvc5's to publish.
 
 ### On an auto-compiler for RARE rules
 
@@ -401,7 +412,7 @@ Restating the through-line, because it is the reason this comes first.
 | H7, H8 | the trust ladder is readable off a table instead of reconstructed |
 | H9 | a rule's contract is stated once |
 | **H10** | **the checker becomes small enough to be the kernel, and the number is watched** |
-| H11 | a rule's origin — declarative or hand-written — is a fact in the header, not a cross-reference |
+| H11 | a rule's origin — declarative or hand-written — is a fact in the header, not an inference from silence |
 
 None of that verifies anything. All of it shortens the argument — which is the
 actual goal.

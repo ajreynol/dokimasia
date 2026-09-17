@@ -102,8 +102,10 @@ is.*
 rest of G3's precision need the call site, which is the AST tier — deferred
 until **R1** has been asked for.
 
-**What cvc5 can do:** **R4** (one id, one site), **R7** / **R7b** (derivable
-names), **R10** (rule on [the hygiene standard](docs/hygiene.md)).
+**What cvc5 can do:** **R4** (one id, one site), **R7** (derivable names),
+**R10** (rule on [the hygiene standard](docs/hygiene.md)). **R7b** is
+[withdrawn](docs/issues.md#withdrawn) — it would have published cvc5's internal
+RARE file layout in a public API header to save us a directory scan.
 
 ---
 

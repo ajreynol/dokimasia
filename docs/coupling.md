@@ -110,13 +110,33 @@ construction sites, which is more robust anyway, but a naming rule would make
 the correspondence checkable directly and would catch a pass added without a
 declared hole.
 
-### R7b — put the RARE source file in the generated marker
+### R7b — put the RARE source file in the generated marker — **withdrawn**
 
-`mkrewrites.py` already emits `/** Auto-generated from RARE rule <name> */` and
-the correspondence it creates is exact. Adding the file — `(theory/booleans/rewrites)`
-— makes a rule's owning theory recoverable from the header, which is what every
-consumer currently reconstructs by scanning two directories. See
-[H11](hygiene.md#h11--the-rare-correspondence-is-stated-not-inferred).
+*Kept for the reasoning. The ask is [withdrawn](issues.md#withdrawn) and should
+not be carried.*
+
+The argument was: `mkrewrites.py` already emits
+`/** Auto-generated from RARE rule <name> */` and the correspondence it creates
+is exact, so adding the file — `(theory/booleans/rewrites)` — would make a rule's
+owning theory recoverable from the header instead of by scanning two
+directories.
+
+**What it missed.** Those 439 markers are emitted into
+`include/cvc5/cvc5_proof_rule.h` — a *public* header, and `ProofRewriteRule` is
+published in [the C++ API documentation](https://cvc5.github.io/docs/latest/api/cpp/cpp.html).
+So the one-line change to `mkrewrites.py:380` would not have added an internal
+annotation; it would have put cvc5's internal RARE file layout into cvc5's API
+doc, where no consumer of the API has any business needing it. The rule *name*
+is already user-visible — `--proof-granularity=dsl-rewrite` prints RARE rule
+names into proofs — but the path it was parsed from is not, and should not
+become so to save us a directory scan.
+
+This is the general shape worth remembering: **an ask that is cheap in the
+generator can still be expensive in the published surface**, and the cost lands
+on cvc5's users rather than on the maintainer who would apply it. Our
+convenience is not a reason to widen an API. See
+[H11](hygiene.md#h11--the-rare-correspondence-is-stated-not-inferred), whose C1
+is withdrawn with this row.
 
 ### R7c — state a rule's arity in a structured field
 
