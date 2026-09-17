@@ -1,8 +1,0 @@
-{
-  "pin": {"file": "scripts/koine.lock"},
-  "upstream": {
-    "url": "https://github.com/ajreynol/koine",
-    "ref": "main"
-  },
-  "green": {"workflow": "tests"}
-}

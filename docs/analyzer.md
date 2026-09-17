@@ -122,8 +122,9 @@ was reconfirmed. Absent observations remain in the database unchanged.
 `deps/koine`. It requires the exact pinned commit and a clean tracked tree. It
 does not clone or change a checkout. Set up that dependency before updating the
 database; `--dry-run` and analyzer `--no-update` do not require Koine.
-The [maintenance guide](maintenance.md#local-dependencies) describes setup and
-updating the pin with Koine's `eo_bump`.
+The [maintenance guide](maintenance.md#local-dependencies) describes setup;
+[pin updates](maintenance.md#pins-and-generated-records) require a successful
+upstream check at the selected commit and local integration checks.
 
 ```bash
 scripts/append_findings scratch/new-bugs.json --dry-run

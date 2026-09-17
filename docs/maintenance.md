@@ -122,22 +122,15 @@ copy, so there is nothing there to drift.
 
 ## Pins and generated records
 
-[`eo_bump.json`](../eo_bump.json) configures Koine's shared `eo_bump` to update
-`scripts/koine.lock` only when the upstream `tests` check passes. From this
-repository's root, use an installed `eo_bump`, or run it from a current Koine
-checkout:
+To update `scripts/koine.lock`, choose a full Koine commit SHA and inspect the
+`tests` check on that exact commit in GitHub. Only replace the lock's SHA after
+that check succeeds; a failed, unfinished or unavailable check leaves the pin
+unchanged. Record the checked commit and CI result with the change.
 
-```bash
-python3 ../koine/eo_cmd/eo_bump --show
-python3 ../koine/eo_cmd/eo_bump --dry-run
-python3 ../koine/eo_cmd/eo_bump
-```
-
-This maintenance command is separate from the pinned append utility. After a
-successful bump, refresh the dedicated checkout as above and run the integration
-checks. A failed or unknown upstream check leaves the pin unchanged. The
-configuration's `tests` value names Koine's test job, which is the check name
-the updater reads.
+Refresh the dedicated checkout using the commands under
+[Local dependencies](#local-dependencies), then run the integration checks
+before accepting the pin change. This pin selects the append utility and is
+independent of the policy checker.
 
 The policy-checker pin is `scripts/deps.lock`, and it names
 `scripts/policy_check.py` in Anoieu. `scripts/bump_anoieu` is the one command
@@ -158,9 +151,8 @@ it can check but cannot bump; `--force` is the way past either gate and is a
 person's decision. This never runs in CI, because it reads a remote. Never
 change a check merely to get a green pin.
 
-`eo_bump` handles plain-text pins and checks upstream CI; it does not handle
-this JSON lock or run our compatibility check, which is why `bump_anoieu` stays.
-The shared work that would retire it is
+`bump_anoieu` owns the JSON checker lock and the compatibility check described
+above. The remaining shared dependency work is recorded in
 [discussion D6](discussion.md#d6--shared-dependency-and-database-mechanics).
 
 Only `bugs.json` determines database membership. The generated page is a view,
