@@ -1,5 +1,7 @@
 # anakrisis
 
+**Eunoia listing:** unadvertised
+
 *What does this pull request do to cvc5's proof-completeness inventory — and is
 that worth a maintainer's time?*
 

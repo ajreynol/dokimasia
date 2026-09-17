@@ -1,5 +1,7 @@
 # empeiria
 
+**Eunoia listing:** unadvertised
+
 *Can a front end fix cvc5's public bugs, and get better at it by learning from
 how the maintainers answered the last ones?*
 
