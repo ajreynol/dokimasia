@@ -104,8 +104,7 @@ _KV = re.compile(r"^(\s+)([a-z_-]+):\s*(.*?)\s*$")
 
 
 def _parse_workflow(path: str, name: str) -> list[Job]:
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        lines = fh.read().split("\n")
+    lines = source.read(path).split("\n")
     jobs: list[Job] = []
     cur: Job | None = None
     indent = 0

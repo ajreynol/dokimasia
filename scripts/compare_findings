@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""Compare two producers on the same input snapshot. Counts are not verdicts."""
+import argparse
+import json
+from pathlib import Path
+import sys
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from bug_reports import read_dump, read_run
+
+
+def load(path):
+    bugs = read_dump(path)
+    run = read_run(path, bugs)
+    return {b["id"]: b for b in bugs}, run
+
+
+def compare(left, right):
+    a, ar = load(left)
+    b, br = load(right)
+    def scope(run):
+        return sorted((t["id"], t["project"], t["commit"], t["input_sha256"]) for t in run["targets"])
+    if not ar.get("targets") or scope(ar) != scope(br) or set(ar["analyses"]) != set(br["analyses"]):
+        raise ValueError("the producers used different targets, inputs or analysis selections")
+    common = sorted(a.keys() & b.keys())
+    conflicts = [i for i in common if a[i] != b[i]]
+    print(f"{len(common)} shared, {len(a.keys() - b.keys())} left only, "
+          f"{len(b.keys() - a.keys())} right only, {len(conflicts)} conflicting claim(s)")
+    for label, ids in (("left only", sorted(a.keys() - b.keys())),
+                       ("right only", sorted(b.keys() - a.keys())), ("conflict", conflicts)):
+        for fid in ids:
+            print(f"  {label}: {fid} {(a.get(fid) or b[fid])['bug']}")
+    for label, run in (("left", ar), ("right", br)):
+        print(f"{label}: producer={run['producer']}, complete={run['complete']}")
+        if run["producer"] == "agent":
+            print("  agent coverage: " + json.dumps(run.get("coverage", {}), sort_keys=True))
+    print("Only inspected scope is comparable; agreement does not establish correctness.")
+    return 0
+
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("left")
+    ap.add_argument("right")
+    args = ap.parse_args()
+    try:
+        sys.exit(compare(args.left, args.right))
+    except (OSError, ValueError, KeyError) as e:
+        print(f"compare_findings: {e}", file=sys.stderr)
+        sys.exit(2)

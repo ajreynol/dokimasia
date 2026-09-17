@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+"""Ask an independent assistant to examine the program's source scope."""
+import argparse
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+ROOT = Path(__file__).resolve().parent.parent
+sys.path[:0] = [str(ROOT), str(ROOT / "scripts")]
+from dokimasia.findings import ANALYSES
+import targets
+from bug_reports import write_json
+
+
+def prompt(args, resolved, analyses, snapshot_path):
+    template = (ROOT / "prompts/analyzer.txt").read_text()
+    scope = "Analyses: " + ", ".join(analyses) + "\n" + "\n".join(
+        f"{t['id']}: {t['root']} at {t['commit'] or '(not git)'}, dirty={t['dirty']}; {len(t['files'])} input files"
+        for t in resolved)
+    return (template.replace("{ROOT}", str(ROOT))
+            .replace("{OUT}", str(Path(args.out).resolve()))
+            .replace("{SNAPSHOT}", str(snapshot_path))
+            .replace("{TARGETS}", scope))
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    targets.arguments(ap)
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--show-prompt", action="store_true")
+    ap.add_argument("--codex", action="store_true")
+    ap.add_argument("--print", action="store_true", dest="noninteractive")
+    ap.add_argument("--out", default=str(ROOT / "scratch/agent-bugs.json"))
+    args = ap.parse_args()
+    try:
+        analyses = list(dict.fromkeys(args.analysis or ANALYSES))
+        resolved = targets.from_args(args)
+        if any(Path(args.out).resolve().is_relative_to(Path(t["root"])) for t in resolved):
+            raise ValueError("agent output must be outside the target checkout")
+        if args.dry_run:
+            print(targets.describe(resolved, analyses))
+            targets.require_targets(resolved)
+            return 0
+        targets.require_targets(resolved)
+        snapshot_path = Path(args.out).resolve().with_name(Path(args.out).name + ".inputs.json")
+        text = prompt(args, resolved, analyses, snapshot_path)
+        if args.show_prompt:
+            print(text)
+            return 0
+        write_json(snapshot_path, {"targets": targets.snapshot(resolved), "analyses": analyses})
+        command = (["codex", "exec"] if args.noninteractive else ["codex"]) if args.codex else (
+                   ["claude", "-p"] if args.noninteractive else ["claude"])
+        return subprocess.run(command + [text], cwd=ROOT).returncode
+    except (OSError, ValueError, KeyError) as e:
+        print(f"dokimasia_analyzer_agent: {e}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -4,7 +4,7 @@
 that worth a maintainer's time?*
 
 **Internal.** A research project under
-[anoieu's research-project rules](https://github.com/ajreynol/anoieu/blob/main/docs/policy.md),
+[kanon's research-project rules](https://github.com/ajreynol/kanon/blob/main/docs/policy.md),
 not a project announcement. It is not linked from the root
 [`README`](../../README.md), from [`docs/README.md`](../../docs/README.md), or
 from either register ([`TODO.md`](../../TODO.md),
@@ -72,7 +72,7 @@ Eunoia seam cannot print, an option default that safe mode does not disable.
 would a maintainer rather have that than not?**
 
 **The baseline is a tool that already exists, and it is what this has to beat.**
-[`scripts/prompts/check_cvc5_issue`](../../scripts/prompts/check_cvc5_issue) is
+[`prompts/check_cvc5_issue`](../../prompts/check_cvc5_issue) is
 prompt-based tooling with no instrument in it at all: it hands an assistant a
 prompt and a cvc5 checkout, and it gets useful work out of the arrangement. A
 review of a pull request can be had the same way, today, for one command. So
@@ -194,7 +194,7 @@ whole output looks like something you would paste into a review box.
   research project is started and ended by a person, and its scope changes the
   same way.
 
-The [research-project rules](https://github.com/ajreynol/anoieu/blob/main/docs/policy.md)
+The [research-project rules](https://github.com/ajreynol/kanon/blob/main/docs/policy.md)
 say the same from the other side: nothing leaves the island by machine, a
 research project has no separate channel and no lighter standard than its host,
 and what it may do on its own is accumulate a ledger inside its own directory.
@@ -219,8 +219,8 @@ was checked from what was reasoned.
 | what a proof-hygiene defect looks like, so the read half has a list rather than a hunch | [`docs/hygiene.md`](../../docs/hygiene.md) |
 | what cvc5 actually promises, so a review can tell a violated promise from a disliked design | [`docs/contract.md`](../../docs/contract.md) |
 | the `TRIAGE:` / `HUMAN RESPONSE:` frame, and that only an artifact settles anything | [`docs/workflows.md`](../../docs/workflows.md), [`docs/findings.md`](../../docs/findings.md) |
-| running an assistant against a cvc5 checkout without touching anything outside it | [`scripts/prompts/check_cvc5_issue`](../../scripts/prompts/check_cvc5_issue), [`../empeiria/README.md`](../empeiria/README.md) |
-| **the baseline this project has to beat** — that prompt-based tooling with no instrument already produces useful work | [`scripts/prompts/check_cvc5_issue`](../../scripts/prompts/check_cvc5_issue), which is the same job with the delta subtracted out |
+| running an assistant against a cvc5 checkout without touching anything outside it | [`prompts/check_cvc5_issue`](../../prompts/check_cvc5_issue), [`../empeiria/README.md`](../empeiria/README.md) |
+| **the baseline this project has to beat** — that prompt-based tooling with no instrument already produces useful work | [`prompts/check_cvc5_issue`](../../prompts/check_cvc5_issue), which is the same job with the delta subtracted out |
 
 The reason this is a child of dokimasia rather than its own repository is the
 first row: without the inventory there is no delta, and without the delta this

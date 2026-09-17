@@ -58,6 +58,11 @@ def stats() -> tuple[int, int]:
     return len(_TEXT), sum(len(v) for v in _TEXT.values())
 
 
+def paths() -> list[str]:
+    """Files actually read by scanners in this process, for a run's coverage."""
+    return sorted(_TEXT)
+
+
 def clear() -> None:
     _TEXT.clear()
     _LIST.clear()

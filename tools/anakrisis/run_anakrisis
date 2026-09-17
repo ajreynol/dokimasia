@@ -15,7 +15,7 @@
 #   run_anakrisis --record 12893        afterwards: what the maintainers did
 #   run_anakrisis --list                what has been reviewed, and what came back
 #
-# The baseline for this task already exists. ../../scripts/prompts/check_cvc5_issue
+# The baseline for this task already exists. ../../prompts/check_cvc5_issue
 # hands an assistant a prompt and a checkout and gets useful work out of it with
 # no instrument at all, and that is what this has to beat -- not "no review".
 # So --baseline runs the same review with the delta withheld: the two prompts

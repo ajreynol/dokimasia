@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+"""Validate a dump, call Koine, and render the database. No triage or closure."""
+import argparse
+from pathlib import Path
+import sys
+
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from bug_reports import DB, PAGE, append, render, write
+
+if __name__ == "__main__":
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("dump", nargs="?")
+    ap.add_argument("--db", default=str(DB))
+    ap.add_argument("--page", help="default: static-analysis.md beside the database")
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--render-only", action="store_true")
+    ap.add_argument("--check", action="store_true", help="with --render-only: check the page without writing")
+    ap.add_argument("--date", help="explicit observation date, for replay")
+    args = ap.parse_args()
+    try:
+        args.page = args.page or str(Path(args.db).parent / "static-analysis.md")
+        if Path(args.page).resolve() == Path(args.db).resolve():
+            ap.error("the generated page cannot overwrite the database")
+        if args.render_only:
+            if args.dump or args.dry_run:
+                ap.error("--render-only cannot be combined with a dump or --dry-run")
+            body = render(args.db)
+            if args.check:
+                sys.exit(0 if Path(args.page).read_text() == body else 1)
+            write(args.page, body)
+            sys.exit(0)
+        if not args.dump or args.check:
+            ap.error("provide a dump, or use --render-only [--check]")
+        sys.exit(append(args.dump, args.db, args.page, args.dry_run, args.date))
+    except (OSError, ValueError, KeyError) as e:
+        print(f"append_findings: {e}", file=sys.stderr)
+        sys.exit(2)

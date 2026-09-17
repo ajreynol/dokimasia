@@ -221,8 +221,7 @@ def _rare(src: str) -> tuple[dict[str, str], dict[str, str]]:
 def _markers(include_dir: str) -> dict[str, str]:
     """enum name -> RARE rule name, from the generated doc comments."""
     path = os.path.join(include_dir, "cvc5", "cvc5_proof_rule.h")
-    with open(path, encoding="utf-8", errors="ignore") as fh:
-        return {m.group(2): m.group(1) for m in _MARKER.finditer(fh.read())}
+    return {m.group(2): m.group(1) for m in _MARKER.finditer(source.read(path))}
 
 
 def _handled(src: str) -> tuple[dict[str, str], set[str]]:

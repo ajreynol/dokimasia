@@ -1,0 +1,10 @@
+{
+  "targets": [
+    {
+      "id": "cvc5",
+      "project": "cvc5",
+      "paths": ["src/**/*", "include/**/*", "proofs/eo/**/*.eo", ".github/workflows/*.yml", ".github/workflows/*.yaml", "test/regress/cli/run_regression.py", "CMakeLists.txt"],
+      "required": ["src", "include/cvc5/cvc5_proof_rule.h", "src/proof/eo/eo_printer.cpp", "src/smt/set_defaults.cpp", "src/options", "src/theory", "proofs/eo", ".github/workflows", "test/regress/cli/run_regression.py", "CMakeLists.txt"]
+    }
+  ]
+}

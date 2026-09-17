@@ -50,7 +50,7 @@ The maintainer will answer #12905 — reproduce it, locate it, fix it or explain
 why it is not a bug. **That answer is evidence about how cvc5 issues get
 addressed**, and it is evidence this repository is well placed to collect and
 badly placed to act on. We run assistants against cvc5 issues already
-([`scripts/prompts/check_cvc5_issue`](../../scripts/prompts/check_cvc5_issue));
+([`prompts/check_cvc5_issue`](../../prompts/check_cvc5_issue));
 what we have
 never done is record what the human answer taught that the assistant missed.
 
@@ -63,7 +63,7 @@ never done is record what the human answer taught that the assistant missed.
 | **a new repository** | **not yet.** A repository is a claim on attention and a name in a shared namespace, and this has no results, no users and no evidence it is worth either. It can graduate later; it cannot un-graduate |
 
 **The decision: a child project**, under
-[anoieu's research-project rules](https://github.com/ajreynol/anoieu/blob/main/docs/policy.md).
+[kanon's research-project rules](https://github.com/ajreynol/kanon/blob/main/docs/policy.md).
 Its subject is the whole loop — **working a cvc5 bug and learning from how the
 maintainers answered** — so it both attempts fixes and records the delta between
 what it produced and what they did. Its charter names proof-completeness bugs as
@@ -84,7 +84,7 @@ graduating is one of its three endings.
 ## What this changes about the workflow
 
 The maintainer's side of the loop was already defined —
-[`scripts/prompts/check_cvc5_issue`](../../scripts/prompts/check_cvc5_issue)
+[`prompts/check_cvc5_issue`](../../prompts/check_cvc5_issue)
 writes a `TRIAGE:`
 block and leaves `HUMAN RESPONSE:` empty for a person. What was missing is what
 happens **after** the response arrives. Today: nothing. The answer is read and

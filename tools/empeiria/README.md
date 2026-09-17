@@ -4,7 +4,7 @@
 how the maintainers answered the last ones?*
 
 **Internal.** A research project under
-[anoieu's research-project rules](https://github.com/ajreynol/anoieu/blob/main/docs/policy.md),
+[kanon's research-project rules](https://github.com/ajreynol/kanon/blob/main/docs/policy.md),
 not a project announcement. It is not linked from the root
 [`README`](../../README.md), from [`docs/README.md`](../../docs/README.md), or
 from either register ([`TODO.md`](../../TODO.md),
@@ -160,7 +160,7 @@ session a person started. The index it produces is explicitly a dated snapshot
 and explicitly not a measurement, which is the same arrangement the parent uses
 for anything imported rather than computed.
 
-The [research-project rules](https://github.com/ajreynol/anoieu/blob/main/docs/policy.md)
+The [research-project rules](https://github.com/ajreynol/kanon/blob/main/docs/policy.md)
 say the same thing from the other direction: nothing leaves the island by
 machine, a research project has no separate channel and no lighter standard than
 its host, and what it may do on its own is accumulate a ledger inside its own
@@ -174,7 +174,7 @@ what it takes, so a reader can tell what was checked from what was reasoned.
 
 | inherited | where it was established |
 | --- | --- |
-| the workflow that runs an assistant against a cvc5 issue and writes a `TRIAGE:` / `HUMAN RESPONSE:` block | [`scripts/prompts/check_cvc5_issue`](../../scripts/prompts/check_cvc5_issue), [`docs/workflows.md`](../../docs/workflows.md) |
+| the workflow that runs an assistant against a cvc5 issue and writes a `TRIAGE:` / `HUMAN RESPONSE:` block | [`prompts/check_cvc5_issue`](../../prompts/check_cvc5_issue), [`docs/workflows.md`](../../docs/workflows.md) |
 | that a reply is triage and only an artifact settles anything | [`docs/findings.md`](../../docs/findings.md) |
 | that a claim about behaviour is worthless until it has been run | [`docs/pr-policy.md`](../../docs/pr-policy.md) — three static arguments that read correctly and were false |
 | the reporting policy in full — the bar, the three verdicts, and that we never open a PR | [`docs/pr-policy.md`](../../docs/pr-policy.md), shared rather than restated |

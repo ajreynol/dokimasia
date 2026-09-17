@@ -8,6 +8,10 @@ behind it.
 
 | | |
 | --- | --- |
+| [`analyzer.md`](analyzer.md) | run the structured analyzer, append through Koine, and compare an independent producer |
+| [`usage.md`](usage.md) | individual analysis commands and examples at the pinned cvc5 revision |
+| [`maintenance.md`](maintenance.md) | development checks, dependency pins and the script catalogue |
+| [`reports/static-analysis.md`](reports/static-analysis.md) | generated observation database view; evidence is archived under `reports/runs/` |
 | [`why.md`](why.md) | **why cvc5 should care** — the three claims this repository can back, what it has not delivered, and what would show it is wrong |
 | [`checks.md`](checks.md) | **the checks** — the sixteen facets, what each has returned against a checkout, and what the unfinished ones are waiting on |
 | [`cases/`](cases/) | **case studies** — a cvc5 design question, answered with a verifier rather than an opinion. The standing decision, and the register |

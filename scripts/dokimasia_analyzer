@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""Analyze the standard targets, save a run, and append its observations via Koine."""
+import argparse
+import datetime
+import hashlib
+from pathlib import Path
+import sys
+
+sys.dont_write_bytecode = True
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from dokimasia.findings import ANALYSES, collect
+from dokimasia import source
+import targets
+from bug_reports import DB, PAGE, append, write_json
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__)
+    targets.arguments(ap)
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--no-update", action="store_true")
+    ap.add_argument("--dump", default=str(ROOT / "scratch/new-bugs.json"))
+    ap.add_argument("--db", default=str(DB))
+    ap.add_argument("--page", help="default: static-analysis.md beside the database")
+    args = ap.parse_args(argv)
+    try:
+        args.page = args.page or str(Path(args.db).parent / "static-analysis.md")
+        outputs = [Path(p).resolve() for p in (args.dump, str(args.dump) + ".run.json", args.db, args.page)]
+        if len(set(outputs)) != len(outputs):
+            raise ValueError("dump, evidence, database and page must be different files")
+        analyses = list(dict.fromkeys(args.analysis or ANALYSES))
+        resolved = targets.from_args(args)
+        if any(p.is_relative_to(Path(t["root"])) for p in outputs for t in resolved):
+            raise ValueError("output files must be outside the target checkout")
+        if args.dry_run:
+            print(targets.describe(resolved, analyses))
+            targets.require_targets(resolved)
+            return 0
+        targets.require_targets(resolved)
+        before = targets.snapshot(resolved)
+        implementation = targets.implementation_digest()
+        bugs, evidence, measurements, coverage = {}, {}, {}, {}
+        for t in resolved:
+            print(f"-- {t['id']} at {t['commit'] or '(not git)'}; dirty={t['dirty']}", flush=True)
+            r = collect(t["root"], analyses)
+            read = [Path(p).relative_to(t["root"]).as_posix() for p in source.paths()]
+            outside = set(read) - set(t["files"])
+            if outside:
+                raise ValueError(f"scanner read outside declared input scope: {sorted(outside)}")
+            coverage[t["id"]] = {"read": read}
+            for row in r.dump():
+                bugs[row["id"]] = row
+            evidence[t["id"]] = r.evidence
+            measurements[t["id"]] = r.measurements
+        if before != targets.snapshot(targets.from_args(args)):
+            raise ValueError("target changed during analysis; no dump or database update was written")
+        if implementation != targets.implementation_digest():
+            raise ValueError("analyzer changed during analysis; rerun before updating the database")
+        dump = sorted(bugs.values(), key=lambda r: (r["code"], r["entity"]))
+        record = {"producer": "program", "analyses": analyses, "targets": before,
+                  "observed_on": datetime.date.today().isoformat(), "coverage": coverage,
+                  "analyzer_commit": targets.git(ROOT, "rev-parse", "HEAD"),
+                  "analyzer_sha256": implementation,
+                  "analyzer_dirty": bool(targets.git(ROOT, "status", "--porcelain")),
+                  "complete": True, "evidence": evidence, "measurements": measurements}
+        write_json(args.dump, dump)
+        record["dump_sha256"] = hashlib.sha256(Path(args.dump).read_bytes()).hexdigest()
+        write_json(str(args.dump) + ".run.json", record)
+        print(f"-- {len(dump)} observation(s); dump: {args.dump}; evidence: {args.dump}.run.json", flush=True)
+        if args.no_update:
+            return 0
+        return append(args.dump, args.db, args.page)
+    except (OSError, ValueError, KeyError, RuntimeError) as e:
+        print(f"dokimasia_analyzer: {e}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

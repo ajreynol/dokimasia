@@ -31,7 +31,7 @@ with an opinion about somebody's naming.
 **And there is a third thing a review can be, which is a control.**
 `run_anakrisis --baseline` runs the same review with the delta withheld,
 because the baseline for this task is not *no review*: it is
-[`check_cvc5_issue`](../../scripts/prompts/check_cvc5_issue), prompt-based
+[`check_cvc5_issue`](../../prompts/check_cvc5_issue), prompt-based
 tooling with no instrument in it, which already produces useful work. A control
 review is written to the same protocol, is labelled `arm: baseline` in its
 header, and is the only thing that can turn *the delta helped* from an

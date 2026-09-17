@@ -2,7 +2,7 @@
   "_comment": "Written by scripts/bump_anoieu. The commit of anoieu this repository is checked against, and the one CI fetches. Moved by a run, not by hand.",
   "anoieu": {
     "ref": "main",
-    "commit": "1c357c555b45096062e7e2e36f9144f7a89f8fca",
-    "date": "2026-09-01"
+    "commit": "87ad6825191e9af2f2918700cf628f944d57f5f8",
+    "date": "2026-09-16"
   }
 }

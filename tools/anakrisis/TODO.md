@@ -17,7 +17,7 @@ tell what is intended from what exists.
       the block, and the sealed jar.
 - [x] **`--baseline`** — the control arm: the same review with the delta
       withheld. The baseline for this task is
-      [`check_cvc5_issue`](../../scripts/prompts/check_cvc5_issue), which is
+      [`check_cvc5_issue`](../../prompts/check_cvc5_issue), which is
       prompt-based tooling with no instrument and already produces useful work,
       so what has to be shown is that the delta adds something rather than that
       an assistant can review a diff.

@@ -78,5 +78,39 @@ A check code is `PREFIX` plus four digits — `RULE0001`, `TRUST0003`,
 `CI0002` — allocated once and never reused, the same convention anoieu uses for
 signatures. A code names a *question asked of the code*, not an occurrence: one
 code can return many rows or none, and returning none is a fact about the check
-rather than about cvc5. The per-code list, with what is implemented and what is
-not, is in [`TODO.md`](../TODO.md) under the group that owns it.
+rather than about cvc5. The structured analyzer's emitted codes are below.
+Designed checks remain in [`TODO.md`](../TODO.md) and are not emitted.
+
+## Structured observations
+
+These codes describe static observations, not reviewed verdicts. Both the
+program and the independent agent use this catalogue. The
+[analyzer guide](analyzer.md#identity-and-evidence) defines the entity keys.
+
+| code | emitted when | limitation |
+| --- | --- | --- |
+| `RULE0001` | a syntactically produced rule has no registered checker | production and checker registration are recovered from text |
+| `RULE0002` | a produced rule has a trusted checker registration with a nonzero pedantic level | intentional trust may be acceptable; the level is evidence, not severity |
+| `ELAB0001` | a produced `MACRO_*` rule has no detected postprocessor expansion | only the scanned postprocessor files are considered |
+| `SEAM0001` | a produced rule is never handled by the Eunoia printer, excluding macros, expanded rules and intentional format/trust refusals | production alone does not establish safe-mode reachability |
+| `CI0001` | a safe/stable matrix job has no proof tester | CI YAML parsing is limited to the existing matrix shape |
+| `CI0002` | a link in the five-part completeness chain is absent | absence of an explicit flag is an instrumentation gap; the guarantee may hold implicitly |
+| `CI0003` | the proof tester passes `--proof-check=lazy` | a configuration fact, not a demonstrated incomplete proof |
+| `CI0004` | a proof-testing matrix job excludes regression levels | the exclusion may be deliberate |
+| `BUILD0001` | an unclassified safe/stable macro conditional, a behavioral `isSafeBuild()` reader, or an inferred safe-build source exclusion is found | unfamiliar benign blocks and nearby CMake text require review |
+| `MODE0001` | an option declaring no proof support defaults on and has no direct safe-mode override | defaults-only reasoning misses coupled guards; `macrosQuantMode` is the known example |
+| `RW0001` | an implemented handwritten rewrite is never handled by the seam | macros may reconstruct; report mode-gate evidence separately |
+| `RW0002` | an implemented rewrite is handled only in unrestricted mode | a safe-mode gate may prevent that rewrite entirely |
+| `TRUST0001` | a source file constructs a trust step with `TrustId::NONE` | an attribution gap; one observation per file, with every site as evidence |
+| `INFER0002` | an emitted inference lacks a switch case in its theory's reconstructor, whose fallback constructs trust | call-site generators and reachability are not resolved; `INFER0001` remains reserved for the planned call-site check |
+| `INFERID0001` | an inference id has multiple detected production sites | hygiene, not necessarily a defect |
+| `INFERID0002` | a file produces a sentinel inference id | one observation per file and sentinel, with every site as evidence |
+| `SIG0001` | a printable rule has no signature declaration after known printer renamings and exclusions | generated or specially reshaped signatures need review |
+| `SIG0002` | a constructed skolem is refused by the seam | construction does not establish reachability in a particular mode |
+| `SIG0003` | parseable documentation disagrees with detectable checker arity | both parsers are partial; this does not compare the printer's reshaped signature arity |
+
+`RULE0003` remains an inventory of declared but unproduced rules in the existing
+ledger. It is not emitted into the database. Gates, fragments, TCB size and the
+historical latent census likewise produce measurements, not new bug identities.
+Dead trust/inference ids and theories without a reconstructor are recorded as
+measurements: lack of that mechanism does not establish lack of a proof.

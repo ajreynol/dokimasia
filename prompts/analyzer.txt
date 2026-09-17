@@ -1,0 +1,51 @@
+Work in {ROOT}. Independently examine the selected cvc5 source scope for the
+observations specified in docs/checks.md and docs/analyzer.md. Read those two
+documents first. This is a comparison of two producers, not a request to fix cvc5.
+
+{TARGETS}
+
+Read source directly. Do not run Dokimasia's scanners, analyzer or report
+commands. Do not read its program dumps, bug database, initial-run record,
+generated static-analysis page, issue register, or filed findings. Do not read
+dokimasia/findings.py; the allowed identity helper below may import it. Your
+answer must be independent of the program's answer.
+
+Use only emitted codes in docs/checks.md. For each independently established
+observation, obtain its stable record with:
+
+  python3 scripts/finding_id.py CODE ENTITY --record
+
+Use the entity convention in docs/analyzer.md. The helper only formats a claim
+and mints its identity; it does not check whether the claim is true. Include
+the record only after reading evidence. Aggregate sites sharing one identity;
+never emit duplicate ids. Put actual source locations, quoted evidence and
+uncertainties in the run record, not in the stable record. A syntactic gap is
+not proof of a reachable incomplete proof. Record mode restrictions where
+known. New questions outside the catalogue belong in your reply, not the dump.
+
+Write {OUT} as a JSON list of stable records, and {OUT}.run.json as an object:
+
+  {
+    "producer": "agent",
+    "analyses": "copy the list from the input snapshot",
+    "targets": "copy the target list from the input snapshot",
+    "complete": false,
+    "coverage": {"read": ["project-relative paths actually examined"],
+                 "not_read": ["remaining paths or scope descriptions"]},
+    "evidence": {"cvc5": {"finding id": [{"location": "relative/path:line",
+                                           "detail": "what supports the claim",
+                                           "limitation": "what remains uncertain"}]}},
+    "dump_sha256": "SHA-256 of the exact bytes of the dump file"
+  }
+
+The input snapshot is {SNAPSHOT}. Read it for the exact file list. It was made
+before this session and contains no findings. Check that the target inputs still have the same content digest
+before finishing, using scripts/targets.py's snapshot and resolve helpers;
+if the inputs changed, stop and report that the comparison must be rerun.
+Leave complete false unless you actually examined every selected check over
+its whole scope. State exactly what you read, even when you found nothing.
+
+Change only the two output files. Do not append to the database, edit source,
+stage, commit, fetch, push, or contact an issue tracker. Report the number of
+observations and the limits of your coverage, then stop. A human will review
+new claims and use scripts/compare_findings and scripts/append_findings --dry-run.

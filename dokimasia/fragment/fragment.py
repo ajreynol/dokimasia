@@ -202,15 +202,14 @@ def _fn_typed_rules(src: str) -> set[str]:
     """
     out: set[str] = set()
     for path in sorted(glob.glob(os.path.join(src, "theory", "*", "*type_rules.cpp"))):
-        with open(path, encoding="utf-8", errors="ignore") as fh:
-            cur = ""
-            for line in fh:
-                m = _FN_TYPED.search(line)
-                if m:
-                    cur = m.group(1)
-                elif cur and _IS_FUNCTION.search(line):
-                    out.add(cur)
-                    cur = ""
+        cur = ""
+        for line in source.read(path).splitlines():
+            m = _FN_TYPED.search(line)
+            if m:
+                cur = m.group(1)
+            elif cur and _IS_FUNCTION.search(line):
+                out.add(cur)
+                cur = ""
     return out
 
 

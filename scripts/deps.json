@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "External checkouts are never vendored. CI fetches pinned revisions;",
+    "local analysis uses existing checkouts without changing or fetching them.",
+    "Kanon owns policy; Anoieu implements the checker pinned in scripts/deps.lock.",
+    "scripts/bump_anoieu moves that pin after checking this repository.",
+    "Koine and cvc5 use the dedicated lock files named below. A normal local",
+    "cvc5 analysis records the actual revision and content it read; the cvc5",
+    "lock identifies the reproducible baseline used in CI."
+  ],
+  "koine": {
+    "url": "https://github.com/ajreynol/koine.git",
+    "ref": "main",
+    "lock": "scripts/koine.lock",
+    "reads": "koine_append_db"
+  },
+  "cvc5": {
+    "url": "https://github.com/cvc5/cvc5.git",
+    "ref": "main",
+    "lock": "tools/cvc5.lock",
+    "reads": "the source scope in scripts/targets.json"
+  },
+  "anoieu": {
+    "url": "https://github.com/ajreynol/anoieu.git",
+    "ref": "main",
+    "reads": "scripts/policy_check.py"
+  }
+}

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""bump_anoieu -- move the pin on anoieu, whose policy this repository follows.
+"""bump_anoieu -- move the pin on anoieu's implementation of ecosystem policy.
 
 CI here runs anoieu's policy checker, so anoieu is a dependency of this build in
 the ordinary sense: a change made over there turns this build red or green
 without anybody touching a file in this repository. That has already happened
 once in both directions. So the commit we check against is pinned in
-`tools/deps.lock`, and moving it is a decision somebody takes. This is the
+`scripts/deps.lock`, and moving it is a decision somebody takes. This is the
 command that takes it.
 
     scripts/bump_anoieu             # move the pin to the tip of the tracked ref
@@ -43,14 +43,14 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-MANIFEST = os.path.join(ROOT, "tools", "deps.json")
-LOCK = os.path.join(ROOT, "tools", "deps.lock")
+MANIFEST = os.path.join(HERE, "deps.json")
+LOCK = os.path.join(HERE, "deps.lock")
 LOCAL = os.path.join(ROOT, "tools", "deps.local.json")
 #: Where the joining page's CI step puts its clone, so a fetch here and a fetch
 #: in CI leave the same thing in the same place.
 CLONE = "/tmp/anoieu"
 NAME = "anoieu"
-CHECKER = os.path.join("tools", "policy_check.py")
+CHECKER = os.path.join("scripts", "policy_check.py")
 
 
 def load(path: str, default=None):
@@ -156,7 +156,7 @@ def show(dep: dict, pinned: dict, local: str) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(
-        description="move the pin on anoieu, whose policy this repository follows")
+        description="move the pin on anoieu's ecosystem policy checker")
     ap.add_argument("--check", action="store_true",
                     help="run the check at the pinned commit, as CI does")
     ap.add_argument("--show", action="store_true",
@@ -165,11 +165,19 @@ def main() -> int:
                     help="move the pin even though the check fails")
     ap.add_argument("--no-local", action="store_true",
                     help="ignore tools/deps.local.json and fetch a copy")
+    ap.add_argument("--local", help="use this existing checkout without changing it")
+    ap.add_argument("--offline", action="store_true",
+                    help="with a local checkout: do not query the remote")
     args = ap.parse_args()
 
     dep = load(MANIFEST)[NAME]
     pinned = load(LOCK)[NAME]
-    local = "" if args.no_local else local_checkout()
+    if args.local and args.no_local:
+        ap.error("--local and --no-local are incompatible")
+    local = os.path.abspath(os.path.expanduser(args.local)) if args.local else (
+        "" if args.no_local else local_checkout())
+    if args.offline and (not local or args.show):
+        ap.error("--offline requires a local checkout and cannot use --show")
 
     if args.show:
         return show(dep, pinned, local)
@@ -192,9 +200,8 @@ def main() -> int:
         commit, date, dirty = describe(local)
         origin = local
         if dirty:
-            print(f"-- {local} has uncommitted changes; a pin names a commit, "
-                  "so they are not part of what is about to be checked")
-        if commit != tip(dep):
+            sys.exit(f"-- {local} has uncommitted changes; cannot validate a pin against a modified tree")
+        if not args.offline and commit != tip(dep):
             print(f"-- {commit[:10]} is not the tip of {dep['url']} {dep['ref']}; "
                   "CI fetches the pin by commit, so it has to be pushed")
         path = local
@@ -221,8 +228,8 @@ def main() -> int:
         return rc
     write_lock(dep, commit, date)
     verdict = "though the check fails" if rc else "and the check passes"
-    print(f"\n-- tools/deps.lock now pins {commit[:10]} ({date}), {verdict}")
-    print("   stage it: git add tools/deps.lock")
+    print(f"\n-- scripts/deps.lock now pins {commit[:10]} ({date}), {verdict}")
+    print("   stage it: git add scripts/deps.lock")
     return rc if args.force else 0
 
 

@@ -8,6 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: read Koine pin
+        id: koine
+        run: echo "commit=$(cat scripts/koine.lock)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: ajreynol/koine
+          ref: ${{ steps.koine.outputs.commit }}
+          path: deps/koine
+          persist-credentials: false
       - name: the test suite, without a cvc5 checkout
         run: |
           fail=0
@@ -16,6 +25,8 @@ jobs:
             python3 "$t" || fail=1
           done
           exit $fail
+      - name: generated observation page matches its database
+        run: scripts/append_findings --render-only --check
 
   # The ratchets, against the commit tools/cvc5.lock pins. This is the job that
   # would have caught a baseline naming an InferenceId cvc5 does not have, on
@@ -24,6 +35,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: read Koine pin
+        id: koine
+        run: echo "commit=$(cat scripts/koine.lock)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: ajreynol/koine
+          ref: ${{ steps.koine.outputs.commit }}
+          path: deps/koine
+          persist-credentials: false
       - name: fetch the pinned cvc5
         run: |
           commit=$(python3 -c "import json;print(json.load(open('tools/cvc5.lock'))['cvc5']['commit'])")
@@ -50,6 +70,13 @@ jobs:
         run: python3 tests/test_pin.py /tmp/cvc5
       - name: every ratchet is clean at the pinned commit
         run: python3 -m dokimasia check /tmp/cvc5 --verbose
+      - name: collect observations and replay through Koine
+        run: |
+          scripts/dokimasia_analyzer --cvc5 /tmp/cvc5 --dump /tmp/new-bugs.json --db /tmp/bugs.json --page /tmp/static-analysis.md
+          cp /tmp/bugs.json /tmp/bugs-before.json
+          scripts/append_findings /tmp/new-bugs.json --db /tmp/bugs.json --page /tmp/static-analysis.md
+          cmp /tmp/bugs-before.json /tmp/bugs.json
+          scripts/append_findings --render-only --check --db /tmp/bugs.json --page /tmp/static-analysis.md
       - name: the full suite, with the checkout
         run: |
           fail=0

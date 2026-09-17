@@ -1,0 +1,279 @@
+"""Observation identity, failure isolation, provenance and the real Koine boundary."""
+import contextlib
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import runpy
+import subprocess
+import sys
+import tempfile
+import unittest
+from unittest.mock import patch
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path[:0] = [str(ROOT), str(ROOT / "scripts")]
+from dokimasia.findings import CHECKS, collect, finding_id, observation
+from dokimasia.sanity import ExtractionError
+from bug_reports import append, read_dump, read_run, render, write_json
+import koine
+import targets
+
+REAL_CVC5 = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else None
+if REAL_CVC5:
+    sys.argv.pop(1)
+
+
+class AnalyzerTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.base = Path(self.tmp.name)
+        self.tree = self.base / "cvc5"
+        (self.tree / "src").mkdir(parents=True)
+        self.cpp = self.tree / "src/x.cpp"
+        self.cpp.write_text("void f() {\n#ifdef CVC5_SAFE_MODE\n  mutate();\n#endif\n}\n")
+        self.config = self.base / "targets.json"
+        write_json(self.config, {"targets": [{"id": "cvc5", "project": "cvc5",
+                    "paths": ["src/**/*"], "required": ["src"]}]})
+        self.dump = self.base / "dump.json"
+        self.db = self.base / "bugs.json"
+        self.page = self.base / "page.md"
+        self.main = runpy.run_path(str(ROOT / "scripts/dokimasia_analyzer"))["main"]
+        self.argv = ["--config", str(self.config), "--cvc5", str(self.tree),
+                     "--analysis", "buildmode", "--dump", str(self.dump),
+                     "--db", str(self.db), "--page", str(self.page)]
+
+    def run_analyzer(self, *extra):
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            return self.main(self.argv + list(extra))
+
+    def need_koine(self):
+        try:
+            return koine.append_db()
+        except ValueError as e:
+            self.skipTest(str(e))
+
+    def test_line_shift_and_checkout_move_preserve_identity(self):
+        before = collect(str(self.tree), ["buildmode"])
+        self.cpp.write_text("\n\n" + self.cpp.read_text())
+        moved = self.base / "elsewhere"
+        self.tree.rename(moved)
+        after = collect(str(moved), ["buildmode"])
+        self.assertEqual(before.dump(), after.dump())
+        self.assertNotEqual(before.evidence, after.evidence)
+        self.assertTrue(before.dump()[0]["id"].startswith("dokimasia:"))
+
+    def test_sites_are_aggregated_without_losing_evidence(self):
+        self.cpp.write_text(self.cpp.read_text() + self.cpp.read_text())
+        r = collect(str(self.tree), ["buildmode"])
+        self.assertEqual(len(r.dump()), 1)
+        self.assertEqual(len(next(iter(r.evidence.values()))), 2)
+
+    def test_identity_helper_does_not_analyze(self):
+        code = "SEAM0001"
+        p = subprocess.run([sys.executable, str(ROOT / "scripts/finding_id.py"), code,
+                            "SAT_REFUTATION", "--record"], capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertEqual(json.loads(p.stdout), observation(code, "SAT_REFUTATION"))
+        for bad in ("/absolute/file", "../escape", "", "x\\y", None):
+            with self.assertRaises(ValueError):
+                finding_id(code, bad)
+
+    def test_catalogue_covers_exact_emitted_code_set(self):
+        text = (ROOT / "docs/checks.md").read_text().split("## Structured observations", 1)[1]
+        import re
+        self.assertEqual(set(re.findall(r"^\| `([A-Z]+\d{4})`", text, re.M)), set(CHECKS))
+
+    def test_dry_run_and_no_update_need_no_koine(self):
+        with patch.dict(os.environ, {"KOINE": str(self.base / "missing")}):
+            self.assertEqual(self.run_analyzer("--dry-run"), 0)
+            self.assertFalse(self.dump.exists())
+            self.assertFalse(self.db.exists())
+            self.assertEqual(self.run_analyzer("--no-update"), 0)
+            self.assertTrue(self.dump.exists())
+            self.assertFalse(self.db.exists())
+        bugs = read_dump(self.dump)
+        run = read_run(self.dump, bugs)
+        self.assertEqual(run["coverage"]["cvc5"]["read"], ["src/x.cpp"])
+        self.assertNotIn(str(self.tree), json.dumps(run))
+
+    def test_both_producers_resolve_identical_scope(self):
+        common = ["--cvc5", str(self.tree), "--config", str(self.config), "--dry-run"]
+        outputs = []
+        for script in ("scripts/dokimasia_analyzer", "prompts/dokimasia_analyzer_agent"):
+            p = subprocess.run([sys.executable, str(ROOT / script), *common], capture_output=True, text=True)
+            self.assertEqual(p.returncode, 0, p.stderr)
+            outputs.append(p.stdout)
+        self.assertEqual(*outputs)
+        self.assertFalse((self.base / "agent.json").exists())
+
+    def test_prompt_preview_has_no_side_effects(self):
+        agent = self.base / "agent.json"
+        p = subprocess.run([sys.executable, str(ROOT / "prompts/dokimasia_analyzer_agent"),
+            "--cvc5", str(self.tree), "--config", str(self.config), "--out", str(agent),
+            "--show-prompt"], capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertIn("Do not run Dokimasia", p.stdout)
+        self.assertIn("Do not append", p.stdout)
+        self.assertNotIn("{TARGETS}", p.stdout)
+        self.assertEqual(list(self.base.glob("agent*")), [])
+
+    def test_missing_target_unknown_selection_and_empty_scope_fail(self):
+        self.assertEqual(self.run_analyzer("--target", "absent", "--no-update"), 2)
+        self.assertEqual(self.run_analyzer("--cvc5", str(self.base / "absent"), "--dry-run"), 2)
+        self.cpp.unlink()
+        self.assertEqual(self.run_analyzer("--no-update"), 2)
+        self.assertFalse(self.dump.exists())
+
+    def test_extraction_failure_preserves_previous_outputs(self):
+        self.dump.write_text("previous dump")
+        self.db.write_text("previous database")
+        with patch.dict(self.main.__globals__, {"collect": lambda *_: (_ for _ in ()).throw(ExtractionError("anchor missing"))}):
+            self.assertEqual(self.run_analyzer(), 2)
+        self.assertEqual(self.dump.read_text(), "previous dump")
+        self.assertEqual(self.db.read_text(), "previous database")
+
+    def test_changed_inputs_abort_before_writes(self):
+        def changing(root, analyses):
+            r = collect(root, analyses)
+            self.cpp.write_text(self.cpp.read_text() + "// change\n")
+            return r
+        with patch.dict(self.main.__globals__, {"collect": changing}):
+            self.assertEqual(self.run_analyzer(), 2)
+        self.assertFalse(self.dump.exists())
+
+    def test_duplicate_and_malformed_dump_refused(self):
+        self.assertEqual(self.run_analyzer("--no-update"), 0)
+        bugs = read_dump(self.dump)
+        for invalid in ([bugs[0], bugs[0]], [bugs[0], None], [dict(bugs[0], id="invented")],
+                        [dict(bugs[0], description="")], [dict(bugs[0], code=[])],
+                        [dict(bugs[0], found_at="new-commit")]):
+            write_json(self.dump, invalid)
+            with self.assertRaises(ValueError):
+                append(self.dump, self.db, self.page)
+            self.assertFalse(self.db.exists())
+
+    def test_dump_and_evidence_must_match(self):
+        self.assertEqual(self.run_analyzer("--no-update"), 0)
+        self.dump.write_text(self.dump.read_text() + "\n")
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            append(self.dump, self.db, self.page)
+        self.assertFalse(self.db.exists())
+
+    def test_real_koine_append_repeat_disappearance_and_conflict(self):
+        self.need_koine()
+        self.assertEqual(self.run_analyzer("--no-update"), 0)
+        self.assertEqual(append(self.dump, self.db, self.page, date="2026-09-01"), 0)
+        first = json.loads(self.db.read_text())["bugs"]
+        self.assertEqual(len(first), 1)
+        self.assertEqual(append(self.dump, self.db, self.page, date="2026-09-02"), 0)
+        twice = json.loads(self.db.read_text())["bugs"]
+        self.assertEqual(len(twice), 1)
+        self.assertEqual(twice[0]["first_seen"], "2026-09-01")
+        self.assertEqual(twice[0]["last_seen"], "2026-09-02")
+        self.assertEqual(self.page.read_text(), render(self.db))
+        self.assertTrue(list((self.base / "runs").glob("*.json")))
+        self.cpp.write_text("void f() {}\n")
+        self.assertEqual(self.run_analyzer("--no-update"), 0)
+        self.assertEqual(append(self.dump, self.db, self.page), 0)
+        self.assertEqual(json.loads(self.db.read_text())["bugs"], twice)
+        # A second producer disputes the wording under an existing identity.
+        changed = [{k: v for k, v in first[0].items() if k not in ("first_seen", "last_seen")}]
+        changed[0]["description"] = "A revised claim"
+        self.write_evidenced_dump(changed)
+        self.assertEqual(append(self.dump, self.db, self.page), 0)
+        self.assertEqual(json.loads(self.db.read_text())["bugs"][0]["description"], first[0]["description"])
+
+    def write_evidenced_dump(self, bugs):
+        write_json(self.dump, bugs)
+        sidecar = Path(str(self.dump) + ".run.json")
+        run = json.loads(sidecar.read_text())
+        run["dump_sha256"] = hashlib.sha256(self.dump.read_bytes()).hexdigest()
+        run["evidence"] = {"cvc5": {b["id"]: [{"location": "src/x.cpp", "detail": "review"}] for b in bugs}}
+        write_json(sidecar, run)
+
+    def test_koine_dry_run_never_creates_output_or_archive(self):
+        self.need_koine()
+        self.assertEqual(self.run_analyzer("--no-update"), 0)
+        before = sorted(str(p) for p in self.base.rglob("*"))
+        self.assertEqual(append(self.dump, self.db, self.page, dry_run=True), 0)
+        self.assertEqual(before, sorted(str(p) for p in self.base.rglob("*")))
+
+    def test_wrong_koine_pin_refused(self):
+        path = self.need_koine().parent
+        with patch.object(koine, "ROOT", self.base):
+            (self.base / "scripts").mkdir()
+            (self.base / "scripts/koine.lock").write_text("0" * 40)
+            with patch.dict(os.environ, {"KOINE": str(path)}):
+                with self.assertRaisesRegex(ValueError, "pinned commit"):
+                    koine.append_db()
+
+    def test_same_run_comparison_and_snapshot_mismatch(self):
+        self.assertEqual(self.run_analyzer("--no-update"), 0)
+        compare = runpy.run_path(str(ROOT / "scripts/compare_findings"))["compare"]
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            self.assertEqual(compare(self.dump, self.dump), 0)
+        self.assertIn("1 shared", out.getvalue())
+        other = self.base / "other.json"
+        other.write_bytes(self.dump.read_bytes())
+        run = json.loads(Path(str(self.dump) + ".run.json").read_text())
+        run["targets"][0]["input_sha256"] = "0" * 64
+        write_json(str(other) + ".run.json", run)
+        with self.assertRaisesRegex(ValueError, "different targets"):
+            compare(self.dump, other)
+
+    def test_output_aliases_are_refused_before_overwriting(self):
+        self.db.write_text("original")
+        self.assertEqual(self.run_analyzer("--dump", str(self.db)), 2)
+        self.assertEqual(self.db.read_text(), "original")
+        original = self.cpp.read_text()
+        self.assertEqual(self.run_analyzer("--dump", str(self.cpp), "--no-update"), 2)
+        self.assertEqual(self.cpp.read_text(), original)
+
+    def test_incomplete_or_malformed_evidence_is_refused(self):
+        self.assertEqual(self.run_analyzer("--no-update"), 0)
+        sidecar = Path(str(self.dump) + ".run.json")
+        original = json.loads(sidecar.read_text())
+        for update in ({"evidence": []}, {"evidence": {"cvc5": []}}, {"evidence": {}},
+                       {"analyses": [None]}, {"targets": [None]}, {"complete": False}):
+            write_json(sidecar, original | update)
+            with self.assertRaises(ValueError):
+                append(self.dump, self.db, self.page)
+            self.assertFalse(self.db.exists())
+
+    def test_concurrent_wrapper_writers_are_refused(self):
+        self.need_koine()
+        self.assertEqual(self.run_analyzer("--no-update"), 0)
+        from bug_reports import writer
+        with writer(self.db):
+            with self.assertRaisesRegex(ValueError, "another writer"):
+                append(self.dump, self.db, self.page)
+        self.assertFalse(self.db.exists())
+
+    def test_omitted_scanner_input_is_not_accepted_as_coverage(self):
+        write_json(self.config, {"targets": [{"id": "cvc5", "project": "cvc5",
+                   "paths": ["src/x.cpp"], "required": ["src"]}]})
+        (self.tree / "src/unlisted.cpp").write_text("void g() {}\n")
+        self.assertEqual(self.run_analyzer("--no-update"), 2)
+        self.assertFalse(self.dump.exists())
+
+    @unittest.skipUnless(REAL_CVC5, "provide pinned cvc5 to check all adapters")
+    def test_real_checkout_all_adapters_and_fresh_evidence(self):
+        r = collect(REAL_CVC5)
+        self.assertTrue(r.dump())
+        self.assertEqual(set(r.measurements), set(__import__("dokimasia.findings", fromlist=["ANALYSES"]).ANALYSES))
+        self.assertEqual(len({b["id"] for b in r.dump()}), len(r.dump()))
+        self.assertTrue(any(b["code"] == "SIG0003" and b["entity"] == "SUBS" for b in r.dump()))
+        self.assertFalse(any(b["code"] == "BUILD0001" for b in r.dump()))
+        self.assertEqual(r.measurements["latent"]["census_provenance"]["corpus"], "regress0")
+        for rows in r.evidence.values():
+            for row in rows:
+                locations = row.get("locations", []) + ([row["location"]] if "location" in row else [])
+                for loc in locations:
+                    self.assertTrue((Path(REAL_CVC5) / loc.split(":", 1)[0]).exists(), loc)
+
+
+if __name__ == "__main__":
+    unittest.main()

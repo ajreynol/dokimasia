@@ -301,16 +301,13 @@ def _parse_skolems(root: str) -> Skolems:
         for fn in files:
             if not fn.endswith((".cpp", ".h")):
                 continue
-            with open(os.path.join(dirpath, fn), encoding="utf-8",
-                      errors="ignore") as fh:
-                text = fh.read()
+            text = source.read(os.path.join(dirpath, fn))
             if "SkolemId::" in text:
                 sk.constructed |= set(_SK_MK.findall(text))
     conv = os.path.join(src, "proof", "eo", "eo_node_converter.cpp")
     if os.path.exists(conv):
-        with open(conv, encoding="utf-8", errors="ignore") as fh:
-            body = re.search(r"bool EoNodeConverter::isHandledSkolemId.*?\n\}",
-                             fh.read(), re.S)
+        body = re.search(r"bool EoNodeConverter::isHandledSkolemId.*?\n\}",
+                         source.read(conv), re.S)
         if body:
             sk.seam_handled = set(_SK_CASE.findall(body.group(0)))
     return sk
