@@ -4,9 +4,9 @@ The index of `docs/`. The front page is [`README.md`](../README.md), which says
 what the analyzer is and which checks it runs; everything here is the reasoning
 behind it.
 
-The scope is cvc5's proofs. General cvc5 development and the former child
-projects are maintained in [Paideia](https://github.com/ajreynol/paideia), which
-is their source of truth. Performance, including proof-production overhead,
+The scope is cvc5's proofs. General cvc5 development belongs to
+[Paideia](https://github.com/ajreynol/paideia), which is the source of truth for
+it. Performance, including proof-production overhead,
 belongs to [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
 
 ## Start here
@@ -19,7 +19,7 @@ belongs to [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/to
 | [`bug_db/README.md`](../bug_db/README.md) | Dokimasia's bug database artifact: setup, recording and interpretation |
 | [`bug_db/bugs.md`](../bug_db/bugs.md) | browse every recorded observation in Markdown; evidence is archived under `bug_db/runs/` |
 | [`why.md`](why.md) | **why cvc5 should care** — the three claims this repository can back, what it has not delivered, and what would show it is wrong |
-| [`checks.md`](checks.md) | **the checks** — the sixteen facets, what each has returned against a checkout, and what the unfinished ones are waiting on |
+| [`checks.md`](checks.md) | **the checks** — the eighteen facets, what each has returned against a checkout, and what the unfinished ones are waiting on |
 | [`cases/`](cases/) | **case studies** — a cvc5 design question, answered with a verifier rather than an opinion. The standing decision, and the register |
 | [`cases/out-of-scope-bug-report.md`](cases/out-of-scope-bug-report.md) | cvc5 [#12905](https://github.com/cvc5/cvc5/issues/12905) — a real bug report that is not a proof bug. What we do with it, where the learning lives, and the routing test for the next one |
 | [`cases/safe-build-vs-safe-mode.md`](cases/safe-build-vs-safe-mode.md) | cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) — is deliberately forbidding safe mode with debug symbols actually a restriction? What it costs, and the invariant that keeps the cost that low |
@@ -60,5 +60,5 @@ belongs to [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/to
 | | |
 | --- | --- |
 | [`fragment.md`](fragment.md) | *generated* — which term kinds may appear per theory under `--safe-mode=safe`, and how the fragment is enforced |
-| [`reports/static-analysis.md`](reports/static-analysis.md) | old report location; redirects readers to the Markdown view in `bug_db/` |
+| [`reports/static-analysis.md`](reports/static-analysis.md) | a retired path, kept so an old link lands on the Markdown view in `bug_db/` |
 | [`tooling.md`](tooling.md) | the C++ static-analysis landscape, our design decisions, and the posture toward murxla |

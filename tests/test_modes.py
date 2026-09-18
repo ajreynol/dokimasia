@@ -25,7 +25,7 @@ def check(label, got, want):
 def test_cvc5(root):
     src = os.path.join(root, "src") if os.path.isdir(os.path.join(root, "src")) else root
     changes = parse_set_defaults(src)
-    # 81 + 34 + 30 + 24 + 3 macro call sites at 16c4001e53
+    # 81 + 34 + 30 + 24 + 3 macro call sites at 40a4bb7e4
     check("every macro call site is parsed", len(changes) == 172, True)
 
     md = ModeDelta(changes)

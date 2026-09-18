@@ -15,9 +15,7 @@ provides the shared writer; its tooling lives in Koine.
 | [bugs.md](bugs.md) | generated browsing view of every database entry |
 | [runs/](runs/) | archived run records: observations, evidence, source revisions and actual coverage |
 
-The database and run archives moved from `docs/reports/` on 2026-09-18 without
-changing their contents, identities or dates. Scratch dumps are disposable;
-these committed artifacts preserve the record.
+Scratch dumps are disposable; these committed artifacts preserve the record.
 
 ## Record a run
 

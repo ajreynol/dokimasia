@@ -5,18 +5,18 @@ Dokimasia owns analysis of cvc5's proof-production source and its
 closure decisions. Koine maintains the shared database writer.
 Kanon owns ecosystem policy; Anoieu implements the optional policy checker.
 
-General cvc5 development belongs to [Paideia](https://github.com/ajreynol/paideia).
-The former child projects, `anakrisis` and `empeiria`, moved there on
-2026-09-18. Their charters, plans, protocols, launchers and ledgers in Paideia
-are authoritative. The local copies and the `tools/` directory have been
-removed; the cvc5 baseline pin now lives at `scripts/cvc5.lock`, alongside the
-other dependency pins. Proof-production performance belongs to
+General cvc5 development belongs to
+[Paideia](https://github.com/ajreynol/paideia), whose charters, plans,
+protocols, launchers and ledgers are authoritative for it. This tree carries no
+child project, so there is no `tools/`; the cvc5 baseline pin sits at
+`scripts/cvc5.lock` alongside the other dependency pins. Proof-production
+performance belongs to
 [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros)
 and is outside Dokimasia's scope.
 
 Keep commands and their helpers in `scripts/`, assistant launchers in `prompts/`,
 and analysis implementations in `dokimasia/`. Add documents to the
-[documentation index](README.md). The former reporting workflow is
+[documentation index](README.md). The reporting workflow is
 [deprecated](workflows.md); existing records and launchers remain available
 while its [replacement](#replace-the-deprecated-reporting-workflow) is pending.
 
@@ -70,15 +70,23 @@ resolver, in which the environment takes precedence and a `cvc5` entry in
 `scripts/deps.local.json` is the last fallback. No path is guessed: a checkout
 this repository is not told about is not found.
 
+**What a second pinned repository costs, measured on the Koine one:** a lock, a
+resolver that refuses anything but the exact pinned commit in a clean checkout,
+two extra checkout steps in CI and about two dozen lines of documentation —
+cheaper than keeping a copy over the same period. The cost that is not obvious in
+advance is that **every consumer's resolver becomes a small compatibility layer
+the moment the provider reorganises**, and each consumer writes that layer
+separately. `scripts/koine.py` probes the retired path only to say so in its
+error, which is the whole of what that layer is worth.
+
 The cvc5 lock keeps tests that assert exact counts reproducible and separates
 analyzer changes from upstream changes. It is not a version requirement for
 analysis: use the latest upstream `main`, a development branch, or another
 explicitly selected revision. Updating that checkout is a separate action;
 the analyzer records what it reads and never updates it automatically.
 
-Local dependency JSON, if used, now belongs in `scripts/deps.local.json`.
-Move an existing `tools/deps.local.json` there; the old path is no longer read.
-For new cvc5 configurations, prefer `scripts/repos.local`.
+Local dependency JSON, if used, belongs in `scripts/deps.local.json`. For a
+cvc5 configuration, prefer `scripts/repos.local`.
 
 Check the setup and try a run before appending:
 
@@ -166,6 +174,19 @@ that moves it, and it moves it only onto a commit that passes **both** gates:
 Anoieu's own CI was green at that commit, and the checker at that commit passes
 against this tree.
 
+**Dokimasia runs the `anoieu / policy` job on a checker pin, and that is a
+decision rather than a default.** The shared policy offers two forms: a commit a
+repository pins and moves itself, or a named policy contract checked by Anoieu's
+shared workflow against current Anoieu. Both satisfy the joining requirement, and
+what differs is what may move underneath a red build. On a pin, nothing moves
+until this repository moves it; the price is that a correction to the checker is
+not adopted until somebody runs `bump_anoieu`. On the contract form there is no
+pin, and a checker correction can start reporting a violation already in the tree
+— a build turning red with nothing committed here, which is what a pin exists to
+prevent. Anoieu's requirement that a pin move only onto a green commit is a rule
+about *moving* a pin, so it does not reach the contract form, and holding the pin
+is what keeps `bump_anoieu` the place that rule is enforced.
+
 ```bash
 scripts/bump_anoieu --show                             # pinned, local, upstream
 scripts/bump_anoieu --local /path/to/anoieu --offline --check
@@ -192,7 +213,7 @@ semantics.
 
 ## Replace the deprecated reporting workflow
 
-**Pending, recorded 2026-09-18.** Following Anoieu, the former
+**Pending, recorded 2026-09-18.** Following Anoieu, the
 [reporting workflow](workflows.md) and [reporting policy](pr-policy.md) are
 deprecated. Replace them with a formal reporting lifecycle using
 [Koine's shared tooling](https://github.com/ajreynol/koine/tree/main/bug_db_manager).

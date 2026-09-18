@@ -235,7 +235,7 @@ less of cvc5 it needs in order to be correct, the more `--check-proofs` means.
 
 ```
 closure         179 files      41,446 lines
-all of src/    1663 files     521,073 lines
+all of src/    1663 files     521,070 lines
                                = 8.0% of cvc5 by line count
 ```
 

@@ -193,6 +193,43 @@ That is also why this is *the* lever on [`i-4`](issues.md): while reconstruction
 is a bounded search, proof completeness is a function of a budget rather than of
 the code, and no static analysis — ours or anyone's — can discharge it.
 
+### What E4 is not: compiling the *rewriter*
+
+E4 above is about compiling the rule database into the **reconstructor** — the
+thing that searches for a derivation of a rewrite the solver has already
+performed. A different move is to compile a rule into the **rewriter**, so that
+the rule is the *source* of the rewrite rather than a description of one written
+afterwards. **Nothing above covers that**, and the two should not be read
+together: the first attacks the search, the second removes the occasion for it.
+
+Where it bears on [`i-4`](issues.md): of the two consumers of the depth budget
+named above — the right-hand-side gap, and each precondition of a conditional
+rule — a rule applied *by* the rewriter closes the first, because σ(v) is what
+the rewriter produced and no gap to the target remains. The second is untouched;
+preconditions are still equality-reconstruction problems of the same kind. So
+this **narrows `i-4` and does not settle it**, and it narrows it only over the
+rules compiled that way. A procedure that terminates on some rules has the
+termination status it had before, because `i-4` is a claim about the procedure.
+
+**The correspondence question changes shape, which is the part that is ours.**
+For a rule compiled into the rewriter, the RARE rule and the C++ stop being two
+statements of one fact — the C++ is derived from the rule — so `i-17`'s
+*established only by runtime search* does not describe it. That is the strongest
+form of E1 available, arriving as a by-product rather than as a test, and it is
+the reason this is worth distinguishing from E4 rather than filed beside it.
+There is a cost in another register: a rewrite applied this way records which
+rule it applied as a trust step, so the step is trusted when it is made and
+reconstructed afterwards — work moving out of `rewrites` and into `trust`, where
+our census counts it.
+
+*Read on 2026-09-18, as reported to us by eschaton, in
+[`ajreynol/cvc5` branch `rdbExec`](https://github.com/ajreynol/cvc5/tree/rdbExec):
+rules marked `:exec` are compiled by `rewrite_db_exec_printer.cpp`, applied by
+`theory/rewriter.cpp` as a last resort, and recorded with
+`TrustId::THEORY_REWRITE_EXEC`; six rules carried `:exec`. Exploratory work on a
+personal fork — not a release, not a position of cvc5's, and nothing here
+predicts what cvc5 will do. We have not run it.*
+
 ## What we would recommend
 
 1. **E2 first** — it is a corpus run against instrumentation that already

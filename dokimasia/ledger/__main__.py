@@ -27,7 +27,7 @@ CODES = {
 
 SEVERITY_NOTE = (
     "Severity needs the option gate, which this tool does not compute. Checked\n"
-    "by hand at 16c4001e53: every ARITH_TRANS_* and ARITH_POW2_* rule is behind\n"
+    "by hand at 40a4bb7e4: every ARITH_TRANS_* and ARITH_POW2_* rule is behind\n"
     "`--arith-exp`, and its kinds are rejected outright by illegal_checker when\n"
     "that is off -- which safe mode sets. So those gaps are unrestricted-mode\n"
     "gaps, not safe-mode contract violations."

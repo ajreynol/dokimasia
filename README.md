@@ -12,9 +12,8 @@ Modelled on [anoieu](https://github.com/ajreynol/anoieu), whose subject is
 Eunoia signatures. Dokimasia’s subject is the proof-production C++.
 
 Dokimasia's scope is **cvc5's proofs**, not general cvc5 development. General
-development work and the former child projects now live in
-[Paideia](https://github.com/ajreynol/paideia); that repository is their source
-of truth.
+development work belongs to [Paideia](https://github.com/ajreynol/paideia),
+which is the source of truth for it.
 
 **Performance is out of scope**, including the time and memory overhead of
 producing proofs. That work belongs to

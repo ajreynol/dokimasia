@@ -7,8 +7,8 @@ hygiene standard, the TCB measurement, the CI proposals — is an *instrument* f
 that, and should be judged by how much it moves it.
 
 The boundary is **cvc5's proofs**. General cvc5 development belongs in
-[Paideia](https://github.com/ajreynol/paideia), now the source of truth for the
-former child projects. **Performance is out of scope here**, including
+[Paideia](https://github.com/ajreynol/paideia), which is the source of truth for
+it. **Performance is out of scope here**, including
 proof-production overhead; that is
 [Elaphros's subject in Tachyon](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
 The feedback latency below measures how quickly we find proof gaps, not how
@@ -96,8 +96,9 @@ static analysis says is reachable and what the corpus actually hit.
 
 ## Is there a paper in it?
 
-**Yes, and not yet** — the stance for this repository. The former child projects
-answer the same question in their own charters, now maintained in
+**Yes, and not yet** — the stance for this repository. There is no child
+project in this tree to answer it for; research projects on cvc5's development
+answer it in their own charters, in
 [Paideia](https://github.com/ajreynol/paideia).
 
 The paper would be the one question here that is legible to somebody who has

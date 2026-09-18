@@ -28,6 +28,7 @@ the [front page](../README.md#what-the-analyzer-checks); the individual claims a
 | ✅ | `GATE` | **option gates** | which option must be on for a term kind — and so a rule — to occur, so severity can be computed instead of guessed |
 | ✅ | `FRAG` | **the supported fragment** | which term kinds may appear per theory under safe mode — and do the three enforcement mechanisms actually cover it? |
 | ✅ | `SIG` | **signature agreement** | do the rules and skolems cvc5 can print exist in the Eunoia signature, and does its own documentation match? |
+| ✅ | `LATENT` | **the latent set** | of the holes the facets above declare, which has no input behind it — the static inventory minus what a corpus reached |
 | ○ | `KRN` | **kernel obligations** | see [the wishues](kernel.md) |
 
 Two of these — the ledger's arity column, and severity derived from reachability

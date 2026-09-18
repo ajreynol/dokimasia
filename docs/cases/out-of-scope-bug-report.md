@@ -81,15 +81,15 @@ forgotten.
 The change is small and is the whole point: **the response is an artifact, and
 the delta between it and the triage is the thing worth keeping.** Not the
 issue, not the fix — the difference between what an assistant concluded and what
-a maintainer did. The work to record and learn from it now lives in Paideia;
-its current status is recorded there.
+a maintainer did. The work to record and learn from it belongs to Paideia,
+which carries its status.
 
 ## Verdict
 
 | | |
 | --- | --- |
 | **never** — for the issue itself | #12905 is not ours. No id, no register row, no report. The only work it earns is confirming it produces no proof hole |
-| **carry — to ourselves** | the routing decision; [Empeiria in Paideia](https://github.com/ajreynol/paideia/tree/main/tools/empeiria) now holds the general bug-work question |
+| **carry — to ourselves** | the routing decision; [Empeiria in Paideia](https://github.com/ajreynol/paideia/tree/main/tools/empeiria) holds the general bug-work question |
 | what would change it | the reproducer turning out to produce a trust step or an unhandled rule, which would make it partly a proof bug and partly ours |
 
 **What we are not claiming.** We have not run the reproducer. The

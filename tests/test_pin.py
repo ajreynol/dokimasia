@@ -11,6 +11,7 @@ Run: python3 tests/test_pin.py [<cvc5>]
 import json, os, re, subprocess, sys
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
+sys.path.insert(0, ROOT)
 LOCK = os.path.join(ROOT, "scripts", "cvc5.lock")
 FAILURES = []
 
@@ -21,6 +22,22 @@ def check(label, got, want):
     if not ok:
         print(f"       got {got!r}, want {want!r}")
         FAILURES.append(label)
+
+
+def documents():
+    """Every written document, front page and plan included, as repo-relative paths.
+
+    `docs/` is walked rather than listed: a filed finding and a case study are
+    the documents a cvc5 maintainer actually opens, and a guard that stops at
+    the top level passes on the tree while leaving those two unread.
+    """
+    found = ["README.md", "TODO.md"]
+    for base, _dirs, names in os.walk(os.path.join(ROOT, "docs")):
+        for name in sorted(names):
+            if name.endswith(".md"):
+                rel = os.path.relpath(os.path.join(base, name), ROOT)
+                found.append(rel.replace(os.sep, "/"))
+    return sorted(found)
 
 
 def test_lock():
@@ -44,26 +61,36 @@ def test_docs_agree(d, allowed, scoped=None):
     """
     short = d["commit"][:9]
     stale = []
-    for sub, names in (("", ["README.md", "TODO.md"]), ("docs", None)):
-        base = os.path.join(ROOT, sub) if sub else ROOT
-        for name in (names or sorted(os.listdir(base))):
-            if not name.endswith(".md"):
+    for rel in documents():
+        with open(os.path.join(ROOT, rel), encoding="utf-8", errors="ignore") as fh:
+            text = fh.read()
+        # a bare 9-12 hex run in backticks is a commit reference
+        for m in re.finditer(r"`([0-9a-f]{9,12})`", text):
+            c = m.group(1)
+            if c.startswith(short[:9]) or c in allowed:
                 continue
-            path = os.path.join(base, name)
-            if not os.path.isfile(path):
+            if (scoped or {}).get(c) == rel:
                 continue
-            with open(path, encoding="utf-8", errors="ignore") as fh:
-                text = fh.read()
-            # a bare 9-12 hex run in backticks is a commit reference
-            for m in re.finditer(r"`([0-9a-f]{9,12})`", text):
-                c = m.group(1)
-                rel = f"{sub}/{name}" if sub else name
-                if c.startswith(short[:9]) or c in allowed:
-                    continue
-                if (scoped or {}).get(c) == rel:
-                    continue
-                stale.append(f"{rel}:{c}")
+            stale.append(f"{rel}:{c}")
     check("no document quotes an unpinned commit", sorted(set(stale)), [])
+
+
+def test_printed_claims(d):
+    """A hand-check the analyzer prints names a commit too, and the same rule binds it.
+
+    The ledger's severity note is the one claim in this repository that is
+    published by running the tool rather than by committing a document, so the
+    document scan above never sees it. It went a month naming a fork commit no
+    reader could fetch.
+    """
+    from dokimasia.ledger.__main__ import SEVERITY_NOTE
+
+    cited = re.findall(r"\b([0-9a-f]{9,12})\b", SEVERITY_NOTE)
+    check("the severity note still cites the commit it was checked at",
+          bool(cited), True)
+    for c in cited:
+        check("the ledger's severity note names the pinned commit",
+              c, d["commit"][:len(c)])
 
 
 def test_checkout(root, d):
@@ -89,7 +116,14 @@ if __name__ == "__main__":
         check(f"exception {c} states a reason", bool(why and len(why) > 20), True)
     for c, only in scoped.items():
         check(f"historical {c} is scoped to one document", bool(only), True)
+    # The scan below is only worth its green if it reached the documents most
+    # likely to quote a commit: the filed findings and the case studies.
+    docs = documents()
+    check("the scan reaches documents below docs/",
+          all(any(p.startswith(sub) for p in docs)
+              for sub in ("docs/findings/", "docs/cases/")), True)
     test_docs_agree(d, set(allowed), scoped)
+    test_printed_claims(d)
     root = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("CVC5")
     if root and os.path.isdir(os.path.join(root, ".git")):
         test_checkout(root, d)

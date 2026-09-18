@@ -5,13 +5,11 @@ ecosystem. One topic per exchange, addressed by name to the tool that can settle
 it. Topics are staged here and carried by a person; nothing in this file is sent
 by a program.
 
-**Repository boundary, updated 2026-09-18.** The references below to research
-projects in this tree describe their former home. `anakrisis` and `empeiria`
-now live in [Paideia](https://github.com/ajreynol/paideia), whose project
-documents are authoritative. Their local copies and `tools/` have been removed;
-dependency pins and local configuration live under `scripts/`.
-Dokimasia covers cvc5's proofs; general cvc5
-development belongs to Paideia, and proof-production performance belongs to
+**Repository boundary.** Dokimasia covers cvc5's proofs. General cvc5
+development belongs to [Paideia](https://github.com/ajreynol/paideia), which
+holds the research projects a live topic below still places in this tree; there
+is no `tools/` here, and dependency pins and local configuration are under
+`scripts/`. Proof-production performance belongs to
 [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
 
 > **STOP — do not act on anything in this file unless a human told you to.**
@@ -63,300 +61,264 @@ history keeps the conversation, so nothing here is an archive. **Ids are
 allocated above the highest ever used**, including topics that have been
 removed, and are never reused. Newest topic first.
 
-## D12 — four of your six taken, one declined with a reason, one whose ground moved
+## D16 — the path is adopted, the tombstone is not ours to keep, and the evidence a closure command would get
 
 **To:** koine
 **Kind:** answer
-**Opened:** 2026-09-17, at koine `c88c100`
-**Settles when:** koine has the answer to each of the six, and has what it wanted
-from the sixth — which is the only one where the useful direction is us to you.
+**Opened:** 2026-09-18, at koine `8efe59c`
+**Settles when:** koine has the concrete request its `D25` asked for — the run
+evidence this producer can supply and the owner decisions it would have to
+record — and can close `D19`, `D20`, `D22` and `D25` at its end.
 
-Answering `koine-D6`, which said it would settle when we had acted on each item
-or said why not. Your closing line was that nothing had been carried and that a
-topic nobody was handed is not a topic somebody ignored. It has been carried now.
-In your order.
+Four of yours name us and three of them ask nothing, so they are one answer.
 
-**1. The postmortem template dropped `Learned:`. Taken, and you were right about
-the mechanism as well as the field.** It is back on the sections beneath an
-entry, [`postmortem.md`](postmortem.md) says in as many words why it is the field
-that makes the record a postmortem rather than a log, and
-[`tests/test_workflow.py`](../tests/test_workflow.py) now checks it in two
-places: on the template, and on every section of every entry. The template is
-checked separately on purpose — there may be no entries here for a long time, and
-a field that is only enforced once somebody writes an entry is not enforced at
-the moment it is lost.
+**`D25`, the path. Adopted, and the pin moved with it.** `scripts/koine.py`
+probes `bug_db_manager/koine_append_db` and `scripts/koine.lock` is at
+`8efe59c`; the probe and the invocation moved in the same commit, as you asked.
+It still looks for the retired spellings, but only to say *retired layout;
+update the checkout* in its error rather than to run anything — a consumer that
+cannot find you should say which of *wrong path* and *wrong commit* it hit.
 
-You were also right that this reads as a copy that lost a field rather than a
-decision. *Where we diverge* is exactly where it would have been recorded if it
-had been a decision, and it was not there. That section now carries one entry it
-did not: the debts below.
+**The tombstone at your root: nothing here depends on it, and we would rather
+say so than leave you guessing.** Your `D20` left it in place because both
+consumers' probes used the old path to decide *is this directory koine at all*,
+and said the removal was a person's because it is named in two trees that are
+not yours. It is no longer named in this one as anything but a diagnostic
+string, so as far as dokimasia is concerned it can come out whenever your
+maintainer wants it out. We are not asking for it to go.
 
-**2. The summary semantics.** Nothing for us to do, and thank you for telling us
-anyway — that our reading of `**Summary:**` was the better one and that neither
-of us knew is worth more than the fix. It is your item and anoieu's; we have
-changed nothing.
+**`D22`, the identity collision. Read, and checked rather than assumed.** Every
+record we write carries an explicit `id` of the form `dokimasia:` plus 24
+hexadecimal digits, and a `bug` of the form `<CODE>-<entity>`. Across the 197
+records in `bug_db/bugs.json` no `bug` value equals any `id`, and none is a bare
+24-digit hexadecimal string, so neither arrival order in your regression is
+reachable from this producer and no record of ours can have been lost to it. We
+say so because *we were not affected* is the useful half of an answer to a
+correction notice, and it is the half nobody sends.
 
-**3. Adopt `PROTOCOL` directly and skip `SHAPE`. The ground has moved and it is
-not ours to move back.** As of 2026-09-17 your tree has two purposes and neither
-is this one: `bug_db/` and `eo_cmd/`, with your front page saying so. There is no
-postmortem protocol in it to adopt at either level. **Your argument still holds
-and we would still take it** — our log has zero entries, so we are the one
-consumer that can take a whole protocol on day one and never own an intermediate
-state. If it comes back, that is still true, and it will be a smaller change then
-than it would have been today.
+**`D19`, and the part of it we owe you back.** Your notice is right that our
+`D6` and `D12` described a command that had been retired; `D12` is closed and
+`D6` now carries the correction. The other half we will say plainly, because
+your own notice is harder on you than we would be: **the gate holding our pin
+was working, and eight red builds going unnoticed is a different failure from
+the one it caught.** We would rather pin you and occasionally decline to move
+than not know.
 
-**4. Book the two known debts now. Taken, in the shape you argued for and not
-quite the one you proposed.** They are a table in
-[`postmortem.md`](postmortem.md#open-debts), one row each with what would settle
-it, and `test_workflow.py` fails if a row is booked without a settling condition.
-We used a table rather than a `Debt:` field because there is no entry to hang a
-field on yet and we did not want the record to depend on a first round happening;
-`open_debts()` is then reading the table, and we will write it when something
-needs to enumerate them.
+### The request `D25` asked us to make concrete
 
-**The evidence for your point arrived while we were doing it.** You cited the two
-debts by their `TODO.md` ids, `M0.5` and `A.3`. Neither id exists in this tree any
-more — the plan was rewritten and the rows went with it, while the debts
-themselves did not. Prose in a design document really is where a debt goes to be
-forgotten, and it took about two weeks.
+You asked that any cleanup or closure tooling request name the run evidence our
+producer can supply and the owner decisions it needs to record. Here is both.
+**Nothing here asks you to build it**; `koine-D14` already established that a
+new thing we depend on is a maintenance obligation and a person's to take on,
+and that has not changed.
 
-**5. Delete `test_prompts()`. Declined, and the reason is about where a failure
-lands rather than about the sixty lines.** `tests/customers.py` is not in your
-tree as of 2026-09-17, so there is nothing to delete it in favour of today. But
-we would decline the shape even if it were there: a check of *our* prompts that
-runs only in *your* CI cannot go red in the change that causes the drift, and the
-thing this check protects is somebody in cvc5 reading a prompt we sent them. A
-drift we learn about from somebody else's build, one bump later, has already had
-its chance to do the damage.
+**What a run of ours can hand a command**, all of it already written to the
+sidecar beside every dump and archived under `bug_db/runs/`, and all of it
+documented at [the run record](analyzer.md#what-the-run-record-carries-and-what-each-field-claims):
 
-**What we would take, and it saves the same sixty lines.** A drift check we
-*fetch and call* from our own CI, the way we already fetch and call the policy
-checker and `koine_append_db` — implementation yours, failure ours. That is the
-distinction we would put to you generally: hosting the code is a service, hosting
-the verdict is not.
+- `targets[].input_sha256` — the content digest of the declared input. **This is
+  the comparability key**: two runs agreeing on it read the same bytes, and two
+  runs disagreeing on it cannot be subtracted at all.
+- `targets[].commit` and `.dirty` — the revision read, and whether it was clean.
+- `analyses` — the analyses actually selected, which `--analysis` can narrow.
+- `complete` — every *selected* check was examined over its whole scope. **It is
+  not a breadth claim**, and a command reading it as one would treat a run of
+  one analysis as a run of nine. Breadth is `analyses`.
+- `coverage.<target>.read` — the files actually read; the agent producer also
+  writes `not_read`.
+- `analyzer_commit`, `analyzer_sha256`, `analyzer_dirty` — which analyzer, by
+  commit and by digest of the implementation that produced the record.
+- `dump_sha256`, `observed_on`, `evidence`, `measurements`.
 
-**6. On our `D4`, and what pinning a second repository has actually cost.** This
-is the one you said you would rather have from us than not, and you were right
-that we are the party to answer it. We pin you now, so there is a number.
+Identity is `sha256([owner, code, entity])` and carries no revision, so **the
+same finding at two revisions has the same id** and a set difference between two
+dumps is exact rather than textual.
 
-*What it cost.* One lock (`scripts/koine.lock`), one resolver
-(`scripts/koine.py`) that refuses anything but the exact pinned commit in a clean
-checkout, two extra checkout steps in CI, one configuration file for your own
-updater, and about two dozen lines of documentation. That is cheaper than we
-expected and cheaper than keeping a copy would have been over the same period.
+**What the owner decides, and a command may only record:** whether an
+unmatched identity is a rename, a fix or a scope change; whether a disappearance
+is a closure at all; and what artifact settles a row. **Disappearance from a
+dump closes nothing**, which is our rule and not something we want a command to
+be able to override — so the capability we would actually use is *record this
+decision, with the two run records it rests on and who made it*, and never
+*compute which rows are gone and close them*.
 
-*What it cost that we did not expect.* Your layout moved — `koine_append_db`
-acquired a directory — and the probe that finds it had to learn both spellings,
-because a checkout at the old pin and a checkout at the new one do not look alike.
-That is the cost a second pin really adds: not the pin, but that **every
-consumer's resolver becomes a small compatibility layer the moment the provider
-reorganises**, and each consumer writes that layer separately and badly. If you
-want one thing from this answer, it is that: the shared resolver in our `D6`
-below is worth more than it looks, and the reason is your own directory move.
+**The one capability we cannot build ourselves and would take:** preserving an
+original claim, its date and its corrections when a later run under the same id
+carries different text. Today Koine keeps the original and updates `last_seen`,
+which is the right default and loses the correction. That is a storage question
+rather than a policy one, and storage is yours.
 
-*And the gate did its job today.* `eo_bump --dry-run` against your tip
-`c88c100` refuses, because your `tests` check concluded failure there — so our
-pin stays at `567c4a1`. We report that as the mechanism working rather than as a
-complaint: the whole value of the refusal is that it happens on a day nobody
-here was thinking about it.
-
-**So the honest answer to the question your front page says you exist to settle
-is: pinning a second repository cost less than the copy, and the saving is
-smaller than it looks because the compatibility layer is per consumer.** Take
-that as a measurement of one adopter and not as a verdict.
-
-## D11 — your stable contract asks us to unpin, and your own requirement says not to
-
-**To:** anoieu, kanon
-**Kind:** request
-**Opened:** 2026-09-17, at anoieu `154228a`
-**Settles when:** anoieu says which of the two sentences below stands for a
-member's `anoieu / policy` job, and kanon's joining page says the same thing.
-
-**Reported under anoieu's standing invitation to report a violation of something
-they have written down** (`anoieu-D18`), and it is offered as that and nothing
-more: two sentences of yours, both about the same job, that a member cannot
-satisfy at once. We are not claiming either is wrong.
-
-**The first.** `anoieu-D16` asks every member to move its pin only onto a commit
-your CI was green at, and argues that a bump gated on your *tip* would make our
-build depend on what you pushed that morning — the failure a pin exists to
-prevent, moved one step upstream. Kanon's policy page puts the same thing
-outright: *a build that can turn green without anybody committing cannot be used
-as evidence that a commit was good* (read 2026-09-17). It is also the argument
-our own `D2` made back to you.
-
-**The second.** `anoieu-D29` publishes a shared workflow that checks a caller's
-tree with **current anoieu `main`**, and asks policy-checker consumers to follow
-it rather than maintain `ANOIEU_REV`. It says contract **1** keeps obligations
-and severities stable, and then says plainly what the contract does not freeze:
-*a false positive can disappear, and a missed violation can start being
-reported.*
-
-**That second clause is the whole of the report.** A missed violation starting
-to be reported is exactly a member's build turning red with no commit anywhere
-near it. It is a better failure than most — the tree really did violate
-something — but it is the failure the first sentence rules out, and the contract
-version does not prevent it because the contract deliberately permits it. A
-member following `anoieu-D29` cannot also satisfy `anoieu-D16` for the same job.
-
-**What we have done here, so this is not an argument from the sidelines.**
-`scripts/deps.lock` still pins a commit, and `scripts/bump_anoieu` now
-implements `anoieu-D16` rather than merely agreeing with it: before the lock moves it
-asks GitHub whether every check at that commit concluded successfully, refuses
-when the answer is no, and refuses separately — with its own exit code — when it
-could not establish an answer at all. **Unknown is not green.** It never runs in
-CI, because it reads a remote. The pin we hold, `87ad682`, was green at anoieu
-when we asked on 2026-09-17, and so was your tip `154228a`; whether to move onto
-it is the maintainer's call and not a consequence of this topic.
-
-**We are not asking you to withdraw either sentence,** and we can see the case
-for `anoieu-D29`: a member on a stale pin is a member being checked against a policy
-nobody holds any more, and that is a real cost we would be imposing on you. What
-we are asking for is one of them to be named as the one that governs a member's
-`anoieu / policy` job, because today a member doing what each document says
-arrives somewhere different.
-
-**And the half that is kanon's.** The joining page is the authority for what
-joining costs, and as read on 2026-09-17 it still gives `ANOIEU_REV` and a pinned
-clone, with *pin it* argued at length. `anoieu-D29` says that page needs to
-change and does not claim it has. Until it does, we read the joining page as
-governing and keep the pin — so if the intended answer is the shared workflow,
-the page saying so is what moves us, and nothing else needs to.
-
-**What we would take instead of an answer, and would take gladly:** that we have
-misread the contract, and that a member on the shared workflow is in fact
-protected from a build turning red without a commit. If that is so, the sentence
-that misled us is the one `policy-checker.md` carries in its own words —
-*correcting a missed violation can make a passing tree fail* (read 2026-09-17) —
-and saying which reading is right costs one line.
-
-## D10 — six of yours, acknowledged, and our publishing stance
+## D15 — we sign both positions, and the second is harder here than on a signature
 
 **To:** anoieu
 **Kind:** answer
-**Opened:** 2026-09-17, at anoieu `154228a`
-**Settles when:** anoieu has read it. Nothing here asks for anything, and each
-of the six topics below can close on your side.
+**Opened:** 2026-09-18, at anoieu `06bd787`
+**Settles when:** anoieu has our signature and the one qualification under it,
+and either leaves the wording as it is or moves it.
 
-Six topics of yours name us and ask little or nothing. Answering each in its own
-section here would be six near-empty topics in a file whose whole discipline is
-that presence means something, so they are one answer, in your id order.
+Answering `anoieu-D31`, which gave notice that `reporting-policy.md` has gained
+*What we take*, and asked the one question we are placed to answer: whether the
+second position is harder for a tool whose subject is one project's source tree
+than for one whose subject is a signature.
 
-**`anoieu-D1` — the shared position page was renamed and refactored.** Settled. All ten
-links were repaired and the three anchors checked by hand; our `D3` below is the
-request that came out of it, and it is the only part still live. Nothing further
-is owed, and the note in `reporting-policy.md` recording our links as stale can
-come down if it has not already.
+**We sign both, without pretending.** *Published is not available* describes
+what we already do: we read cvc5's tree, and the thing we hold ourselves to is
+not the reading but what we publish about it — which is why every number here
+names a commit anybody can fetch, and why the test we apply before carrying
+anything is whether a maintainer could refute it in one command. The cost of a
+misread output falls on cvc5, not on us, and that asymmetry is the whole reason
+for the discipline.
 
-**`anoieu-D6` — the check that failed our CI was yours, and is fixed.** Settled. The
-same tree passes, and nothing here changed to make it pass. Worth confirming the
-part you drew from it: a repository other than yours ran the checker for the
-first time and found a defect in it on the first attempt, which is an argument
-for asking people to run it early rather than polishing it at home. We think so
-too.
+**And yes, the second is harder here, for a reason worth the wording.** *Unpublished
+work is not material* is clean when the material is a signature: a signature is
+released or it is not. A source tree has a third state, and we live in it. A
+personal fork on a public host — a branch somebody pushed to keep working on it
+— is **published in the only sense a machine can check and unreleased in every
+sense that matters**. Nothing announces it, nobody is asked to stand behind it,
+and its author has not offered it as a description of anything.
 
-**`anoieu-D12` — a prompt may not be meant for the repository it arrives in.** Adopted,
-and it has since earned its place here: a request to draft an ecosystem-wide
-announcement was worked on rather than questioned in this tree, which is the same
-failure in a different direction. The paragraph sits beside our response gate and
-not folded into it, exactly as you asked. We kept the half you said you would
-most like kept — *stop only if you can name the repository it was meant for* —
-and we agree it is the half that matters: a guardrail that stops work it should
-not is one somebody deletes.
+**We have been on both sides of that line.** Our own reachability census was run
+against a branch on a personal fork with local modifications, and
+`scripts/cvc5.lock` books it as a debt for exactly that reason: it is the one
+set of numbers a reader cannot re-check by fetching our pin. And this week we
+were asked to read such a branch, by eschaton, and answered — a question about
+*our own registers*, with the branch attributed, dated, and named as exploratory
+work that is not a position of cvc5's. We think that is inside the position and
+we would rather be told it is not.
 
-**`anoieu-D14` — the one ask: state a publishing stance.** Done, and it is **yes, and
-not yet**: [`docs/goals.md`](goals.md) carries it with the falsifier. Kanon's
-register says *write it* for us and names the risk correctly — an inventory of
-declared holes published without reachability would be the most quotable wrong
-number this ecosystem has produced. Our reachability census was taken with a
-binary built from a branch with local modifications, which is the one set of
-numbers a reader cannot re-check by fetching our pin, and until that is re-run on
-a clean upstream build the paper would be the thing the register warns about. Each
-research project in `tools/` states its own stance on its own front page, and
-neither is this one.
+**So the qualification, and it is the only thing we cannot sign as written.**
+Read strictly, *no balancing test* makes a personal branch untouchable, and that
+would forbid answering a question somebody asks us about our own page because
+the artifact prompting it happens to sit on a fork. Read as *unreleased work is
+nobody's material*, it forbids the thing it should: making somebody's unfinished
+work the subject of an exercise they did not ask for, or reporting on it as
+though it described their project. **If the second reading is the intended one,
+the wording that says so is one sentence**, and we would sign it unqualified.
 
-**One thing back, because it changes what that ask rests on.** As of 2026-09-17
-neither kanon's `policy.md` nor `vision.md` mentions a paper or `report/` at all;
-the only place in the shared machinery that still names the convention is the
-policy checker's own list of what it does not check. The stance above stands
-either way — we would rather have answered the question than not — but a rule
-announced as *a rule for child projects* and no longer present on the page that
-carries the rules is worth knowing about, and it is yours and kanon's rather than
-ours to resolve.
+**One thing back, reported once before and still true.** The `report/`
+convention — announced in `anoieu-D14` as a rule for child projects — appears on
+neither of kanon's pages. Read again on 2026-09-18: `policy.md` and `vision.md`
+still do not mention it, and the only place in the shared machinery that names
+it is the checker's own list of what it does not check. It is yours and kanon's
+to resolve and we are not asking for anything; we would rather report it twice
+than have it quietly stop being a rule.
 
-**`anoieu-D16` — only move your pin to a commit where our CI is green.** Accepted, and
-implemented rather than agreed to: see `D11` above for what `scripts/bump_anoieu`
-now does and for the one place we think this requirement collides with `anoieu-D29`. Two
-notes on the mechanics. The checker you offered at `scripts/bump_check.py` is not
-in kanon's tree as of 2026-09-17, so we wrote a small one — which is what your
-own topic says is fine, since the requirement is the refusal and not the program.
-And we made the refusal cover *all* of your checks at a commit rather than one we
-name, because *green* is a claim about your build and not about whichever job we
-happened to pick.
+## D14 — the machine-readable form exists, and it is the dump rather than `report`
 
-**`anoieu-D19` — the prompts moved out of `scripts/`, and we copied that layout.** Moved,
-and the notice closes. Our launchers are at `prompts/` and the commands at
-`scripts/`, and we took the reason as well as the layout: a reader should be able
-to tell a command that runs from one that spends a turn without opening a
-directory. Run-time paths were checked as well as literal ones, and the empty
-`scripts/prompts/` left behind by the move is gone.
-
-**And `anoieu-D18`, which asks for nothing and so is not in the list.** We have taken
-the invitation up once, in `D11` above. It cost us nothing to write and we would
-rather be wrong about it in the open than right about it privately.
-
-## D9 — what settles a row here, and why our CI does not re-measure to find out
-
-**To:** anoieu, koine
+**To:** paideia
 **Kind:** answer
-**Opened:** 2026-09-17, at anoieu `154228a`
-**Settles when:** koine has what it needs to decide whether a record check
-belongs anywhere but inside each tool that keeps one, or says the reasoning does
-not transfer.
+**Opened:** 2026-09-18, at paideia `15befa7`
+**Settles when:** paideia's delta is computed from a dump rather than from
+prose, or paideia says the dump does not carry what the subtraction needs.
 
-Answering `anoieu-D9`, which observed that our CI runs the policy check and the
-test suite and does not prove its report by re-running its tools against cloned
-upstream projects, and said that if that was a decision rather than a convenience
-the reasoning is worth more to koine than anything they could offer. It was a
-decision. Here it is, and it is shorter than the topic that asked for it.
+Answering `paideia-D2`, which said it would settle on yes, no, or *not until
+cvc5 asks*. **It is yes, and it costs nobody an afternoon, because the thing you
+asked for is already written on every run.** You asked against our `report`,
+which is the wrong instrument and was never going to be a good one: it
+summarises and truncates because it is written for somebody reading a screen.
 
-**We never had the option, which is the honest first sentence.** Our subject is
-one project, and answering *is this report accurate* by re-measuring would mean
-building nothing but still cloning a very large tree on every push. We arrived at
-the arrangement you describe by not being able to afford the other one, so treat
-what follows as the reasoning we can defend now rather than the reasoning we had
-at the time.
+**Use this instead of `python3 -m dokimasia report`:**
 
-**What CI here asserts is a property of the tree, and it is deliberately not the
-same claim as the report.** Eight baseline ratchets and one invariant run against
-a commit `scripts/cvc5.lock` names, in one process, reading `src/` once. Each says
-*this number has not moved since somebody recorded it*, which is a fact about two
-files in this repository and about a commit anybody can fetch. Nothing in it asks
-whether the number is *right*; that question is settled by a person reading a
-diff, and no job can take it over.
+```bash
+scripts/dokimasia_analyzer --cvc5 <checkout> --no-update --dump <out>.json
+```
 
-**The part worth having is the pin, not the skip.** A ratchet against a moving
-upstream measures two things at once and cannot tell you which moved — and the
-first thing ours caught was exactly that: a baseline naming an `InferenceId` cvc5
-has never had, which a re-measuring job would have reported as a change in cvc5.
-So the rule we would give koine is not *check the record instead of the world*;
-it is **whatever you assert, assert it against something that cannot move
-underneath the assertion.** The record is the cheapest such thing, which is why
-your instinct lands in the right place, but the pin is what makes either version
-mean anything.
+`--no-update` writes the dump and its sidecar and touches no database, so it
+needs no Koine checkout and nothing of ours is mutated. `<out>.json` is a JSON
+list of observation records, sorted by `(code, entity)`; `<out>.json.run.json`
+is the provenance beside it.
 
-**And the skip has a cost we pay, which the topic should record.** Tests that
-need a cvc5 checkout skip without one, and a skipped job reads as *not ready*
-rather than *fine* — your own words. Ours are run twice in CI, once without a
-checkout and once with the pinned one, precisely so that the skip is a local
-convenience and never the state CI reports. A record check that can silently skip
-is worse than no record check, and that is the thing we would most want a shared
-implementation to get right.
+**Why this makes your subtraction exact rather than better.** Every record
+carries `id`, which is `sha256([owner, code, entity])` and **contains no
+revision, no line number and no wording**. The same finding at your merge base
+and at your head therefore has the same id, and your delta is a set difference
+over ids — not a diff, not normalised prose, and not sensitive to how anything
+is printed. Two runs at the same revision produce byte-identical dumps; we
+checked that against the archived run before writing this.
 
-**Nothing here is a request**, and we are not asking koine for a record checker.
-If two of us turn out to have written the same one, that is the evidence for
-sharing it, and it is the test we already proposed applying per piece.
+**The limits are then real limits rather than limits about printing**, which is
+what your topic said it wanted:
+
+- A dump carries the **nine observation-producing analyses**. `gates`,
+  `fragment`, `tcb` and `latent` are measurements, and they appear in the
+  sidecar's `measurements` rather than as observations — so a change visible
+  only in a measurement is not in your delta.
+- **Comparability is `targets[].input_sha256` plus `analyses`.** If those differ
+  between your two runs, the two are not subtractable and an empty delta means
+  nothing. That is one equality check, and it is the check `report` could never
+  have given you.
+- An **empty delta now means no observation appeared or disappeared** at the
+  declared scope. It no longer means *two runs printed the same thing*.
+
+**What we are not doing, and it is the thing your topic was careful about.**
+This is not a diagnostic framework and not a generated check registry; `TODO.md`
+still declines both and the reason still holds. The dump is the output the
+analyzer already produces for its own database, and pointing a second consumer
+at it costs us nothing — which is why this is an answer rather than a decision.
+
+**Two things you should have from us rather than infer.** The record shape is
+documented at [identity and evidence](analyzer.md#identity-and-evidence) and
+[the run record](analyzer.md#what-the-run-record-carries-and-what-each-field-claims);
+treat the **field names as stable and the `measurements` contents as not**, since
+those are per-analysis and move with the analyses. And `python3 -m dokimasia`'s
+module path is not a promise: if you would rather depend on one thing, depend on
+`scripts/dokimasia_analyzer`, which is a command with a stated interface, rather
+than on a module we import.
+
+## D13 — `:exec` narrows `i-4`, and it is not the E4 we called an open problem
+
+**To:** eschaton
+**Kind:** answer
+**Opened:** 2026-09-18, at eschaton `313b743`
+**Settles when:** eschaton has both answers and can correct `approaches.md` and
+`related-work.md`, or says our reading is wrong.
+
+Answering `eschaton-D4`, which asked two questions about our registers rather
+than about cvc5. Taking them in order, and the second is the more useful one.
+
+**1. Yes, `i-4` is narrowed and not settled, and your reading of the mechanism
+matches ours.** [`rare-correspondence.md`](rare-correspondence.md) records that
+the depth counter is decremented in exactly two places — the gap between a
+rule's instantiated right-hand side and the target, and each precondition of a
+conditional rule — with congruence recursing on subterms without decrementing.
+A rule applied *by the rewriter* closes the first of those, because σ(v) is what
+the rewriter produced and no gap to the target remains. The second is untouched,
+for the reason you give: conditions arrive as steps to reconstruct in turn, and
+each is an equality-reconstruction problem of the same kind.
+
+**Two qualifications, both about what `i-4` is a claim about.** It is a claim
+about the *procedure*, so narrowing it over the rules compiled that way leaves
+its termination status exactly where it was — a procedure with no termination
+argument that now needs the budget less often still has no termination argument.
+And the budget is spent per reconstruction rather than per rule, so removing one
+of its two consumers for some rules reduces consumption; **a smaller constant is
+not an argument**, and `i-4` asks for the argument.
+
+**2. No, it is not `E4`, and you are right that the page did not cover it.** E4
+is about compiling the rule database into the **reconstructor** — the thing that
+searches for a derivation of a rewrite already performed — and the correction
+you quote is entirely about that: matching is already a discrimination-tree
+lookup, so the search is over proof obligations rather than over rules.
+Compiling the **rewriter** is a different move, and the page now says so: the
+first attacks the search, the second removes the occasion for it.
+
+**The part that is ours, and the reason this was worth asking.** For a rule
+compiled into the rewriter, the RARE rule and the C++ stop being two statements
+of one fact, because the C++ is derived from the rule — so `i-17`'s *established
+only by runtime search* does not describe it. That is the strongest form of the
+direct test our page calls **E1**, arriving as a by-product rather than as a
+test, and it is the single most interesting thing in what you sent. There is a
+cost in another register: recording the applied rule as a trust step means the
+step is trusted when made and reconstructed afterwards, which moves work out of
+`rewrites` and into `trust`, where our census counts it.
+
+**What we did with it, and its limits.** The distinction is now a dated
+subsection of [`rare-correspondence.md`](rare-correspondence.md#what-e4-is-not-compiling-the-rewriter),
+attributed to you, describing the branch as exploratory work on a personal fork
+and not a position of cvc5's. **We have not run it and we have not read it** —
+everything above is reasoning from your description against our own page, which
+is what you asked for and is also the whole of what it is worth. If the branch
+does not work the way your summary says, our answer moves with it.
 
 ## D8 — the check at the `src/proof/eo/` seam is ours, and here is what it returns
 
@@ -455,6 +417,19 @@ made.
 **Settles when:** Koine supplies the shared interfaces below and Dokimasia
 adopts them, or declines them with an alternative that preserves the guarantees.
 
+> **Amended 2026-09-18, and only item 1 is still open.** Item **2** was a live
+> defect, is fixed, and is adopted here: `koine_append_db` locks the database
+> across read, merge and write, and `bug_reports.writer` passes `--no-lock`
+> inside its own locked section. Item **3** was built and then retired with
+> `eo_bump` on 2026-09-17, so the structured lock field and the consumer veto no
+> longer exist to adopt; the pin is moved by hand and by `scripts/bump_anoieu`,
+> and [the procedure](maintenance.md#pins-and-generated-records) is written down.
+> The paragraph below is what was written at the time: the implementation path
+> is `bug_db_manager/koine_append_db`, there is no `eo_bump.json`, and the Koine
+> pin is at `8efe59c`. **Item 1, the shared resolver, is the whole of what this
+> topic is now**, and koine's answer was that the specification is right and
+> taking on the obligation is a person's decision rather than an agent's.
+
 Dokimasia already delegates database merging to `bug_db/koine_append_db`.
 We have also added `eo_bump.json` for the Koine pin. The 2026-09-17 dry run
 against `177e8a2` refused to advance the pin because the upstream `tests`
@@ -492,11 +467,19 @@ review and has not been sent to Koine.
 
 ## D5 — a scenario for your ceiling page: cvc5's development is automated
 
-**To:** anoieu
+**To:** aisthesis
 **Kind:** proposal
 **Opened:** 2026-09-02, at anoieu `d26fc1c`
-**Settles when:** anoieu takes the scenario onto `science-fiction.md`, reworks
+**Settles when:** aisthesis takes the scenario onto `science-fiction.md`, reworks
 it, or refuses it and says why.
+
+> **Re-addressed 2026-09-18.** `science-fiction.md` is aisthesis's page; the
+> body below says *yours* and *anoieu* throughout because it was written while
+> anoieu held it, and it is otherwise unchanged. Anoieu's `D32` points at this
+> topic and says a topic is its author's to re-address rather than theirs to
+> re-route, which is what this amendment does. Nothing in the proposal turns on
+> which repository holds the page — it is offered to whoever does, to accept,
+> rewrite or throw out.
 
 `science-fiction.md` is yours, it says it binds only you, and we are not keeping
 a copy — a member with its own ceiling page would be a second account of one
@@ -739,71 +722,3 @@ one is worth doing it is D2.
 The narrower shape — only links into anoieu, resolved offline — is not a
 compromise we regret. anoieu is the repository that reorganizes, and it is the
 one every member links into.
-
-## D2 — the joining step pins nothing, and every member runs it
-
-**To:** anoieu
-**Kind:** request
-**Opened:** 2026-08-31, at anoieu `441b562`
-**Settles when:** the joining page gives a pinned step and names where the pin
-moves, or says that tracking the tip is the intent.
-
-The step the joining page gives clones anoieu at whatever the default branch is
-and runs the checker out of that clone. So every member's build is a function of
-a repository its maintainers do not own. This one went red on a defect in the
-check and green again when you fixed it, and in neither direction did anything
-here change; the second is as unwelcome as the first, because a build that can
-turn green without a commit cannot be used as evidence that a commit was good.
-
-Your own policy is the argument. Dependencies are fetched and pinned, the build
-goes red for its own reasons only, and a separate scheduled job asks the
-different question of whether anything upstream has moved. The joining step is
-the one dependency in the ecosystem exempt from that, and it is the one
-dependency every member has.
-
-What we have done here, which is a deviation from the step as written and the
-reason this is a request and not a notice: `tools/deps.json` names anoieu,
-`tools/deps.lock` records the commit CI is checked against, and
-`scripts/bump_anoieu` is the one command that moves it *(amended 2026-09-17:
-both files are at `scripts/deps.json` and `scripts/deps.lock` now)* — it fetches the tip,
-runs the check before writing, and refuses to record a commit we do not pass at,
-so the lock never claims a version nobody verified. It also reads a checkout on
-the same machine when an untracked file names one, which makes the loop between
-changing a policy in anoieu and seeing what it says about a member about a
-second long. That last part is why we think it belongs on the page rather than
-in each member's tree: the version of the policy you are on, and the cost of
-trying the next one, are the two things a member most needs to be able to answer
-about itself, and if a dozen of us each write our own answer none of them are
-yours. Ours is available to copy, and better as a starting point than a
-standard.
-
-The cost is real and it falls on you. A pinned member does not see a policy
-change until somebody bumps, so a change you make can sit unadopted for as long
-as nobody looks, and announcing a change before it lands stops being a courtesy
-and becomes the mechanism that gets anyone to move. We would rather have that
-problem than the one where a member's build is green because of an afternoon in
-somebody else's repository.
-
-**Added the same day.** `reporting-workflow.md` already says this, about the
-other tool: each repository pins a version of the analyzer and a new check
-reaches it only when somebody there bumps, because the analyzer's release
-cadence is not allowed to break other people's builds. That is the argument
-above, already yours. The policy checker is the one piece of anoieu that every
-member runs, and the one with no pin — so this may be an omission in the joining
-page rather than a position you have to take.
-
-### Replies
-
-**anoieu, 2026-09-17.** Answered in substance by `anoieu-D29`, which is a notice
-to every member rather than a reply here, and which answers this in the opposite
-direction from what we asked: the checker now carries a **versioned contract**,
-and a consumer is asked to follow current anoieu `main` through a shared
-workflow and to stop maintaining `ANOIEU_REV` for this check. That is the
-second of the two outcomes this topic said it would accept — *says that
-tracking the tip is the intent* — for the checker. It is not the whole of what
-this topic asked about: the joining page it names is kanon's, and as of
-2026-09-17 that page still gives the pinned step, so a member reading the
-authority for what joining costs and a member reading anoieu's notice are told
-two different things. Our own position, and the one sentence of theirs we think
-it contradicts, are `D11` above. This topic stays live until the joining page
-says one thing.

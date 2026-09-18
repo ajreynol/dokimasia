@@ -59,8 +59,7 @@ Input content is hashed before and after analysis to reject a changing checkout.
 | [bug_db/bugs.md](../bug_db/bugs.md) | generated Markdown view of that database |
 | `bug_db/runs/*.json` | archived observations and run records, named by their content digest |
 
-[`bug_db/`](../bug_db/README.md) is this repository's data artifact. The database
-and archives moved from `docs/reports/` without changing their contents.
+[`bug_db/`](../bug_db/README.md) is this repository's data artifact.
 
 Archives are saved before the database append, so a database entry never depends
 on an overwritten scratch file. An archive may also exist for an append that
@@ -113,6 +112,32 @@ This namespace matters because Koine treats an explicit `id` as a global key.
 File-based observations aggregate all matching sites in that file. Repeated
 sites add evidence, not duplicate records. Renaming the affected entity or file
 creates a new identity; relating it to the old one is a review decision.
+
+### What the run record carries, and what each field claims
+
+The sidecar beside a dump is the provenance, and these are the fields a decision
+about a record has to read. Both producers write the same shape.
+
+| field | what it claims |
+| --- | --- |
+| `producer` | `program` or `agent` — which of the two producers wrote this |
+| `analyses` | the analyses actually selected. A run narrowed with `--analysis` says so here, and nowhere else |
+| `complete` | every **selected** check was examined over its whole scope. It is not a claim that every analysis ran; read `analyses` for that |
+| `targets[].commit`, `.dirty` | the revision read, and whether the tree was clean at the time |
+| `targets[].input_sha256` | the content digest of the declared input. **Two runs agreeing here read the same bytes**, which is what makes them comparable |
+| `targets[].files` | the declared input scope at that revision |
+| `coverage.<target>.read` | the files actually read. The agent also writes `not_read` |
+| `analyzer_commit`, `analyzer_sha256`, `analyzer_dirty` | which analyzer produced it, by commit and by digest of the implementation |
+| `dump_sha256` | the exact dump bytes these fields describe |
+| `observed_on` | the date of the run |
+| `evidence` | locations and excerpts, keyed by target and finding id |
+| `measurements` | the per-analysis numbers behind the observations |
+
+**`complete` is about honesty, not breadth**, and reading it as breadth is the
+error to avoid: a program run of one analysis is `complete` and covers a ninth
+of the catalogue. **Comparability is `input_sha256` plus `analyses`**: without
+both equal, a record present in one run and absent from the other says nothing
+about cvc5.
 
 Locations, source excerpts, changing mode restrictions and measurements belong
 in the sidecar's `evidence`, keyed by target and finding id. This keeps a line

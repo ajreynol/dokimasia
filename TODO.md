@@ -13,8 +13,8 @@ named argument, not a task.
 ## Reporting transition
 
 The former reporting policy and workflow are **deprecated (2026-09-18)**,
-following Anoieu. The data artifact now lives in [`bug_db/`](bug_db/README.md),
-with a generated [Markdown view](bug_db/bugs.md). The formal lifecycle,
+following Anoieu. The data artifact is [`bug_db/`](bug_db/README.md), with a
+generated [Markdown view](bug_db/bugs.md). The formal lifecycle,
 reviewed-record migration and evidence-based closure support remain
 [pending](docs/maintenance.md#replace-the-deprecated-reporting-workflow).
 
@@ -189,9 +189,27 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
   release, not per change.
 - **The pin must be upstream.** Every published number names a commit on
   `cvc5/cvc5 main`, so anyone can fetch it and re-check us. `tests/test_pin.py`
-  fails if a document quotes a commit the lock does not account for. Numbers
-  that genuinely cannot be taken at the pin — a runtime measurement needs a
-  build — are listed as debts in the lock, with a reason.
+  fails if a document quotes a commit the lock does not account for — every
+  document under `docs/`, the filed findings included, and the one claim the
+  analyzer prints rather than commits. Numbers that genuinely cannot be taken at
+  the pin — a runtime measurement needs a build — are listed as debts in the
+  lock, with a reason.
+- **Assert against something that cannot move underneath the assertion.** That
+  is what the pin buys, and it is why the ratchets never measure a moving
+  upstream: a ratchet against a branch tip measures two things at once and
+  cannot say which moved. The first thing ours caught was exactly that — a
+  baseline naming an `InferenceId` cvc5 has never had, which a re-measuring job
+  would have reported as a change in cvc5.
+- **A check that can silently skip is worse than no check.** Tests needing a
+  cvc5 checkout skip without one, so CI runs the suite twice — once with no
+  checkout and once with the pinned one — and the skip is never the state CI
+  reports. Where a check can only be meaningful at the pin, it says it is
+  skipped and names the revision it found instead of passing quietly.
+- **Hosting the code is a service; hosting the verdict is not.** A check of our
+  work that runs only in somebody else's CI cannot go red in the change that
+  causes the drift. Where another repository offers one, we fetch and call it
+  from our own CI — the way we already fetch the policy checker and
+  `koine_append_db` — and keep the failure here.
 - **A finding is confirmed before it is filed**, and for a defect that means an
   input ([`docs/findings.md`](docs/findings.md)).
 - **A false positive is our bug**, including a retracted number and a fabricated
@@ -206,8 +224,8 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
 
 ## Deliberately not doing
 
-- **General cvc5 development.** That work and the former child projects belong
-  to [Paideia](https://github.com/ajreynol/paideia), whose copies are authoritative.
+- **General cvc5 development.** That work belongs to
+  [Paideia](https://github.com/ajreynol/paideia), which is authoritative for it.
 - **Performance work**, including proof-production overhead. That belongs to
   [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
 - **Fuzzing.** [murxla's job](docs/tooling.md#posture-toward-murxla). What we can
@@ -220,6 +238,10 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
   and the check-code namespace is not currently carrying weight — most tools
   answer their question without printing a code. Revisit if we ever ask cvc5 to
   run our checks in their CI (**R11**), which is when a machine format matters.
+  **This is not the same as machine-readable output, which exists**: the
+  analyzer dump is a JSON list of observation records whose ids carry no
+  revision, and a second consumer reads it. A tool wanting our findings as data
+  wants `--no-update --dump`, not a framework.
 - **A `holes/` regression corpus**, until there is a hole to put in it. Safe mode
   reaches none.
 - **An AST tier**, until the table tier is exhausted and **R1** has been asked

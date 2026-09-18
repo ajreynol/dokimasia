@@ -6,7 +6,7 @@
 > A formal replacement using Koine's shared tooling is pending; see the
 > [replacement work](maintenance.md#replace-the-deprecated-reporting-workflow).
 
-Dokimasia's run history now lives in [`bug_db/`](../bug_db/README.md).
+Dokimasia's run history is in [`bug_db/`](../bug_db/README.md).
 Reviewed verdicts and retractions remain in the existing registers during the
 transition. The text below records the former policy and its reasoning;
 deprecation does not authorize automatic upstream publication.

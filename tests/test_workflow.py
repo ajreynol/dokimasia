@@ -7,7 +7,9 @@ somebody in cvc5 reading a prompt they were sent. So the document is the
 definition and this compares the scripts to it, in every form either can take.
 
 The postmortem log's own shape is checked here too -- the half of it a reader
-cannot enforce by reading, since a convention nothing checks is a wish.
+cannot enforce by reading, since a convention nothing checks is a wish. So is the
+check catalogue against the index that quotes its size, for the same reason: a
+count in a second document is a copy, and a copy nobody re-counts drifts.
 
 Run: python3 tests/test_workflow.py
 """
@@ -21,6 +23,8 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WORKFLOWS = os.path.join(ROOT, "docs", "workflows.md")
 POSTMORTEM = os.path.join(ROOT, "docs", "postmortem.md")
+CHECKS = os.path.join(ROOT, "docs", "checks.md")
+INDEX = os.path.join(ROOT, "docs", "README.md")
 
 SWEEP = "-- or, for the sweep form --"
 BLOCKS = "-- or, for every block --"
@@ -190,9 +194,36 @@ def test_postmortem():
                   len(re.findall(r"[.!?](?:\s|$)", s)) <= SENTENCES, s[:80])
 
 
+def test_facets():
+    """`docs/checks.md` is the register of facets; the index quotes its size.
+
+    Two copies of one fact, and the smaller one is the one nobody re-counts: the
+    index said sixteen while the catalogue carried seventeen rows and an
+    eighteenth facet was publishing results with no row at all. So the count is
+    read from the catalogue rather than trusted, and every prefix that reports a
+    measurement must be a prefix the catalogue declares.
+    """
+    print("\nthe check catalogue:")
+    words = {13: "thirteen", 14: "fourteen", 15: "fifteen", 16: "sixteen",
+             17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty"}
+    text = read(CHECKS)
+    catalogue = re.findall(r"^\| [✅◐○] \| `([A-Z]+)` \|", text, re.M)
+    produced = re.findall(r"^\| `([A-Z]+)` \| `dokimasia\.[a-z]+` \|", text, re.M)
+    check("the catalogue was found at all", len(catalogue) > 5,
+          f"{len(catalogue)} rows")
+    undeclared = sorted(set(produced) - set(catalogue))
+    check("every facet with a result has a catalogue row", not undeclared,
+          f"{undeclared} report a measurement and are in no row")
+    want = words.get(len(catalogue))
+    check(f"the index says the catalogue's size ({len(catalogue)})",
+          bool(want) and f"the {want} facets" in read(INDEX),
+          f"docs/README.md does not say 'the {want} facets'")
+
+
 if __name__ == "__main__":
     test_prompts()
     test_postmortem()
+    test_facets()
     print()
     if FAILURES:
         print(f"FAILED: {len(FAILURES)}: {', '.join(FAILURES)}")
