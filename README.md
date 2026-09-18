@@ -11,9 +11,22 @@ checks found nothing, and a reported static gap still needs evidence of reachabi
 Modelled on [anoieu](https://github.com/ajreynol/anoieu), whose subject is
 Eunoia signatures. Dokimasia’s subject is the proof-production C++.
 
+Dokimasia's scope is **cvc5's proofs**, not general cvc5 development. General
+development work and the former child projects now live in
+[Paideia](https://github.com/ajreynol/paideia); that repository is their source
+of truth.
+
+**Performance is out of scope**, including the time and memory overhead of
+producing proofs. That work belongs to
+[Elaphros in Tachyon](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
+
 ## Run the analyzer
 
 Python 3.10 or later; no Python dependencies.
+
+Use any cvc5 source checkout, including the latest upstream `main`. The revision
+in [`scripts/cvc5.lock`](scripts/cvc5.lock) is the reference for regression tests
+and historical measurements; it does not restrict what the analyzer can read.
 
 ```bash
 scripts/dokimasia_analyzer --cvc5 /path/to/cvc5 --dry-run

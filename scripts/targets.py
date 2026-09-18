@@ -40,11 +40,11 @@ def checkout(explicit=None):
                 path = Path(parts[1]).expanduser()
                 return (mapping.parent / path).resolve(), str(mapping)
     # The last fallback, and the one a reporting setup may already name.
-    legacy = ROOT / "tools/deps.local.json"
-    if legacy.exists():
-        path = json.loads(legacy.read_text()).get("cvc5", {}).get("path")
+    local_config = ROOT / "scripts/deps.local.json"
+    if local_config.exists():
+        path = json.loads(local_config.read_text()).get("cvc5", {}).get("path")
         if path:
-            return Path(path).expanduser().resolve(), str(legacy)
+            return Path(path).expanduser().resolve(), str(local_config)
     return ROOT / "deps/cvc5", "deps/cvc5"
 
 

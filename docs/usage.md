@@ -1,7 +1,7 @@
 # Developer analysis commands
 
 These examples describe the measurements at cvc5 `40a4bb7e4`, the revision in
-[`tools/cvc5.lock`](../tools/cvc5.lock). Run a command to measure another tree;
+[`scripts/cvc5.lock`](../scripts/cvc5.lock). Run a command to measure another tree;
 the comments are recorded examples, not assertions about current upstream.
 For the collected observation workflow, see [the analyzer guide](analyzer.md).
 

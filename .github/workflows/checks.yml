@@ -30,7 +30,7 @@ jobs:
       - name: generated observation page matches its database
         run: scripts/append_findings --render-only --check
 
-  # The ratchets, against the commit tools/cvc5.lock pins. This is the job that
+  # The ratchets, against the commit scripts/cvc5.lock pins. This is the job that
   # would have caught a baseline naming an InferenceId cvc5 does not have, on
   # the commit that introduced it rather than a month later.
   ratchets:
@@ -48,10 +48,10 @@ jobs:
           persist-credentials: false
       - name: fetch the pinned cvc5
         run: |
-          commit=$(python3 -c "import json;print(json.load(open('tools/cvc5.lock'))['cvc5']['commit'])")
-          repo=$(python3 -c "import json;print(json.load(open('tools/cvc5.lock'))['cvc5']['repo'])")
+          commit=$(python3 -c "import json;print(json.load(open('scripts/cvc5.lock'))['cvc5']['commit'])")
+          repo=$(python3 -c "import json;print(json.load(open('scripts/cvc5.lock'))['cvc5']['repo'])")
           echo "pinned at $commit"
-          branch=$(python3 -c "import json;print(json.load(open('tools/cvc5.lock'))['cvc5']['branch'])")
+          branch=$(python3 -c "import json;print(json.load(open('scripts/cvc5.lock'))['cvc5']['branch'])")
           git init --quiet /tmp/cvc5
           git -C /tmp/cvc5 remote add origin "$repo"
           # GitHub refuses a bare-SHA fetch on most repos, so deepen the branch

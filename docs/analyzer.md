@@ -25,12 +25,16 @@ those checks.
 `--config` supplies an alternative target manifest.
 
 Checkout resolution is: `--cvc5`, `$DOKIMASIA_CVC5`, `$CVC5`, an entry in
-`scripts/repos.local`, a `cvc5.path` in `tools/deps.local.json`, then
+`scripts/repos.local`, a `cvc5.path` in `scripts/deps.local.json`, then
 `deps/cvc5`. The ignored local map contains lines
 like `cvc5 /path/to/cvc5`; relative paths are relative to the map. Override its
 location with `$DOKIMASIA_REPOS_FILE`. An explicitly selected missing checkout
 fails; it never silently switches to another. These commands never fetch,
 build, or change the target checkout.
+
+The analyzer does not use [`scripts/cvc5.lock`](../scripts/cvc5.lock) to select
+or reject a checkout. That file fixes the regression-test reference; analyzing
+the latest cvc5 records the revision and source contents actually read.
 
 `prompts/process_dokimasia` uses this same resolver, with its positional `DIR`
 as the explicit override. Write new configurations in `scripts/repos.local`; the
@@ -164,7 +168,7 @@ question from agreement on this run. Review new agent claims before appending.
 ## The existing record
 
 The initial database is a fresh run at the source revision in
-[`tools/cvc5.lock`](../tools/cvc5.lock), not an import of old prose. The archived
+[`scripts/cvc5.lock`](../scripts/cvc5.lock), not an import of old prose. The archived
 run records its date, source digest, analyzer content digest and revision; a dirty analyzer flag
 means the implementation was still under review when the run was made.
 

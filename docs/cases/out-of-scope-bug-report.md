@@ -54,54 +54,42 @@ badly placed to act on. We run assistants against cvc5 issues already
 what we have
 never done is record what the human answer taught that the assistant missed.
 
-**The options, and why the middle one wins.**
+**The current home is [Paideia](https://github.com/ajreynol/paideia).** The
+original decision was to start `empeiria` as a child project under Dokimasia's
+`tools/`, using the existing issue workflow and reporting discipline. On
+2026-09-18, the maintainer moved it and `anakrisis` to Paideia. That repository
+is now the source of truth for their charters, plans, protocols and ledgers.
 
-| where | verdict |
-| --- | --- |
-| **in dokimasia proper** | **no.** It would widen the role from proof completeness to cvc5 issues generally. The role is the thing that makes our findings worth reading; a tool that reports on everything is trusted on nothing |
-| **a research project under `tools/`** | **yes.** Speculative, unadvertised, an island — exactly the shape for work whose subject is outside the host tool but which the host tool is well positioned to ask |
-| **a new repository** | **not yet.** A repository is a claim on attention and a name in a shared namespace, and this has no results, no users and no evidence it is worth either. It can graduate later; it cannot un-graduate |
+[Empeiria's charter](https://github.com/ajreynol/paideia/blob/main/tools/empeiria/README.md)
+owns the question of **working a cvc5 bug and learning from how the maintainers
+answered**. General cvc5 development belongs there. Dokimasia keeps the proof
+question: if an issue exposes a proof-completeness gap, that gap enters this
+repository's register. Performance, including proof-production overhead,
+belongs to
+[Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros)
+and is outside this repository's scope.
 
-**The decision: a child project**, under
-[kanon's research-project rules](https://github.com/ajreynol/kanon/blob/main/docs/policy.md).
-Its subject is the whole loop — **working a cvc5 bug and learning from how the
-maintainers answered** — so it both attempts fixes and records the delta between
-what it produced and what they did. Its charter names proof-completeness bugs as
-out of scope, so the boundary runs the other way too: if one of its issues turns
-out to be a proof bug, it leaves and enters this repository's register. Its
-reporting policy is not its own — it shares
-[`pr-policy.md`](../pr-policy.md) with this repository, so *executor* means the
-patch exists in a tree a person is driving, and never that anything is sent.
-
-**Why not simply a new repository** is worth stating plainly, because it is the
-tempting answer. The reason to run it here is that this repository has already
-paid for the loop: the script that runs an assistant against an issue, the
-`TRIAGE:` / `HUMAN RESPONSE:` block, the postmortem shape, and the hard-won
-position that a claim about behaviour is worthless until it has been run.
-Starting elsewhere means re-learning all of it. If it outgrows that inheritance,
-graduating is one of its three endings.
-
-## What this changes about the workflow
+## What the original decision sought to change
 
 The maintainer's side of the loop was already defined —
 [`prompts/check_cvc5_issue`](../../prompts/check_cvc5_issue)
 writes a `TRIAGE:`
 block and leaves `HUMAN RESPONSE:` empty for a person. What was missing is what
-happens **after** the response arrives. Today: nothing. The answer is read and
-the file is forgotten.
+happened **after** the response arrived: the answer was read and the file was
+forgotten.
 
 The change is small and is the whole point: **the response is an artifact, and
 the delta between it and the triage is the thing worth keeping.** Not the
 issue, not the fix — the difference between what an assistant concluded and what
-a maintainer did. That is what a front end could learn from, and nothing
-currently records it.
+a maintainer did. The work to record and learn from it now lives in Paideia;
+its current status is recorded there.
 
 ## Verdict
 
 | | |
 | --- | --- |
 | **never** — for the issue itself | #12905 is not ours. No id, no register row, no report. The only work it earns is confirming it produces no proof hole |
-| **carry — to ourselves** | the routing decision, and the child project that now holds the question |
+| **carry — to ourselves** | the routing decision; [Empeiria in Paideia](https://github.com/ajreynol/paideia/tree/main/tools/empeiria) now holds the general bug-work question |
 | what would change it | the reproducer turning out to produce a trust step or an unhandled rule, which would make it partly a proof bug and partly ours |
 
 **What we are not claiming.** We have not run the reproducer. The
@@ -118,13 +106,16 @@ discipline is **noticing that the out-of-scope thing still produced evidence**,
 and putting the evidence somewhere with a boundary around it rather than either
 absorbing it or throwing it away.
 
-The three-way test, for the next one:
+The routing test, for the next one:
 
 1. **Is it ours?** If it is about whether a step can produce a proof, it is a
    normal candidate and goes in the register.
-2. **Does answering it teach us something reusable about the loop?** If yes, it
-   is research, and research lives in `tools/` with a charter that says what it
-   will not do.
-3. **If neither, decline it and say why in one line.** Silence reads as
+2. **Is it about performance?** Time and memory overhead, including that of
+   producing proofs, belong to
+   [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
+3. **Is it general cvc5 development or learning from that work?** Route it to
+   [Paideia](https://github.com/ajreynol/paideia); its project charters determine
+   what work it takes on.
+4. **If none applies, decline it and say why in one line.** Silence reads as
    agreement, and a tool that quietly collects other people's problems has
    stopped having a role.

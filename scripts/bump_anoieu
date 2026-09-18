@@ -31,7 +31,7 @@ affordable because bumping is optional and deferrable. **This never runs in
 CI** -- it reads a remote, and a build that can go red for somebody else's
 network is a build people learn to ignore.
 
-**A checkout on this machine, if there is one.** `tools/deps.local.json` is
+**A checkout on this machine, if there is one.** `scripts/deps.local.json` is
 untracked and true only here. It says where anoieu already lives:
 
     {"anoieu": {"path": "~/anoieu"}}
@@ -59,7 +59,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 MANIFEST = os.path.join(HERE, "deps.json")
 LOCK = os.path.join(HERE, "deps.lock")
-LOCAL = os.path.join(ROOT, "tools", "deps.local.json")
+LOCAL = os.path.join(HERE, "deps.local.json")
 #: Where the joining page's CI step puts its clone, so a fetch here and a fetch
 #: in CI leave the same thing in the same place.
 CLONE = "/tmp/anoieu"
@@ -91,7 +91,7 @@ def git(*args: str, cwd: str | None = None, check: bool = True) -> str:
 
 
 def local_checkout() -> str:
-    """The checkout named in `tools/deps.local.json`, if the file names one."""
+    """The checkout named in `scripts/deps.local.json`, if the file names one."""
     path = os.path.expanduser(load(LOCAL, {}).get(NAME, {}).get("path", ""))
     if not path:
         return ""
@@ -224,7 +224,7 @@ def main() -> int:
                     help="move the pin past a failing check or an unverified "
                          "upstream CI state")
     ap.add_argument("--no-local", action="store_true",
-                    help="ignore tools/deps.local.json and fetch a copy")
+                    help="ignore scripts/deps.local.json and fetch a copy")
     ap.add_argument("--local", help="use this existing checkout without changing it")
     ap.add_argument("--offline", action="store_true",
                     help="with a local checkout: ask the remote nothing, which "

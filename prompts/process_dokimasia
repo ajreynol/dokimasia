@@ -49,7 +49,7 @@ usage: process_dokimasia [--status | --dry-run | --show-prompt]
                         [--link URL] [DIR] [ID]
 
   DIR             the cvc5 checkout. Omitted, use the analyzer's resolver:
-                  environment, scripts/repos.local, legacy tools/deps.local.json,
+                  environment, scripts/repos.local, scripts/deps.local.json,
                   then deps/cvc5
   ID              a dokimasia row id (i-4). Omitted, every block in the reply
   --link URL      a branch, a pull request, or wherever the triage was written

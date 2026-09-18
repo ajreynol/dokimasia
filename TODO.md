@@ -155,7 +155,7 @@ Everything above that is not on this list is context, not a queue.
 | | | why |
 | --- | --- | --- |
 | **t-1** | **Get an input for `i-1` (`LAMBDA_ELIM`).** | The only candidate that could become a rank-1 finding, and static work cannot settle it. **One attempt has failed** — a plain `define-fun` runs clean in safe mode; the macro is expanded before the rewriter. Needs a benchmark that keeps a lambda alive. Treat [`s-6`](docs/issues.md#settled) as the cautionary case |
-| **t-2** | **Re-run the corpus census on a clean upstream build.** | [The census](docs/reachability.md) was produced by a binary built from `ajreynol/CVC4` with local modifications, so it is the one set of numbers a reader cannot re-check by fetching the pin. Listed as a debt in `tools/cvc5.lock`, and it needs a build we do not have |
+| **t-2** | **Re-run the corpus census on a clean upstream build.** | [The census](docs/reachability.md) was produced by a binary built from `ajreynol/CVC4` with local modifications, so it is the one set of numbers a reader cannot re-check by fetching the pin. Listed as a debt in `scripts/cvc5.lock`, and it needs a build we do not have |
 | **t-3** | **Work the latent set down.** | `dokimasia.latent` now names **182 holes no input has reached**. Each needs an input (it becomes a finding) or an unreachability argument (it leaves the inventory). Start with the 5 latent seam rules — `SAT_REFUTATION` is the one that is not arith |
 | **t-4** | **Answer cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) with `BUILD0001`.** | [The case study](docs/cases/safe-build-vs-safe-mode.md) is written and the check passes. We are **not** asking for the configure restriction to be lifted — it is a deliberate simplification. We are reporting what it costs (only safe-build diagnostics on a debug binary) and offering the invariant that keeps the cost that low, as a [kind B](docs/findings.md) adoption; better still if cvc5 owns it and ours retires |
 | **t-5** | **Carry `i-3`/`R2` and `i-2` to cvc5.** | The two rows that [clear the bar](docs/pr-policy.md#the-bar). `i-3`: the completeness flag cannot be set in the mode that promises it. `i-2`: safe mode refuses `--strings-lazy-pp` *because it lacks proof support*, then runs with it on. Both are one command to check and a one-line call to fix — see [the verdicts](docs/next-report.md) |
@@ -177,7 +177,7 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
   `--analysis` selects reports explicitly, and `write` re-records baselines.
 - **Ratchets, in CI.** Eight tools carry `baseline --check`. `.github/workflows/checks.yml`
   runs the whole suite and every ratchet on each push, against the commit
-  [`tools/cvc5.lock`](tools/cvc5.lock) pins. Re-run the corpus census per cvc5
+  [`scripts/cvc5.lock`](scripts/cvc5.lock) pins. Re-run the corpus census per cvc5
   release, not per change.
 - **The pin must be upstream.** Every published number names a commit on
   `cvc5/cvc5 main`, so anyone can fetch it and re-check us. `tests/test_pin.py`
@@ -198,6 +198,10 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
 
 ## Deliberately not doing
 
+- **General cvc5 development.** That work and the former child projects belong
+  to [Paideia](https://github.com/ajreynol/paideia), whose copies are authoritative.
+- **Performance work**, including proof-production overhead. That belongs to
+  [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
 - **Fuzzing.** [murxla's job](docs/tooling.md#posture-toward-murxla). What we can
   contribute is a fragment description — *a hole here needs a formula with these
   features* — not a fuzzer.

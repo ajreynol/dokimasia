@@ -6,6 +6,14 @@ That is the point of this repository. Everything else in it — the checks, the
 hygiene standard, the TCB measurement, the CI proposals — is an *instrument* for
 that, and should be judged by how much it moves it.
 
+The boundary is **cvc5's proofs**. General cvc5 development belongs in
+[Paideia](https://github.com/ajreynol/paideia), now the source of truth for the
+former child projects. **Performance is out of scope here**, including
+proof-production overhead; that is
+[Elaphros's subject in Tachyon](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
+The feedback latency below measures how quickly we find proof gaps, not how
+quickly cvc5 solves problems or produces proofs.
+
 ## The stance
 
 **Completeness, not soundness.** Not *is this proof step valid*, but *is there a
@@ -87,9 +95,9 @@ static analysis says is reachable and what the corpus actually hit.
 
 ## Is there a paper in it?
 
-**Yes, and not yet** — the stance for this repository. Each research project
-under [`tools/`](../tools/) answers the same question for itself, on its own
-front page, and neither answer is this one.
+**Yes, and not yet** — the stance for this repository. The former child projects
+answer the same question in their own charters, now maintained in
+[Paideia](https://github.com/ajreynol/paideia).
 
 The paper would be the one question here that is legible to somebody who has
 never heard of Eunoia: **how much of a production solver's proof production has
@@ -102,7 +110,7 @@ declared holes without reachability is the most quotable wrong number this
 repository could produce, and our reachability census was taken with a binary
 built from a branch with local modifications — the one set of numbers a reader
 cannot re-check by fetching the pin (`t-2` in [`TODO.md`](../TODO.md), booked as
-a debt in [`tools/cvc5.lock`](../tools/cvc5.lock)). Beside that sits our own
+a debt in [`scripts/cvc5.lock`](../scripts/cvc5.lock)). Beside that sits our own
 record of three static arguments that read correctly and were false, every one
 caught by running something.
 

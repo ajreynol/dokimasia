@@ -13,7 +13,7 @@ from dokimasia.fragment.__main__ import document  # noqa: E402
 from dokimasia.fragment.fragment import EXPERT_OPTIONS, scan  # noqa: E402
 
 PAGE = os.path.join(ROOT, "docs", "fragment.md")
-LOCK = os.path.join(ROOT, "tools", "cvc5.lock")
+LOCK = os.path.join(ROOT, "scripts", "cvc5.lock")
 
 FAILURES = []
 

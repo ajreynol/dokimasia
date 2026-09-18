@@ -133,17 +133,16 @@ class AnalyzerTests(unittest.TestCase):
             census.unlink()
             self.assertEqual(targets.implementation_digest(), default)
 
-    def test_checkout_precedence_and_legacy_configuration(self):
+    def test_checkout_precedence_and_local_configuration(self):
         (self.base / "scripts").mkdir()
-        (self.base / "tools").mkdir()
         mapping = self.base / "scripts/repos.local"
-        legacy = self.base / "tools/deps.local.json"
+        local_config = self.base / "scripts/deps.local.json"
         env = {k: v for k, v in os.environ.items()
                if k not in ("DOKIMASIA_CVC5", "CVC5", "DOKIMASIA_REPOS_FILE")}
         with patch.object(targets, "ROOT", self.base), patch.dict(os.environ, env, clear=True):
             self.assertEqual(targets.checkout()[0], self.base / "deps/cvc5")
-            write_json(legacy, {"cvc5": {"path": str(self.tree)}})
-            self.assertEqual(targets.checkout(), (self.tree, str(legacy)))
+            write_json(local_config, {"cvc5": {"path": str(self.tree)}})
+            self.assertEqual(targets.checkout(), (self.tree, str(local_config)))
             mapping.write_text("cvc5 ../mapped tree\n")
             self.assertEqual(targets.checkout()[0], self.base / "mapped tree")
             with patch.dict(os.environ, {"CVC5": str(self.base / "environment")}):

@@ -11,7 +11,7 @@ Run: python3 tests/test_pin.py [<cvc5>]
 import json, os, re, subprocess, sys
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
-LOCK = os.path.join(ROOT, "tools", "cvc5.lock")
+LOCK = os.path.join(ROOT, "scripts", "cvc5.lock")
 FAILURES = []
 
 

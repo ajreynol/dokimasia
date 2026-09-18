@@ -4,6 +4,15 @@ Dokimasia owns analysis of cvc5's proof-production source and the evidence and
 interpretation of its observations. Koine maintains the accumulated JSON list.
 Kanon owns ecosystem policy; Anoieu implements the optional policy checker.
 
+General cvc5 development belongs to [Paideia](https://github.com/ajreynol/paideia).
+The former child projects, `anakrisis` and `empeiria`, moved there on
+2026-09-18. Their charters, plans, protocols, launchers and ledgers in Paideia
+are authoritative. The local copies and the `tools/` directory have been
+removed; the cvc5 baseline pin now lives at `scripts/cvc5.lock`, alongside the
+other dependency pins. Proof-production performance belongs to
+[Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros)
+and is outside Dokimasia's scope.
+
 Keep commands and their helpers in `scripts/`, assistant launchers in `prompts/`,
 and analysis implementations in `dokimasia/`. Add documents to the
 [documentation index](README.md). The existing reporting workflow and its
@@ -52,12 +61,22 @@ git -C deps/koine checkout --detach "$(cat scripts/koine.lock)"
 
 For cvc5, use an existing source checkout with `--cvc5`, `DOKIMASIA_CVC5`, or
 an ignored `scripts/repos.local` containing `cvc5 /path/to/cvc5`. Alternatively,
-put a dedicated checkout at `deps/cvc5`; the revision in `tools/cvc5.lock` is
+put a dedicated checkout at `deps/cvc5`; the revision in `scripts/cvc5.lock` is
 the one for baseline checks. Ordinary analysis records the revision actually
 read. Both analysis producers and `prompts/process_dokimasia` use the same
 resolver, in which the environment takes precedence and a `cvc5` entry in
-`tools/deps.local.json` is the last fallback. No path is guessed: a checkout
+`scripts/deps.local.json` is the last fallback. No path is guessed: a checkout
 this repository is not told about is not found.
+
+The cvc5 lock keeps tests that assert exact counts reproducible and separates
+analyzer changes from upstream changes. It is not a version requirement for
+analysis: use the latest upstream `main`, a development branch, or another
+explicitly selected revision. Updating that checkout is a separate action;
+the analyzer records what it reads and never updates it automatically.
+
+Local dependency JSON, if used, now belongs in `scripts/deps.local.json`.
+Move an existing `tools/deps.local.json` there; the old path is no longer read.
+For new cvc5 configurations, prefer `scripts/repos.local`.
 
 Check the setup and try a run before appending:
 
@@ -87,7 +106,7 @@ Both generated documents are covered by that list: the observation page by
 revision that one names itself as skipped rather than passing quietly, because a
 diff taken elsewhere says nothing about drift.
 
-Use the revision in `tools/cvc5.lock` for the real-checkout tests. Do not move a
+Use the revision in `scripts/cvc5.lock` for the real-checkout tests. Do not move a
 working checkout to satisfy a test. The analyzer integration tests use temporary
 databases, never the committed record. CI provides the Koine revision from
 `scripts/koine.lock`; locally the Koine-specific tests skip with an explanation

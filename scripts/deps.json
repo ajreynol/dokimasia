@@ -17,7 +17,7 @@
   "cvc5": {
     "url": "https://github.com/cvc5/cvc5.git",
     "ref": "main",
-    "lock": "tools/cvc5.lock",
+    "lock": "scripts/cvc5.lock",
     "reads": "the source scope in scripts/targets.json"
   },
   "anoieu": {

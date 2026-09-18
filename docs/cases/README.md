@@ -83,5 +83,5 @@ question arrives already scoped.
 
 | case | question | check | verdict |
 | --- | --- | --- | --- |
-| [out-of-scope-bug-report](out-of-scope-bug-report.md) | cvc5 [#12905](https://github.com/cvc5/cvc5/issues/12905) is a real bug and **not a proof bug**. What do we do with it, and where does the learning live? | — *(a routing decision, not an invariant)* | **never** for the issue; **carry to ourselves** the decision — a research project under `tools/`, with a charter |
+| [out-of-scope-bug-report](out-of-scope-bug-report.md) | cvc5 [#12905](https://github.com/cvc5/cvc5/issues/12905) is a real bug and **not a proof bug**. What do we do with it, and where does the learning live? | — *(a routing decision, not an invariant)* | **never** for the issue; retain the routing decision here, with the research now in [Paideia](https://github.com/ajreynol/paideia) |
 | [safe-build-vs-safe-mode](safe-build-vs-safe-mode.md) | cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) — the configure script deliberately forbids safe + debug for simplicity. **Is that actually a restriction?** | `BUILD0001`, [`dokimasia.buildmode`](../../dokimasia/buildmode/) | **carry** — it costs one thing only (safe-build diagnostics on a debug binary), and an invariant nothing maintains is what keeps the cost that low |

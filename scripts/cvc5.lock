@@ -1,5 +1,5 @@
 {
-  "_comment": "The cvc5 revision every baseline and every published number in this repository is measured against. It MUST be a commit on cvc5/cvc5 main, so that anyone can fetch it and re-check us without our machine. A commit that exists only on a fork breaks the promise that every claim is re-checkable without us -- which is how this file came to exist.",
+  "_comment": "The upstream cvc5 reference for regression tests, checked-in baselines and historical measurements unless stated otherwise. This is not an analyzer version requirement: analysis accepts any selected checkout and records its actual revision and source contents. The test reference must be on cvc5/cvc5 main so others can reproduce it without our machine.",
   "cvc5": {
     "repo": "https://github.com/cvc5/cvc5",
     "branch": "main",
@@ -15,7 +15,7 @@
     "_comment": "Commits referenced only in retraction and history text, never as the basis of a published number. Each maps to the ONE document allowed to mention it, so the exemption cannot silently spread to a document that is quoting it as a measurement.",
     "16c4001e53": {
       "only_in": "docs/findings.md",
-      "why": "ajreynol/CVC4 fork; the commit every number was WRONGLY pinned to before tools/cvc5.lock existed. Referenced in docs/findings.md#retractions as the error itself"
+      "why": "ajreynol/CVC4 fork; the commit every number was WRONGLY pinned to before scripts/cvc5.lock existed. Referenced in docs/findings.md#retractions as the error itself"
     }
   }
 }
