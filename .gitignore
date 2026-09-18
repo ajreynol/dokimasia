@@ -7,3 +7,4 @@ scratch/
 scripts/repos.local
 deps/
 docs/reports/*.json.lock
+bug_db/*.json.lock

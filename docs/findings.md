@@ -1,5 +1,11 @@
 # Findings
 
+This reviewed ledger and its retractions remain in use during the
+[reporting transition](maintenance.md#replace-the-deprecated-reporting-workflow).
+The former policy and workflow are deprecated; their terminology below is
+retained to interpret existing records. Raw run observations live in
+[`bug_db/`](../bug_db/README.md).
+
 Four kinds, extending anoieu's three:
 
 | | kind | what it asks of cvc5 |
@@ -23,8 +29,8 @@ could check about itself at startup, the deliverable is the patch and our check
 goes with it. See
 [`docs/tooling.md`](tooling.md#d3--where-an-invariant-should-live).
 
-The promises are
-[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)'s
+The historical promises came from the now-deprecated
+[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)
 — *publish a candidate, carry a finding*; *a false positive is ours, and so is
 anything we asked them to run*; *presence is not reachability*; *every claim is
 re-checkable without us*; *closing is a verdict* — and are not restated here.

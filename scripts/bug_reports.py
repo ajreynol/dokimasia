@@ -1,10 +1,8 @@
 """Dokimasia's dump validation and report rendering; Koine alone edits the DB.
 
-`render` generates one file, `docs/reports/static-analysis.md`, and **rewrites
-it whole**: it is a view of the database and carries nothing anybody typed into
-it. It refuses to write the database itself -- every row there is Koine's, which
-is what keeps a triage disagreement out of the generated page and in the
-register where somebody signs it.
+`render` rewrites `bug_db/bugs.md` from Dokimasia's database artifact. Koine
+provides the only database writer; Dokimasia owns the records and evidence.
+Triage decisions remain in the reviewed register, outside the generated page.
 """
 from contextlib import contextmanager
 import fcntl
@@ -16,13 +14,14 @@ import re
 import subprocess
 import sys
 import tempfile
+from urllib.parse import quote
 
 from dokimasia.findings import observation
 import koine
 
 ROOT = Path(__file__).resolve().parent.parent
-DB = ROOT / "docs/reports/bugs.json"
-PAGE = ROOT / "docs/reports/static-analysis.md"
+DB = ROOT / "bug_db/bugs.json"
+PAGE = DB.with_suffix(".md")
 
 
 def write(path, body):
@@ -93,15 +92,20 @@ def read_run(path, bugs):
     return run
 
 
-def render(db=DB):
-    bugs = json.loads(Path(db).read_text())["bugs"]
-    lines = ["# Static analysis observations", "",
-        "Generated from [bugs.json](bugs.json) by `scripts/append_findings --render-only`, "
+def render(db=DB, page=None):
+    db = Path(db).resolve()
+    page = Path(page).resolve() if page else db.parent / PAGE.name
+    bugs = json.loads(db.read_text())["bugs"]
+    def link(path):
+        return quote(Path(os.path.relpath(path, page.parent)).as_posix(), safe="/.")
+    lines = ["# Dokimasia bug database", "",
+        f"Generated from [bugs.json]({link(db)}) by `scripts/append_findings --render-only`, "
         "and **rewritten whole**: anything typed in here is lost on the next run.", "",
         "This is observation history, not a list of confirmed defects or open reports.",
-        "Koine preserves the first claim and updates sighting dates. Disappearance does not close a finding.",
-        "[Archived run records](runs/) contain the source revisions, actual coverage and evidence keyed by id.",
-        "See [the analyzer guide](../analyzer.md) for evidence, limitations and the historical register.", "",
+        "Dokimasia owns this artifact; Koine supplies the writer. Dates record ingestion, not fresh confirmation.",
+        "The first claim is preserved. Disappearance does not close a finding.",
+        f"[Archived run records]({link(db.parent / 'runs')}/) contain the source revisions, actual coverage and evidence keyed by id.",
+        f"See [the analyzer guide]({link(ROOT / 'docs/analyzer.md')}) for evidence, limitations and the historical register.", "",
         f"{len(bugs)} observation(s).", "",
         "| id | check | entity | first seen | last seen | original claim |",
         "| --- | --- | --- | --- | --- | --- |"]
@@ -141,11 +145,14 @@ def append(dump, db=DB, page=PAGE, dry_run=False, date=None):
     if dry_run:
         return subprocess.run(argv).returncode
     with writer(db):
+        # This lock covers the archive, append and rendering. Koine uses the
+        # same lock file; taking it again in the child would deadlock.
+        argv.append("--no-lock")
         archive = dict(run, observations=bugs)
         body = json.dumps(archive, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
         name = hashlib.sha256(body.encode()).hexdigest() + ".json"
         write(Path(db).parent / "runs" / name, body)
         rc = subprocess.run(argv).returncode
         if rc == 0:
-            write(page, render(db))
+            write(page, render(db, page))
         return rc

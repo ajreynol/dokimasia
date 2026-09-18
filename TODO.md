@@ -10,6 +10,14 @@ named argument, not a task.
 
 *Numbers below are measured against cvc5 `40a4bb7e4` unless stated.*
 
+## Reporting transition
+
+The former reporting policy and workflow are **deprecated (2026-09-18)**,
+following Anoieu. The data artifact now lives in [`bug_db/`](bug_db/README.md),
+with a generated [Markdown view](bug_db/bugs.md). The formal lifecycle,
+reviewed-record migration and evidence-based closure support remain
+[pending](docs/maintenance.md#replace-the-deprecated-reporting-workflow).
+
 ## Implementation inventory
 
 The advertised analyzer runs [nine observation-producing analyses](README.md#what-the-analyzer-checks).

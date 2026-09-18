@@ -27,7 +27,7 @@ jobs:
             python3 "$t" || fail=1
           done
           exit $fail
-      - name: generated observation page matches its database
+      - name: bug_db Markdown view matches its database artifact
         run: scripts/append_findings --render-only --check
 
   # The ratchets, against the commit scripts/cvc5.lock pins. This is the job that
@@ -74,11 +74,11 @@ jobs:
         run: python3 -m dokimasia check /tmp/cvc5 --verbose
       - name: collect observations and replay through Koine
         run: |
-          scripts/dokimasia_analyzer --cvc5 /tmp/cvc5 --dump /tmp/new-bugs.json --db /tmp/bugs.json --page /tmp/static-analysis.md
+          scripts/dokimasia_analyzer --cvc5 /tmp/cvc5 --dump /tmp/new-bugs.json --db /tmp/bugs.json
           cp /tmp/bugs.json /tmp/bugs-before.json
-          scripts/append_findings /tmp/new-bugs.json --db /tmp/bugs.json --page /tmp/static-analysis.md
+          scripts/append_findings /tmp/new-bugs.json --db /tmp/bugs.json
           cmp /tmp/bugs-before.json /tmp/bugs.json
-          scripts/append_findings --render-only --check --db /tmp/bugs.json --page /tmp/static-analysis.md
+          scripts/append_findings --render-only --check --db /tmp/bugs.json
       - name: the full suite, with the checkout
         run: |
           fail=0

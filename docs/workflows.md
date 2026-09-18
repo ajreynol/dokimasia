@@ -1,4 +1,20 @@
-# A suggested AI workflow for using dokimasia
+# A suggested AI workflow for using dokimasia (DEPRECATED)
+
+> [!WARNING]
+> **DEPRECATED as of 2026-09-18, following Anoieu's policy and workflow
+> deprecation.** This document preserves the former workflow and its prompt
+> definitions; do not adopt it as the current reporting policy. A formal
+> replacement using Koine's shared tooling is pending. See the
+> [replacement work](maintenance.md#replace-the-deprecated-reporting-workflow).
+
+New run observations are recorded in Dokimasia's
+[`bug_db/`](../bug_db/README.md) artifact. Existing launchers remain available
+for follow-up during the transition. Preserve reviewed decisions in
+[`issues.md`](issues.md) and [`findings.md`](findings.md); deprecation does not
+close findings or migrate those decisions into Koine. The historical claims
+of authority below describe the former policy.
+
+## Historical workflow
 
 How to work a single candidate with an assistant, from [`issues.md`](issues.md)
 to whoever can settle it and back.

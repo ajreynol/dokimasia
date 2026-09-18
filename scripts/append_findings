@@ -12,20 +12,20 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("dump", nargs="?")
     ap.add_argument("--db", default=str(DB))
-    ap.add_argument("--page", help="default: static-analysis.md beside the database")
+    ap.add_argument("--page", help="default: bugs.md beside the database")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--render-only", action="store_true")
     ap.add_argument("--check", action="store_true", help="with --render-only: check the page without writing")
     ap.add_argument("--date", help="explicit observation date, for replay")
     args = ap.parse_args()
     try:
-        args.page = args.page or str(Path(args.db).parent / "static-analysis.md")
+        args.page = args.page or str(Path(args.db).parent / PAGE.name)
         if Path(args.page).resolve() == Path(args.db).resolve():
             ap.error("the generated page cannot overwrite the database")
         if args.render_only:
             if args.dump or args.dry_run:
                 ap.error("--render-only cannot be combined with a dump or --dry-run")
-            body = render(args.db)
+            body = render(args.db, args.page)
             if args.check:
                 if Path(args.page).read_text() == body:
                     sys.exit(0)

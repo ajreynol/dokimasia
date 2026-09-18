@@ -1,7 +1,8 @@
 # Maintaining dokimasia
 
-Dokimasia owns analysis of cvc5's proof-production source and the evidence and
-interpretation of its observations. Koine maintains the accumulated JSON list.
+Dokimasia owns analysis of cvc5's proof-production source and its
+[`bug_db/`](../bug_db/README.md) data artifact: records, evidence, triage and
+closure decisions. Koine maintains the shared database writer.
 Kanon owns ecosystem policy; Anoieu implements the optional policy checker.
 
 General cvc5 development belongs to [Paideia](https://github.com/ajreynol/paideia).
@@ -15,8 +16,9 @@ and is outside Dokimasia's scope.
 
 Keep commands and their helpers in `scripts/`, assistant launchers in `prompts/`,
 and analysis implementations in `dokimasia/`. Add documents to the
-[documentation index](README.md). The existing reporting workflow and its
-human review boundary remain in [workflows.md](workflows.md).
+[documentation index](README.md). The former reporting workflow is
+[deprecated](workflows.md); existing records and launchers remain available
+while its [replacement](#replace-the-deprecated-reporting-workflow) is pending.
 
 Regression baselines live in `tests/baselines/<analysis>.json`; the runtime
 census lives in `tests/corpus/reach-corpus.json`. Default paths resolve from the
@@ -33,7 +35,7 @@ regression suite. See [the command reference](usage.md).
 Two documents are generated and neither is edited by hand:
 [`fragment.md`](fragment.md), written whole by
 `python3 -m dokimasia.fragment doc`, and
-[`reports/static-analysis.md`](reports/static-analysis.md), written whole by
+[`bug_db/bugs.md`](../bug_db/bugs.md), written whole by
 `scripts/append_findings --render-only`. Both are regenerated and diffed by the
 checks below, so neither can drift from the code beside it.
 
@@ -128,9 +130,9 @@ database integration.
 | `scripts/audit_loc` | measure this repository's implementation and documentation |
 | `scripts/bump_anoieu` | validate and update the pinned policy-checker revision |
 | `prompts/dokimasia_analyzer_agent` | independent producer over the analyzer's targets |
-| `prompts/check_dokimasia` | draft a response in the project owning a finding |
-| `prompts/process_dokimasia` | process that reply here |
-| `prompts/check_cvc5_issue` | examine a cvc5 issue and draft a response |
+| `prompts/check_dokimasia` | legacy reporting: draft a response in the project owning a finding |
+| `prompts/process_dokimasia` | legacy reporting: process that reply here |
+| `prompts/check_cvc5_issue` | legacy reporting: examine a cvc5 issue and draft a response |
 
 Commands that run live in `scripts/`; launchers that spend a turn on an
 assistant live in `prompts/`, so a reader can tell which is which without
@@ -140,6 +142,13 @@ analyzer prompt is read directly from `prompts/analyzer.txt` and has no second
 copy, so there is nothing there to drift.
 
 ## Pins and generated records
+
+The Koine pin is `8efe59ca20b5d684d8d00fce330b6a6968444493`; its upstream
+[`tests` check](https://github.com/ajreynol/koine/actions/runs/35383263886/job/105724207417)
+completed successfully on 2026-09-18. This revision uses
+`bug_db_manager/koine_append_db` and locks the database itself. Dokimasia already
+holds that same lock while archiving, appending and rendering, so it invokes
+Koine with `--no-lock` inside the locked section.
 
 To update `scripts/koine.lock`, choose a full Koine commit SHA and inspect the
 `tests` check on that exact commit in GitHub. Only replace the lock's SHA after
@@ -180,3 +189,38 @@ and original dump independently of scratch files. Do not hand-edit these to
 resolve a triage disagreement. Keep that decision in the existing findings
 register. See [the analyzer guide](analyzer.md) for identity, replay and conflict
 semantics.
+
+## Replace the deprecated reporting workflow
+
+**Pending, recorded 2026-09-18.** Following Anoieu, the former
+[reporting workflow](workflows.md) and [reporting policy](pr-policy.md) are
+deprecated. Replace them with a formal reporting lifecycle using
+[Koine's shared tooling](https://github.com/ajreynol/koine/tree/main/bug_db_manager).
+Koine supplies storage and update mechanics; Dokimasia owns its findings and
+the evidence required for decisions about them.
+
+The storage migration is complete: `bug_db/bugs.json`, `bug_db/bugs.md` and
+`bug_db/runs/` hold the data, generated browsing view and archived evidence.
+Existing records and dates are preserved, and both analysis producers use the
+same append path. This does not migrate reviewed verdicts or implement closure.
+
+Remaining work:
+
+- Define the evidence and decision rules for triage, correction, reporting,
+  closure and reopening, including how static observations become confirmed
+  behavioral findings.
+- Specify the shared Koine capabilities needed to preserve original findings,
+  dates, claims, corrections and decision evidence. The append utility alone
+  cannot perform this lifecycle.
+- Assess closure only from successful, comparable runs that covered the relevant
+  input and check. Use recorded source and analyzer versions, enabled analyses,
+  actual coverage, skips and failures. An unmatched or changed identity needs
+  an explicit assessment; disappearance from a dump cannot close a finding.
+- Migrate the reviewed issue register, filed findings, replies and retractions
+  without losing their meaning or history, then replace the legacy launchers
+  and update their documentation and checks.
+
+Until then, preserve decisions in [`issues.md`](issues.md) and
+[`findings.md`](findings.md). Existing launchers remain usable during the
+transition. Deprecation neither settles existing claims nor authorizes automatic
+publication; upstream reporting remains a maintainer action.

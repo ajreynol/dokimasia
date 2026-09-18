@@ -55,9 +55,12 @@ Input content is hashed before and after analysis to reject a changing checkout.
 | --- | --- |
 | `scratch/new-bugs.json` | this run's stable observation records; `--dump` changes the path |
 | `scratch/new-bugs.json.run.json` | matching evidence, actual coverage, measurements, target revision and input content digest |
-| [reports/bugs.json](reports/bugs.json) | accumulated observation history, maintained by Koine |
-| [reports/static-analysis.md](reports/static-analysis.md) | generated view of that database |
-| `docs/reports/runs/*.json` | archived observations and run records, named by their content digest |
+| [bug_db/bugs.json](../bug_db/bugs.json) | Dokimasia's accumulated observation history, recorded through Koine's writer |
+| [bug_db/bugs.md](../bug_db/bugs.md) | generated Markdown view of that database |
+| `bug_db/runs/*.json` | archived observations and run records, named by their content digest |
+
+[`bug_db/`](../bug_db/README.md) is this repository's data artifact. The database
+and archives moved from `docs/reports/` without changing their contents.
 
 Archives are saved before the database append, so a database entry never depends
 on an overwritten scratch file. An archive may also exist for an append that
@@ -65,7 +68,7 @@ failed afterward; database membership is determined by `bugs.json`. The database
 and page are separate replacements: if rendering is interrupted, regenerate the
 page with `scripts/append_findings --render-only`. `--render-only --check`
 checks it without writing. `--db` and `--page` redirect both outputs for trials;
-archives live beside the selected database.
+archives live beside the selected database, as does the default `bugs.md` view.
 
 The database contains **static observations**, including candidates and hygiene
 or instrumentation gaps. It carries no current verdict. Supporting measurements
@@ -136,9 +139,12 @@ scripts/append_findings scratch/new-bugs.json
 ```
 
 The wrapper validates both files and the dump's content hash before calling
-`bug_db/koine_append_db`. Malformed records or duplicate ids apply nothing. It
-serializes its own writers with a file lock. Use the wrapper for writes to this
-database; direct Koine invocations do not participate in that lock.
+[`bug_db_manager/koine_append_db`](https://github.com/ajreynol/koine/tree/main/bug_db_manager).
+Malformed records or duplicate ids apply nothing. The wrapper holds the
+database's `.lock` across archiving, appending and rendering, and passes
+`--no-lock` to Koine to avoid acquiring the same lock twice. Direct Koine calls
+use that same lock by default, but do not archive evidence or refresh the page;
+use the wrapper to keep the complete artifact together.
 `--date YYYY-MM-DD` is for deliberate replay, not for inventing historical
 discovery dates.
 
@@ -183,7 +189,10 @@ Useful correspondences are `SEAM0001` with `i-7`, `INFER0002` with `i-22`,
 defaults-only scanner's result; `s-4` records why interpreting it as a reachable
 defect was wrong. These are links between records, not new verdicts.
 
-To carry a structured observation into the reporting workflow, review its claim
+The [former reporting workflow](workflows.md) is **deprecated**; its
+[replacement is pending](maintenance.md#replace-the-deprecated-reporting-workflow).
+The existing launchers remain usable for following up reviewed records during
+the transition. To carry a structured observation into that legacy workflow, review its claim
 and archived evidence first. In the corresponding `issues.md` row, record the
 `dokimasia:*` identity, link the archived run, and state what would settle the
 claim. Reuse an existing row for the same question. The reporting launchers

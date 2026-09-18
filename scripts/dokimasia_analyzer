@@ -22,10 +22,10 @@ def main(argv=None):
     ap.add_argument("--no-update", action="store_true")
     ap.add_argument("--dump", default=str(ROOT / "scratch/new-bugs.json"))
     ap.add_argument("--db", default=str(DB))
-    ap.add_argument("--page", help="default: static-analysis.md beside the database")
+    ap.add_argument("--page", help="default: bugs.md beside the database")
     args = ap.parse_args(argv)
     try:
-        args.page = args.page or str(Path(args.db).parent / "static-analysis.md")
+        args.page = args.page or str(Path(args.db).parent / PAGE.name)
         outputs = [Path(p).resolve() for p in (args.dump, str(args.dump) + ".run.json", args.db, args.page)]
         if len(set(outputs)) != len(outputs):
             raise ValueError("dump, evidence, database and page must be different files")

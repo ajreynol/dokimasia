@@ -28,6 +28,9 @@
 
 set -euo pipefail
 
+# Retained for existing reports while the reporting lifecycle is replaced.
+echo "DEPRECATED: legacy reporting workflow; see docs/maintenance.md#replace-the-deprecated-reporting-workflow" >&2
+
 HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 DOKIMASIA=$(dirname "$HERE")
 

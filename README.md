@@ -36,9 +36,9 @@ scripts/dokimasia_analyzer --cvc5 /path/to/cvc5
 
 The first command shows the source scope and missing inputs. The second runs
 the nine analyses below and writes a dump with a matching evidence record.
-The third also appends observations to [the database](docs/reports/bugs.json) through
-[Koine](https://github.com/ajreynol/koine) and regenerates
-[the readable table](docs/reports/static-analysis.md).
+The third also appends observations to [the database](bug_db/bugs.json) through
+[Koine's writer](https://github.com/ajreynol/koine/tree/main/bug_db_manager) and regenerates
+[the Markdown view](bug_db/bugs.md).
 
 Database updates require a clean Koine checkout at `scripts/koine.lock`, found
 through `$KOINE`, a sibling `koine` directory, or `deps/koine`. No checkout is
@@ -88,21 +88,29 @@ not establish correctness.
 
 ## Findings and reporting
 
+**[`bug_db/`](bug_db/README.md) is a data artifact of this repository:** the bugs
+and observations recorded from Dokimasia runs, with their archived evidence.
+Dokimasia owns that history and its interpretation; Koine provides the tooling.
+**[Browse all recorded observations in Markdown](bug_db/bugs.md).** Recording
+commands refresh the view, and CI checks that it matches the JSON.
+
 The [issue register](docs/issues.md) records candidates, requests and settled
 hypotheses. [Filed findings and retractions](docs/findings.md) remain the
 reviewed record. The database preserves observations across runs, including
 ones subsequently disputed or resolved. Disappearance does not close a finding.
 
-The [reporting workflow](docs/workflows.md) explains how to carry a finding
-and process a reply. Its launchers are `prompts/check_dokimasia`,
-`prompts/process_dokimasia` and `prompts/check_cvc5_issue`.
-The [reporting bar](docs/pr-policy.md) requires a reproducer for behavioral
-claims and leaves publication to a human.
+> [!WARNING]
+> **The [reporting workflow](docs/workflows.md) and
+> [reporting policy](docs/pr-policy.md) are DEPRECATED (2026-09-18), following
+> Anoieu's deprecation.** A formal replacement using Koine's shared tooling is
+> pending. Existing launchers and reviewed records remain available during the
+> transition. See the [replacement work](docs/maintenance.md#replace-the-deprecated-reporting-workflow).
 
 ## Documentation and development
 
 | document | purpose |
 | --- | --- |
+| [Bug database](bug_db/README.md) | the data artifact, recording commands and Markdown browsing |
 | [Analyzer guide](docs/analyzer.md) | targets, observation records and producer comparison |
 | [Developer commands](docs/usage.md) | detailed reports and optional measurements |
 | [Checks](docs/checks.md) | emitted checks and their limits |
@@ -125,6 +133,7 @@ kept by Kanon. Anoieu implements the checker; CI pins its revision in
 
 **Written by AI agents, under light human supervision.** A human maintainer
 directs the work, reviews it and decides what is reported upstream. Findings
-are filed by the human. The shared
-[reporting policy](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)
-describes that boundary and the intended audience.
+are filed by the human. The
+[deprecated reporting policy](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)
+preserves the historical rationale; the
+[replacement](docs/maintenance.md#replace-the-deprecated-reporting-workflow) is pending.

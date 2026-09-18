@@ -5,10 +5,9 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# Koine gave each of its purposes a directory on 2026-09-17; this was at its
-# root before that. A directory without this is not Koine, whatever it is
-# called, so the probe is also how a candidate checkout is recognised.
-SCRIPT = Path("bug_db/koine_append_db")
+# Koine owns the tooling; bug_db/ in a consumer holds that consumer's data.
+# Probe the implementation, never the retired root entry point.
+SCRIPT = Path("bug_db_manager/koine_append_db")
 
 
 def append_db():
@@ -19,7 +18,8 @@ def append_db():
     for path in candidates:
         script = path / SCRIPT
         if not script.is_file():
-            stale = " (predates the move out of the root)" if (path / SCRIPT.name).is_file() else ""
+            stale = " (retired layout; update the checkout)" if any(
+                (path / old).is_file() for old in (SCRIPT.name, "bug_db/koine_append_db")) else ""
             problems.append(f"{path}: no {SCRIPT}{stale}")
             continue
         rev = subprocess.run(["git", "-C", str(path), "rev-parse", "HEAD"], capture_output=True, text=True)

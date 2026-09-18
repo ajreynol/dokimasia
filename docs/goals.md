@@ -35,9 +35,10 @@ a design note, and lives in [`TODO.md`](../TODO.md) as one.
 
 What we will and will not say about somebody else's code — silence is never
 evidence, a false positive is ours, an artifact settles a finding — is the
-position shared with anoieu in
-[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md),
-and is not restated here.
+historical position shared with anoieu in the now-deprecated
+[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md).
+The [reporting replacement](maintenance.md#replace-the-deprecated-reporting-workflow)
+is pending.
 
 ## The operating constraint: agility
 

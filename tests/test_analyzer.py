@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT), str(ROOT / "scripts")]
 from dokimasia.findings import ANALYSES, DEFAULT_ANALYSES, CHECKS, collect, finding_id, observation
 from dokimasia.sanity import ExtractionError
-from bug_reports import append, read_dump, read_run, render, write_json
+from bug_reports import DB, PAGE, append, read_dump, read_run, render, write_json
 import koine
 import targets
 
@@ -280,6 +280,61 @@ class AnalyzerTests(unittest.TestCase):
         before = sorted(str(p) for p in self.base.rglob("*"))
         self.assertEqual(append(self.dump, self.db, self.page, dry_run=True), 0)
         self.assertEqual(before, sorted(str(p) for p in self.base.rglob("*")))
+
+    def test_database_artifact_defaults_and_cli_render_check(self):
+        self.need_koine()
+        self.assertEqual(DB, ROOT / "bug_db/bugs.json")
+        self.assertEqual(PAGE, ROOT / "bug_db/bugs.md")
+        page = self.db.parent / "bugs.md"
+        # Exercise real subprocesses with a deadline: taking Koine's lock
+        # again while the wrapper holds it must not stall a recording command.
+        command = [sys.executable, str(ROOT / "scripts/dokimasia_analyzer"), *self.argv[:-2]]
+        p = subprocess.run(command, capture_output=True, text=True, timeout=10)
+        self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+        self.assertEqual(page.read_text(), render(self.db, page))
+        page.unlink()
+        command = [sys.executable, str(ROOT / "scripts/append_findings"), "--db", str(self.db)]
+        p = subprocess.run([*command, str(self.dump)], capture_output=True, text=True, timeout=10)
+        self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+        self.assertEqual(page.read_text(), render(self.db, page))
+        self.assertFalse((self.db.parent / "static-analysis.md").exists())
+        before = self.db.read_bytes()
+        env = os.environ | {"KOINE": str(self.base / "missing")}
+        check = [*command, "--render-only", "--check"]
+        self.assertEqual(subprocess.run(check, env=env, capture_output=True).returncode, 0)
+        page.write_text("stale view\n")
+        p = subprocess.run(check, env=env, capture_output=True, text=True)
+        self.assertEqual(p.returncode, 1)
+        self.assertIn("regenerate", p.stderr)
+        self.assertEqual(page.read_text(), "stale view\n")
+        p = subprocess.run([*command, "--render-only"], env=env, capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stderr)
+        self.assertEqual(page.read_text(), render(self.db, page))
+        self.assertEqual(self.db.read_bytes(), before)
+
+    def test_render_links_follow_database_and_page_locations(self):
+        db = self.base / "data set" / "observations.json"
+        page = self.base / "views" / "observations.md"
+        write_json(db, {"bugs": [dict(observation("SEAM0001", "SAT_REFUTATION"),
+                                     description="a | b <tag> `code`\nnext line")]})
+        body = render(db, page)
+        self.assertIn("[bugs.json](../data%20set/observations.json)", body)
+        self.assertIn("[Archived run records](../data%20set/runs/)", body)
+        self.assertIn("docs/analyzer.md)", body)
+        self.assertIn("a &#124; b &lt;tag&gt; &#96;code&#96; next line", body)
+
+    def test_retired_koine_layouts_are_refused(self):
+        (self.base / "scripts").mkdir()
+        (self.base / "scripts/koine.lock").write_text("0" * 40)
+        for legacy in ("koine_append_db", "bug_db/koine_append_db"):
+            path = self.base / "old-koine" / legacy
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("retired entry point")
+            with patch.object(koine, "ROOT", self.base), \
+                    patch.dict(os.environ, {"KOINE": str(self.base / "old-koine")}):
+                with self.assertRaisesRegex(ValueError, "no bug_db_manager/koine_append_db.*retired layout"):
+                    koine.append_db()
+            path.unlink()
 
     def test_wrong_koine_pin_refused(self):
         path = self.need_koine().parents[len(koine.SCRIPT.parts) - 1]

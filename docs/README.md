@@ -16,7 +16,8 @@ belongs to [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/to
 | [`analyzer.md`](analyzer.md) | run the structured analyzer, append through Koine, and compare an independent producer |
 | [`usage.md`](usage.md) | developer reports, optional measurements and examples at the pinned cvc5 revision |
 | [`maintenance.md`](maintenance.md) | development checks, dependency pins and the script catalogue |
-| [`reports/static-analysis.md`](reports/static-analysis.md) | generated observation database view; evidence is archived under `reports/runs/` |
+| [`bug_db/README.md`](../bug_db/README.md) | Dokimasia's bug database artifact: setup, recording and interpretation |
+| [`bug_db/bugs.md`](../bug_db/bugs.md) | browse every recorded observation in Markdown; evidence is archived under `bug_db/runs/` |
 | [`why.md`](why.md) | **why cvc5 should care** — the three claims this repository can back, what it has not delivered, and what would show it is wrong |
 | [`checks.md`](checks.md) | **the checks** — the sixteen facets, what each has returned against a checkout, and what the unfinished ones are waiting on |
 | [`cases/`](cases/) | **case studies** — a cvc5 design question, answered with a verifier rather than an opinion. The standing decision, and the register |
@@ -24,7 +25,7 @@ belongs to [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/to
 | [`cases/safe-build-vs-safe-mode.md`](cases/safe-build-vs-safe-mode.md) | cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) — is deliberately forbidding safe mode with debug symbols actually a restriction? What it costs, and the invariant that keeps the cost that low |
 | [`next-report.md`](next-report.md) | **the next thing to report, and why it is that one** — the recommendation, the runner-up, and what is explicitly not ready |
 | [`reachability.md`](reachability.md) | **what the corpus actually reaches** — the static denominator against cvc5's own runtime counters, measured over `regress0` |
-| [`pr-policy.md`](pr-policy.md) | **what we send, and what we build** — the hard rule, who decides what, the five-rule bar and the three verdicts, and how the same bar decides which checks are worth building |
+| [`pr-policy.md`](pr-policy.md) | **DEPRECATED (2026-09-18)** — historical reporting policy; [replacement pending](maintenance.md#replace-the-deprecated-reporting-workflow) |
 
 ## The stance and the subject
 
@@ -50,7 +51,7 @@ belongs to [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/to
 | --- | --- |
 | [`findings.md`](findings.md) | what a finding is, what we promise about it, and the log — including retractions |
 | [`findings/`](findings/) | one file per filed finding; today that is [`tcb-001.md`](findings/tcb-001.md) |
-| [`workflows.md`](workflows.md) | how a candidate is carried to cvc5 and back: the conventions we share with anoieu, the two prompts, and the two scripts that run them |
+| [`workflows.md`](workflows.md) | **DEPRECATED (2026-09-18)** — historical reporting workflow and retained launchers; [replacement pending](maintenance.md#replace-the-deprecated-reporting-workflow) |
 | [`postmortem.md`](postmortem.md) | what working a reply taught us about the workflow itself, as opposed to what it settled about cvc5 |
 | [`discussion.md`](discussion.md) | the standing channel to the rest of the ecosystem, and the gate on responding to it |
 
@@ -59,4 +60,5 @@ belongs to [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/to
 | | |
 | --- | --- |
 | [`fragment.md`](fragment.md) | *generated* — which term kinds may appear per theory under `--safe-mode=safe`, and how the fragment is enforced |
+| [`reports/static-analysis.md`](reports/static-analysis.md) | old report location; redirects readers to the Markdown view in `bug_db/` |
 | [`tooling.md`](tooling.md) | the C++ static-analysis landscape, our design decisions, and the posture toward murxla |

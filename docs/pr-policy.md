@@ -1,7 +1,20 @@
-# What we send, and what we build
+# What we send, and what we build (DEPRECATED)
 
-*First draft. The rules below are applied today; the reasoning is still being
-argued with, and the [open questions](#open-questions) at the end say where.*
+> [!WARNING]
+> **DEPRECATED as of 2026-09-18, alongside the [reporting workflow](workflows.md)
+> and Anoieu's shared reporting policy.** Retained as historical reference.
+> A formal replacement using Koine's shared tooling is pending; see the
+> [replacement work](maintenance.md#replace-the-deprecated-reporting-workflow).
+
+Dokimasia's run history now lives in [`bug_db/`](../bug_db/README.md).
+Reviewed verdicts and retractions remain in the existing registers during the
+transition. The text below records the former policy and its reasoning;
+deprecation does not authorize automatic upstream publication.
+
+## Historical policy
+
+*Former first draft. The [open questions](#open-questions) record what was
+unsettled at the time.*
 
 **This repository never opens a pull request against cvc5. No program here
 pushes a branch, opens an issue, posts a comment, or touches a tracker. A human
