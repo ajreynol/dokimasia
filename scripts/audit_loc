@@ -46,7 +46,11 @@ LANG_BY_EXT = {
     ".py": "python", ".md": "markdown", ".json": "json", ".sh": "shell",
     ".toml": "toml", ".cfg": "config", ".txt": "text",
 }
-SKIP_DIRS = {".git", "__pycache__", ".venv", "node_modules", "deps", "scratch"}
+# `tools/` holds child projects, whose lines are not this repository's
+# implementation. Counting them would make a measurement of the analyzer move
+# when a research directory nobody ships grows or is deleted.
+SKIP_DIRS = {".git", "__pycache__", ".venv", "node_modules", "deps", "scratch",
+             "tools"}
 
 
 @dataclass
