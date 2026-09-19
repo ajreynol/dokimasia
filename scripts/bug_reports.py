@@ -16,7 +16,7 @@ import sys
 import tempfile
 from urllib.parse import quote
 
-from dokimasia.findings import observation
+from dokimasia_analyzer.findings import observation
 import koine
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -67,7 +67,7 @@ def read_run(path, bugs):
         raise ValueError("run record does not match the dump")
     if run.get("producer") not in ("program", "agent") or not isinstance(run.get("complete"), bool):
         raise ValueError("run record needs producer and complete fields")
-    from dokimasia.findings import ANALYSES, CHECKS
+    from dokimasia_analyzer.findings import ANALYSES, CHECKS
     analyses = run.get("analyses")
     if not isinstance(analyses, list) or not analyses or any(not isinstance(a, str) for a in analyses) or set(analyses) - set(ANALYSES):
         raise ValueError("run record needs known analyses")

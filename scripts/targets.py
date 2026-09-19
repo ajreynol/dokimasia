@@ -12,8 +12,8 @@ sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from dokimasia.findings import ANALYSES, DEFAULT_ANALYSES
-from dokimasia.paths import CENSUS
+from dokimasia_analyzer.findings import ANALYSES, DEFAULT_ANALYSES
+from dokimasia_analyzer.paths import CENSUS
 
 CONFIG = ROOT / "scripts/targets.json"
 
@@ -117,7 +117,7 @@ def snapshot(resolved):
 
 def implementation_digest(analyses=DEFAULT_ANALYSES):
     """Identify the exact analyzer implementation, including uncommitted edits."""
-    files = sorted((ROOT / "dokimasia").rglob("*.py")) + [ROOT / p for p in (
+    files = sorted((ROOT / "dokimasia_analyzer").rglob("*.py")) + [ROOT / p for p in (
         "scripts/dokimasia_analyzer", "scripts/targets.py", "scripts/targets.json",
         "scripts/bug_reports.py", "scripts/koine.py", "scripts/koine.lock")]
     if "latent" in analyses:

@@ -46,9 +46,9 @@ def test_classification():
 
 def test_attribution():
     print("file attribution:")
-    check("an engine module", audit._attribute("dokimasia/ledger/build.py"), ("ledger", "engine"))
-    check("a CLI", audit._attribute("dokimasia/ledger/__main__.py"), ("ledger", "cli"))
-    check("shared infrastructure", audit._attribute("dokimasia/sanity.py"), ("(shared)", "engine"))
+    check("an engine module", audit._attribute("dokimasia_analyzer/ledger/build.py"), ("ledger", "engine"))
+    check("a CLI", audit._attribute("dokimasia_analyzer/ledger/__main__.py"), ("ledger", "cli"))
+    check("shared infrastructure", audit._attribute("dokimasia_analyzer/sanity.py"), ("(shared)", "engine"))
     check("a test maps to its analysis",
           audit._attribute("tests/test_ledger.py"), ("ledger", "tests"))
     check("a baseline", audit._attribute("tests/baselines/ledger.json"), ("ledger", "baseline"))
@@ -59,8 +59,8 @@ def test_attribution():
 def test_totals():
     print("totals are consistent:")
     with tempfile.TemporaryDirectory() as tmp:
-        os.makedirs(os.path.join(tmp, "dokimasia", "x"))
-        with open(os.path.join(tmp, "dokimasia", "x", "y.py"), "w") as fh:
+        os.makedirs(os.path.join(tmp, "dokimasia_analyzer", "x"))
+        with open(os.path.join(tmp, "dokimasia_analyzer", "x", "y.py"), "w") as fh:
             fh.write("# c\nx = 1\n\n")
         infos = audit.collect(tmp)
         check("one file found", len(infos), 1)

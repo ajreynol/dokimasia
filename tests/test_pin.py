@@ -30,7 +30,7 @@ def documents():
     `docs/` and the package README are walked rather than listed, so a guard
     cannot pass on the tree while leaving a document nobody remembered unread.
     """
-    found = ["README.md", "TODO.md", "dokimasia/README.md", "bug_db/README.md"]
+    found = ["README.md", "TODO.md", "dokimasia_analyzer/README.md", "bug_db/README.md"]
     for base, _dirs, names in os.walk(os.path.join(ROOT, "docs")):
         for name in sorted(names):
             if name.endswith(".md"):
@@ -133,7 +133,7 @@ def test_printed_claims(d):
     document scan above never sees it. It went a month naming a fork commit no
     reader could fetch.
     """
-    from dokimasia.ledger.__main__ import SEVERITY_NOTE
+    from dokimasia_analyzer.ledger.__main__ import SEVERITY_NOTE
 
     cited = re.findall(r"\b([0-9a-f]{9,12})\b", SEVERITY_NOTE)
     check("the severity note still cites the commit it was checked at",

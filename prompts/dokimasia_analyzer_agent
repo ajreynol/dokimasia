@@ -9,7 +9,7 @@ import sys
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT), str(ROOT / "scripts")]
-from dokimasia.findings import DEFAULT_ANALYSES
+from dokimasia_analyzer.findings import DEFAULT_ANALYSES
 import targets
 from bug_reports import write_json
 

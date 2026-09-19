@@ -5,7 +5,7 @@ Run: python3 tests/test_latent.py [<cvc5>]
 import json, os, sys, tempfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from dokimasia.latent import latent as L  # noqa: E402
+from dokimasia_analyzer.latent import latent as L  # noqa: E402
 
 FAILURES = []
 

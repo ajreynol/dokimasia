@@ -24,7 +24,7 @@ where a single "is it supported" would have had one.
 | finite fields | `ff.ff`, `set_defaults.cpp:141` | 0 / 6 | whole-theory sweep |
 | higher-order | `uf.ufHoExp`, `set_defaults.cpp:144` | 9 / 1 | logic |
 
-> `python3 -m dokimasia.fragment theories <cvc5>` · `python3 -m dokimasia.modes delta <cvc5>`
+> `python3 -m dokimasia_analyzer.fragment theories <cvc5>` · `python3 -m dokimasia_analyzer.modes delta <cvc5>`
 
 The four block **80 of the 125 kinds** safe mode blocks, over 341 kinds in
 fourteen theories. The remaining 45 are spread across arith (19), sets (15),
@@ -38,7 +38,7 @@ sep.
 | finite fields | 11 | **0 of 11** | **none of 11** | no file | 0 |
 | higher-order | 2 | 2 of 2 | 2 of 2 | `Uf.eo` | 1 — `HO_DEQ_DIFF` |
 
-> `python3 -m dokimasia.ledger table <cvc5>` · `python3 -m dokimasia.signature skolems <cvc5>` · the signature files are `proofs/eo/cpc/rules/` and `proofs/eo/cpc/expert/rules/`
+> `python3 -m dokimasia_analyzer.ledger table <cvc5>` · `python3 -m dokimasia_analyzer.signature skolems <cvc5>` · the signature files are `proofs/eo/cpc/rules/` and `proofs/eo/cpc/expert/rules/`
 
 ## What each row says, and what it does not
 

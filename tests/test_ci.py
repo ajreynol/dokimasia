@@ -9,9 +9,9 @@ import tempfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dokimasia.ci.scan import scan  # noqa: E402
+from dokimasia_analyzer.ci.scan import scan  # noqa: E402
 
-from dokimasia import sanity  # noqa: E402
+from dokimasia_analyzer import sanity  # noqa: E402
 
 FAILURES = []
 

@@ -15,7 +15,7 @@ performance belongs to
 and is outside Dokimasia's scope.
 
 Keep commands and their helpers in `scripts/`, assistant launchers in `prompts/`,
-and analysis implementations in `dokimasia/`. Add documents to the
+and analysis implementations in `dokimasia_analyzer/`. Add documents to the
 documentation index (`docs/README.md`). Observations are recorded by the analyzer and
 closed by an assessment of cvc5's history; what a closure
 meant is written up in `experience.md`.
@@ -24,7 +24,7 @@ Regression baselines live in `tests/baselines/<analysis>.json`; the runtime
 census lives in `tests/corpus/reach-corpus.json`. Default paths resolve from the
 repository location, so checks work from any working directory; baseline
 `--file` and corpus-sweep `--out` accept overrides. Re-record baselines with
-`python3 -m dokimasia write /path/to/cvc5` only after reviewing the change they
+`python3 -m dokimasia_analyzer write /path/to/cvc5` only after reviewing the change they
 describe.
 
 The analyzer and assistant default to the nine analyses in the README.
@@ -34,7 +34,7 @@ regression suite. See the command reference.
 
 Two documents are generated and neither is edited by hand:
 `fragment.md`, written whole by
-`python3 -m dokimasia.fragment doc`, and
+`python3 -m dokimasia_analyzer.fragment doc`, and
 `bug_db/bugs.md`, written whole by
 `scripts/append_findings --render-only`. Both are regenerated and diffed by the
 checks below, so neither can drift from the code beside it.
@@ -104,7 +104,7 @@ the analyzer guide covers comparison.
 
 ```bash
 for test in tests/test_*.py; do python3 "$test" || exit; done
-python3 -m dokimasia check /path/to/pinned-cvc5 --verbose
+python3 -m dokimasia_analyzer check /path/to/pinned-cvc5 --verbose
 for test in tests/test_*.py; do python3 "$test" /path/to/pinned-cvc5 || exit; done
 scripts/append_findings --render-only --check
 scripts/bump_anoieu --local /path/to/anoieu --offline --check
@@ -287,7 +287,7 @@ Each pull request is then written up in `experience.md`, whose
 shape `tests/test_experience.py` holds. The run leaves both files uncommitted:
 reading that diff is the review. Deciding what is worth carrying upstream, and
 the rule that no program here sends anything to anybody, are unchanged and live
-with the bar (`dokimasia/README.md`).
+with the bar (`dokimasia_analyzer/README.md`).
 
 ### Remaining work
 
@@ -298,7 +298,7 @@ with the bar (`dokimasia/README.md`).
 - **Corrections and reopening have no shared mechanics.** Koine's writer
   appends; preserving a corrected claim, a retraction or a reopening is
   specified nowhere. Until it is, those decisions stay in
-  the register (`docs/README.md`) and the promises (`dokimasia/README.md`), and a closure that
+  the register (`docs/README.md`) and the promises (`dokimasia_analyzer/README.md`), and a closure that
   turns out to be wrong is re-assessed in place.
 - **A rejected claim changes nothing today.** Where cvc5 declines a row, no rule
   says whether that touches the bar or only the row.
@@ -378,7 +378,7 @@ The database contains **static observations**, including candidates and hygiene
 or instrumentation gaps. It carries no current verdict. Supporting measurements
 such as dead entities remain in the run record. TCB size, standalone gate and
 fragment reports, and historical corpus measurements appear only when selected.
-Baseline changes remain the job of `python3 -m dokimasia check`.
+Baseline changes remain the job of `python3 -m dokimasia_analyzer check`.
 
 The optional latent analysis uses [the recorded corpus](../tests/corpus/reach-corpus.json)
 and preserves its build provenance and limitations. It does not rerun that
@@ -510,7 +510,7 @@ means the implementation was still under review when the run was made.
 
 the register (`docs/README.md`) remains the register for all `i-*` candidates, `R*`
 requests, process items, settled `s-*` hypotheses and filed `f-*` entries.
-the promises (`dokimasia/README.md`) retains the reporting kinds, filed record and
+the promises (`dokimasia_analyzer/README.md`) retains the reporting kinds, filed record and
 retractions. Nothing is closed, reopened or promoted by a database append;
 closure is its own assessment.
 
@@ -547,133 +547,133 @@ emits observation records. The TCB baseline remains part of the CI checks.
 No dependencies; Python 3.10+; reads a checkout, needs no build.
 
 ```bash
-python3 -m dokimasia check  <cvc5>   # eight baseline ratchets and one invariant
-python3 -m dokimasia report <cvc5>   # the nine advertised analyses, printed
-python3 -m dokimasia report <cvc5> --analysis tcb --analysis latent  # explicit selection
+python3 -m dokimasia_analyzer check  <cvc5>   # eight baseline ratchets and one invariant
+python3 -m dokimasia_analyzer report <cvc5>   # the nine advertised analyses, printed
+python3 -m dokimasia_analyzer report <cvc5> --analysis tcb --analysis latent  # explicit selection
 ```
 
-**[`dokimasia.buildmode`](../dokimasia/buildmode/)** — is a safe *build* still an
+**[`dokimasia_analyzer.buildmode`](../dokimasia_analyzer/buildmode/)** — is a safe *build* still an
 unrestricted build with one option default flipped? That invariant is what keeps
 cvc5's deliberate refusal to combine safe mode with debug symbols nearly
 costless; see the case study (`docs/experience.md`) for cvc5
 [#12899](https://github.com/cvc5/cvc5/pull/12899).
 
 ```bash
-python3 -m dokimasia.buildmode check <cvc5>       # 8 conditionals, all benign
-python3 -m dokimasia.buildmode sites <cvc5>       # each one, classified
+python3 -m dokimasia_analyzer.buildmode check <cvc5>       # 8 conditionals, all benign
+python3 -m dokimasia_analyzer.buildmode sites <cvc5>       # each one, classified
 ```
 
-**[`dokimasia.latent`](../dokimasia/latent/)** — optional comparison of the static
+**[`dokimasia_analyzer.latent`](../dokimasia_analyzer/latent/)** — optional comparison of the static
 inventory with the historical runtime census in `tests/corpus/reach-corpus.json`.
 Its runtime evidence applies to the recorded build and corpus.
 
 ```bash
-python3 -m dokimasia.latent census <cvc5>          # 182 of 203 latent, 0 in safe mode
-python3 -m dokimasia.latent list   <cvc5> --kind seam-rule
+python3 -m dokimasia_analyzer.latent census <cvc5>          # 182 of 203 latent, 0 in safe mode
+python3 -m dokimasia_analyzer.latent list   <cvc5> --kind seam-rule
 scripts/sweep_corpus --cvc5 <binary> --corpus <dir>  # regenerate the census
 ```
 
-**[`dokimasia.tcb`](../dokimasia/tcb/)** — optional measurement of the trusted computing base of the
+**[`dokimasia_analyzer.tcb`](../dokimasia_analyzer/tcb/)** — optional measurement of the trusted computing base of the
 internal proof checker, the natural kernel candidate.
 
 ```bash
-python3 -m dokimasia.tcb measure  <cvc5>   # 179 files, 41,446 lines, 8.0% of src/
-python3 -m dokimasia.tcb cuts     <cvc5>   # what each dependency edge costs
-python3 -m dokimasia.tcb why      <cvc5> theory/strings/core_solver.h
-python3 -m dokimasia.tcb baseline <cvc5> --check    # ratchet, for CI
+python3 -m dokimasia_analyzer.tcb measure  <cvc5>   # 179 files, 41,446 lines, 8.0% of src/
+python3 -m dokimasia_analyzer.tcb cuts     <cvc5>   # what each dependency edge costs
+python3 -m dokimasia_analyzer.tcb why      <cvc5> theory/strings/core_solver.h
+python3 -m dokimasia_analyzer.tcb baseline <cvc5> --check    # ratchet, for CI
 ```
 
-**[`dokimasia.modes`](../dokimasia/modes/)** — what safe and stable mode change
+**[`dokimasia_analyzer.modes`](../dokimasia_analyzer/modes/)** — what safe and stable mode change
 about the defaults, from all 172 option-setting sites in `set_defaults.cpp`.
 
 ```bash
-python3 -m dokimasia.modes delta    <cvc5>          # safe mode: 27 rows, 24 distinct settings
-python3 -m dokimasia.modes check    <cvc5>          # options that escape the promise
-python3 -m dokimasia.modes baseline <cvc5> --check  # ratchet, for CI
+python3 -m dokimasia_analyzer.modes delta    <cvc5>          # safe mode: 27 rows, 24 distinct settings
+python3 -m dokimasia_analyzer.modes check    <cvc5>          # options that escape the promise
+python3 -m dokimasia_analyzer.modes baseline <cvc5> --check  # ratchet, for CI
 ```
 
-**[`dokimasia.inferid`](../dokimasia/inferid/)** — whether each `InferenceId` names
+**[`dokimasia_analyzer.inferid`](../dokimasia_analyzer/inferid/)** — whether each `InferenceId` names
 a single program point.
 
 ```bash
-python3 -m dokimasia.inferid check <cvc5>          # 51 ids produced at more than one site
-python3 -m dokimasia.inferid show  <cvc5> STRINGS_CODE_PROXY
-python3 -m dokimasia.inferid dead  <cvc5>          # 14 declared, produced nowhere
-python3 -m dokimasia.inferid stats <cvc5>
+python3 -m dokimasia_analyzer.inferid check <cvc5>          # 51 ids produced at more than one site
+python3 -m dokimasia_analyzer.inferid show  <cvc5> STRINGS_CODE_PROXY
+python3 -m dokimasia_analyzer.inferid dead  <cvc5>          # 14 declared, produced nowhere
+python3 -m dokimasia_analyzer.inferid stats <cvc5>
 ```
 
-**[`dokimasia.ledger`](../dokimasia/ledger/)** — one row per `ProofRule`, four
+**[`dokimasia_analyzer.ledger`](../dokimasia_analyzer/ledger/)** — one row per `ProofRule`, four
 columns: produced, checked, elaborated, printed.
 
 ```bash
-python3 -m dokimasia.ledger holes <cvc5>          # 14 rules the Eunoia seam cannot print
-python3 -m dokimasia.ledger rule  <cvc5> ARITH_POW2_INIT
-python3 -m dokimasia.ledger table <cvc5> --produced-only
+python3 -m dokimasia_analyzer.ledger holes <cvc5>          # 14 rules the Eunoia seam cannot print
+python3 -m dokimasia_analyzer.ledger rule  <cvc5> ARITH_POW2_INIT
+python3 -m dokimasia_analyzer.ledger table <cvc5> --produced-only
 ```
 
-**[`dokimasia.trust`](../dokimasia/trust/)** — the census of cvc5's declared holes:
+**[`dokimasia_analyzer.trust`](../dokimasia_analyzer/trust/)** — the census of cvc5's declared holes:
 every `TrustId`, where it is constructed, and the preprocessing correspondence.
 
 ```bash
-python3 -m dokimasia.trust census <cvc5>          # 75 ids: 70 live, 4 dead
-python3 -m dokimasia.trust passes <cvc5>          # which passes declare a hole
-python3 -m dokimasia.trust show   <cvc5> THEORY_LEMMA
+python3 -m dokimasia_analyzer.trust census <cvc5>          # 75 ids: 70 live, 4 dead
+python3 -m dokimasia_analyzer.trust passes <cvc5>          # which passes declare a hole
+python3 -m dokimasia_analyzer.trust show   <cvc5> THEORY_LEMMA
 ```
 
-**[`dokimasia.ci`](../dokimasia/ci/)** — an independent check that cvc5's proof
+**[`dokimasia_analyzer.ci`](../dokimasia_analyzer/ci/)** — an independent check that cvc5's proof
 testing is still attached. CI is the safety net today, and one that quietly
 stops being attached looks exactly like one that works.
 
 ```bash
-python3 -m dokimasia.ci proofs  <cvc5>            # the completeness chain
-python3 -m dokimasia.ci matrix  <cvc5>            # job x tester
-python3 -m dokimasia.ci testers <cvc5>            # what each tester passes
+python3 -m dokimasia_analyzer.ci proofs  <cvc5>            # the completeness chain
+python3 -m dokimasia_analyzer.ci matrix  <cvc5>            # job x tester
+python3 -m dokimasia_analyzer.ci testers <cvc5>            # what each tester passes
 ```
 
-**[`dokimasia.rewrites`](../dokimasia/rewrites/)** — coverage of the 533-rule
+**[`dokimasia_analyzer.rewrites`](../dokimasia_analyzer/rewrites/)** — coverage of the 533-rule
 rewrite vocabulary at the Eunoia seam.
 
 ```bash
-python3 -m dokimasia.rewrites coverage <cvc5>     # RARE vs hand-written vs applied
-python3 -m dokimasia.rewrites gaps     <cvc5>     # applied, and unprintable
+python3 -m dokimasia_analyzer.rewrites coverage <cvc5>     # RARE vs hand-written vs applied
+python3 -m dokimasia_analyzer.rewrites gaps     <cvc5>     # applied, and unprintable
 ```
 
-**[`dokimasia.fragment`](../dokimasia/fragment/)** — optional report of the logical fragment cvc5
+**[`dokimasia_analyzer.fragment`](../dokimasia_analyzer/fragment/)** — optional report of the logical fragment cvc5
 supports, per theory, and whether it is enforced. `doc` generates
 `bug_db/fragment.md`, rewriting it whole;
 `tests/test_fragment.py` regenerates and diffs it at the pinned commit.
 
 ```bash
-python3 -m dokimasia.fragment theories <cvc5>     # 341 kinds over 14 theories
-python3 -m dokimasia.fragment check    <cvc5>     # is the fragment enforced?
-python3 -m dokimasia.fragment doc      <cvc5> --out bug_db/fragment.md
+python3 -m dokimasia_analyzer.fragment theories <cvc5>     # 341 kinds over 14 theories
+python3 -m dokimasia_analyzer.fragment check    <cvc5>     # is the fragment enforced?
+python3 -m dokimasia_analyzer.fragment doc      <cvc5> --out bug_db/fragment.md
 ```
 
-**[`dokimasia.infer`](../dokimasia/infer/)** — does every inference a theory makes
+**[`dokimasia_analyzer.infer`](../dokimasia_analyzer/infer/)** — does every inference a theory makes
 have a proof reconstruction? The completeness core.
 
 ```bash
-python3 -m dokimasia.infer coverage  <cvc5>          # per theory
-python3 -m dokimasia.infer unhandled <cvc5> strings  # the ids that fall through
+python3 -m dokimasia_analyzer.infer coverage  <cvc5>          # per theory
+python3 -m dokimasia_analyzer.infer unhandled <cvc5> strings  # the ids that fall through
 ```
 
-**[`dokimasia.signature`](../dokimasia/signature/)** — does the Eunoia signature
+**[`dokimasia_analyzer.signature`](../dokimasia_analyzer/signature/)** — does the Eunoia signature
 agree with cvc5's own account of a rule?
 
 ```bash
-python3 -m dokimasia.signature rules   <cvc5>     # 0 printable rules undeclared
-python3 -m dokimasia.signature skolems <cvc5>     # 24 constructed but unprintable
-python3 -m dokimasia.signature checker <cvc5>     # documented arity vs what the checker enforces
+python3 -m dokimasia_analyzer.signature rules   <cvc5>     # 0 printable rules undeclared
+python3 -m dokimasia_analyzer.signature skolems <cvc5>     # 24 constructed but unprintable
+python3 -m dokimasia_analyzer.signature checker <cvc5>     # documented arity vs what the checker enforces
 ```
 
-**[`dokimasia.gates`](../dokimasia/gates/)** — optional standalone reports of which
+**[`dokimasia_analyzer.gates`](../dokimasia_analyzer/gates/)** — optional standalone reports of which
 option legalises each term kind, and whether a rule can fire under
 `--safe-mode=safe`. The rewrite analysis also uses this machinery for evidence.
 
 ```bash
-python3 -m dokimasia.gates kinds    <cvc5>        # 59 kinds carry an option gate
-python3 -m dokimasia.gates rule     <cvc5> LAMBDA_ELIM
-python3 -m dokimasia.gates verdicts <cvc5>        # blocked / partial / open
+python3 -m dokimasia_analyzer.gates kinds    <cvc5>        # 59 kinds carry an option gate
+python3 -m dokimasia_analyzer.gates rule     <cvc5> LAMBDA_ELIM
+python3 -m dokimasia_analyzer.gates verdicts <cvc5>        # blocked / partial / open
 ```
 
 
@@ -710,10 +710,10 @@ exactly why finding one is hard.
 ### The subtraction, as a number
 
 
-`dokimasia.latent` performs it, and it is the count worth watching:
+`dokimasia_analyzer.latent` performs it, and it is the count worth watching:
 
 ```
-$ python3 -m dokimasia.latent census <cvc5>
+$ python3 -m dokimasia_analyzer.latent census <cvc5>
                safe  latent  unres   total
   inference       0      79      0      79
   rewrite         0      38      2      40
@@ -742,7 +742,7 @@ version, corpus, commit, and the exact counters queried — and is regenerated b
 
 **The static seam analysis is sound against the runtime oracle.** cvc5's
 completeness check is literally `!EoPrinter::isHandled(...)`
-(`smt/proof_final_callback.cpp`), which is the predicate `dokimasia.ledger`
+(`smt/proof_final_callback.cpp`), which is the predicate `dokimasia_analyzer.ledger`
 computes without building. Every rule the corpus reported unhandled is in our
 static gap list or in an argument-dependent arm we classify as *conditional*.
 **Nine of the fourteen gaps we predicted were hit; none of the hits was outside

@@ -83,7 +83,7 @@ not restated. On 2026-09-18 you deprecated the page they live on, with the
 replacement pending. That left the statement of our own policy in a deprecated
 file in another repository, which is a thing we could not hold ourselves to and
 could not ask a reader to check. They are now stated in our tree as
-the promises (`dokimasia/README.md`), together with *silence is never
+the promises (`dokimasia_analyzer/README.md`), together with *silence is never
 evidence* and *a reply is triage; an artifact settles it*, which two of our other
 documents also lean on.
 
@@ -120,7 +120,7 @@ nothing checks, and neither side's checker caught it.
 given to us as notice in your `D31`, we signed both its positions in our `D15` on
 2026-09-18, and on 2026-09-19 the page carrying them ceased to exist. A signed
 position whose text is gone is not a position; it is a memory. We have written
-both into the promises (`dokimasia/README.md`), with the qualification we
+both into the promises (`dokimasia_analyzer/README.md`), with the qualification we
 attached to the second, so that our signature still refers to something — **but
 we have now written your page into our tree twice, and the second time was to
 stop something we agreed to from evaporating.**
@@ -299,7 +299,7 @@ asked for is already written on every run.** You asked against our `report`,
 which is the wrong instrument and was never going to be a good one: it
 summarises and truncates because it is written for somebody reading a screen.
 
-**Use this instead of `python3 -m dokimasia report`:**
+**Use this instead of `python3 -m dokimasia_analyzer report`:**
 
 ```bash
 scripts/dokimasia_analyzer --cvc5 <checkout> --no-update --dump <out>.json
@@ -342,7 +342,7 @@ at it costs us nothing — which is why this is an answer rather than a decision
 documented at identity and evidence (`docs/maintenance.md`) and
 the run record (`docs/maintenance.md`);
 treat the **field names as stable and the `measurements` contents as not**, since
-those are per-analysis and move with the analyses. And `python3 -m dokimasia`'s
+those are per-analysis and move with the analyses. And `python3 -m dokimasia_analyzer`'s
 module path is not a promise: if you would rather depend on one thing, depend on
 `scripts/dokimasia_analyzer`, which is a command with a stated interface, rather
 than on a module we import.
@@ -414,7 +414,7 @@ for — each rule compared against its `ProofRule` declaration, its children and
 arguments, and the reshaping in `eo_printer.cpp` — and said the question was not
 which of us is capable but which of us is going to.
 
-**It is ours, it is built, and it is recorded here as ours.** `dokimasia.signature`
+**It is ours, it is built, and it is recorded here as ours.** `dokimasia_analyzer.signature`
 is the check; the check catalogue (`docs/README.md`) carries it as the `SIG` facet, and
 the register (`docs/README.md`) carries the rows it produced. At cvc5 `40a4bb7e4` it
 returns:

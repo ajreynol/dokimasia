@@ -100,6 +100,6 @@ in `docs/experience.md`, one section per pull request.
 
 Reviewed verdicts, replies and retractions stay in the
 issue register (`docs/README.md`) and the
-findings ledger (`dokimasia/README.md`); see
+findings ledger (`dokimasia_analyzer/README.md`); see
 assessing closure (`docs/maintenance.md`) for the mechanics
 and what is still missing.

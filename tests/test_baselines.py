@@ -16,9 +16,9 @@ Run: python3 tests/test_baselines.py <cvc5>
 import json, os, subprocess, sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from dokimasia.inferid.scan import _declared  # noqa: E402
-from dokimasia.inferid.__main__ import _src  # noqa: E402
-from dokimasia.paths import baseline  # noqa: E402
+from dokimasia_analyzer.inferid.scan import _declared  # noqa: E402
+from dokimasia_analyzer.inferid.__main__ import _src  # noqa: E402
+from dokimasia_analyzer.paths import baseline  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 LOCK = os.path.join(ROOT, "scripts", "cvc5.lock")
@@ -81,7 +81,7 @@ def test_tcb_context(root):
     nothing, so the skip names itself rather than passing quietly.
     """
     from argparse import Namespace
-    from dokimasia.tcb.__main__ import _closure, _stats
+    from dokimasia_analyzer.tcb.__main__ import _closure, _stats
 
     pin = json.load(open(LOCK, encoding="utf-8"))["cvc5"]["commit"]
     head = subprocess.run(["git", "-C", root, "rev-parse", "HEAD"],
@@ -99,7 +99,7 @@ def test_tcb_context(root):
         check(f"tcb baseline {field} is what the pinned tree gives",
               now.get(field), old[field])
     if any(now.get(f) != old[f] for f in old):
-        print("        re-record it: python3 -m dokimasia.tcb baseline <cvc5> --write")
+        print("        re-record it: python3 -m dokimasia_analyzer.tcb baseline <cvc5> --write")
 
 
 if __name__ == "__main__":

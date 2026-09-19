@@ -9,8 +9,8 @@ import sys
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from dokimasia.findings import DEFAULT_ANALYSES, collect
-from dokimasia import source
+from dokimasia_analyzer.findings import DEFAULT_ANALYSES, collect
+from dokimasia_analyzer import source
 import targets
 from bug_reports import DB, PAGE, append, write_json
 

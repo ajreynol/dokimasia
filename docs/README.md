@@ -14,7 +14,7 @@ documents complete the set, and `docs/` holds nothing else:
 
 The analyzer's own design philosophy — what counts as a finding, the promises we
 publish under, and the bar a claim clears — is a package document,
-`dokimasia/README.md`.
+`dokimasia_analyzer/README.md`.
 
 Generated views are data artifacts and live with the data, in
 `bug_db/`: `bugs.md` is every
@@ -41,9 +41,9 @@ no benchmark in hand.
 **Only claims we can back.** Every number we publish comes from a tool here that
 runs in seconds against a checkout. A claim we cannot measure is a design note
 and lives in `TODO.md` as one. What we will and will not say about
-somebody else's code is the promises (`dokimasia/README.md`), each with
+somebody else's code is the promises (`dokimasia_analyzer/README.md`), each with
 the tier and the mechanism behind it, enforced at the edge by
-the bar (`dokimasia/README.md`).
+the bar (`dokimasia_analyzer/README.md`).
 
 ### The operating constraint: agility
 
@@ -169,7 +169,7 @@ we have run.** 21 were reached outside safe mode, none inside it.
 
 The same run validated the static tier against the runtime oracle — cvc5's
 completeness check is literally `!EoPrinter::isHandled(...)`, the predicate
-`dokimasia.ledger` computes without building: **nine of the fourteen gaps we
+`dokimasia_analyzer.ledger` computes without building: **nine of the fourteen gaps we
 predicted were hit, and nothing hit was outside our prediction.** And it bounds
 us honestly: on `regress0`, safe mode is clean.
 
@@ -183,7 +183,7 @@ failure mode of all three is **silence**.
 `category = "expert"` and safe and stable mode refuse expert options.
 Completeness is obtained as a side effect — in a safe build `setDefaultsPre`
 turns it on when `--check-proofs` is set and no granularity was requested. Four
-links, and `dokimasia.ci proofs` prints each:
+links, and `dokimasia_analyzer.ci proofs` prints each:
 
 ```
 1. [ok ] a build job runs in safe mode              ubuntu:safe-mode
@@ -196,7 +196,7 @@ Adding a `--proof-granularity` flag to the proof tester — an ordinary thing to
 want — breaks link 4 and completeness testing stops. **No test fails.** A fifth
 link once asked for the flag to be named here; it was withdrawn, because making
 the option settable would equally permit `--no-check-proofs-complete`
-(the retractions in `dokimasia/README.md` have the detail).
+(the retractions in `dokimasia_analyzer/README.md` have the detail).
 
 **Safe mode's disable list is hand-maintained and unchecked.** The guard fires
 when a user *sets* an option, never on its default value, which is how
@@ -277,19 +277,19 @@ The register row for each is below.
 
 | prefix | tool | measured at `40a4bb7e4` | rows |
 | --- | --- | --- | --- |
-| `TCB` | `dokimasia.tcb` | 179 files, 41,446 lines, 8.0% of `src/`; 6 rule checkers compile against the solvers they check | `f-1` |
-| `MODE` | `dokimasia.modes` | 24 distinct option settings changed in safe mode; 2 options declare no proof support and stay on, of which 1 survives review | `i-2`, `i-5` |
-| `RULE` | `dokimasia.ledger` | 170 rules: 113 always printable, 17 conditionally, 40 never — 14 by design, 12 unreachable, **14 real gaps** | `i-7`, `i-12` |
-| `TRUST` | `dokimasia.trust` | 75 declared ids: 70 live, 4 dead, 8 sites built with `TrustId::NONE` | `i-9`, `i-10`, `i-11` |
-| `INFER` | `dokimasia.infer` | 79 inferences fall through to a trust step by construction; 10 theories have no `InferProofCons` at all | `i-22`, `i-6` |
-| `RW` | `dokimasia.rewrites` | 533-rule vocabulary; 40 applied and unprintable; 3 taken only outside safe mode | `i-17`, `i-18` |
-| `INFERID` | `dokimasia.inferid` | 51 ids produced at more than one site, 14 produced nowhere, 21 emitted with a sentinel | `i-8` |
-| `CI` | `dokimasia.ci` | 4 of 22 jobs run a proof tester; all 4 completeness links hold, and the guarantee still rests on configuration | `i-3`, `i-13`, `i-14` |
-| `GATE` | `dokimasia.gates` | 59 term kinds carry an option gate; verdicts blocked / partial / open per rule | `i-1`, `s-1`–`s-5` |
-| `FRAG` | `dokimasia.fragment` | 341 kinds over 14 theories (216 available, 125 blocked); two safe-mode options gate no kind at all | `i-15` |
-| `BUILD` | `dokimasia.buildmode` | **8 conditionals on the safe-build macro, all benign**; 0 excluded sources; 0 behavioural readers of `isSafeBuild()` | answered cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) |
-| `LATENT` | `dokimasia.latent` | **182 of 203 declared holes reached by no input**; 21 reached only outside safe mode; 0 in safe mode | what the corpus reaches (`docs/maintenance.md`) |
-| `SIG` | `dokimasia.signature` | 0 printable rules undeclared; 24 skolems constructed and unprintable; 1 documented arity disagreement | `i-19`, `i-20`, `i-21` |
+| `TCB` | `dokimasia_analyzer.tcb` | 179 files, 41,446 lines, 8.0% of `src/`; 6 rule checkers compile against the solvers they check | `f-1` |
+| `MODE` | `dokimasia_analyzer.modes` | 24 distinct option settings changed in safe mode; 2 options declare no proof support and stay on, of which 1 survives review | `i-2`, `i-5` |
+| `RULE` | `dokimasia_analyzer.ledger` | 170 rules: 113 always printable, 17 conditionally, 40 never — 14 by design, 12 unreachable, **14 real gaps** | `i-7`, `i-12` |
+| `TRUST` | `dokimasia_analyzer.trust` | 75 declared ids: 70 live, 4 dead, 8 sites built with `TrustId::NONE` | `i-9`, `i-10`, `i-11` |
+| `INFER` | `dokimasia_analyzer.infer` | 79 inferences fall through to a trust step by construction; 10 theories have no `InferProofCons` at all | `i-22`, `i-6` |
+| `RW` | `dokimasia_analyzer.rewrites` | 533-rule vocabulary; 40 applied and unprintable; 3 taken only outside safe mode | `i-17`, `i-18` |
+| `INFERID` | `dokimasia_analyzer.inferid` | 51 ids produced at more than one site, 14 produced nowhere, 21 emitted with a sentinel | `i-8` |
+| `CI` | `dokimasia_analyzer.ci` | 4 of 22 jobs run a proof tester; all 4 completeness links hold, and the guarantee still rests on configuration | `i-3`, `i-13`, `i-14` |
+| `GATE` | `dokimasia_analyzer.gates` | 59 term kinds carry an option gate; verdicts blocked / partial / open per rule | `i-1`, `s-1`–`s-5` |
+| `FRAG` | `dokimasia_analyzer.fragment` | 341 kinds over 14 theories (216 available, 125 blocked); two safe-mode options gate no kind at all | `i-15` |
+| `BUILD` | `dokimasia_analyzer.buildmode` | **8 conditionals on the safe-build macro, all benign**; 0 excluded sources; 0 behavioural readers of `isSafeBuild()` | answered cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) |
+| `LATENT` | `dokimasia_analyzer.latent` | **182 of 203 declared holes reached by no input**; 21 reached only outside safe mode; 0 in safe mode | what the corpus reaches (`docs/maintenance.md`) |
+| `SIG` | `dokimasia_analyzer.signature` | 0 printable rules undeclared; 24 skolems constructed and unprintable; 1 documented arity disagreement | `i-19`, `i-20`, `i-21` |
 
 The `MODE` row is the shape to notice: the check returned two options and one of
 them (`s-4`, `macrosQuantMode`) was spurious — its effect is
@@ -380,7 +380,7 @@ The ones worth someone's attention.
 | --- | --- | --- | --- |
 | **i-1** | **`LAMBDA_ELIM` may be a genuine safe-mode gap.** *(Strengthened: the fragment analysis finds **no `uf` kind blocked in safe mode at all** — `ufHoExp` gates the declared logic, not `Kind::LAMBDA`, so a lambda reaching the rewriter is not excluded by kind.)* The seam accepts it only when `safeMode == UNRESTRICTED`, `TheoryUfRewriter::rewriteViaRule` applies it, and its arm fires on `Kind::LAMBDA`, which no gate blocks in safe mode | `gates rule` | **still an input, and one attempt has failed.** `(define-fun f ((x Int)) Int (+ x 1))` with an assertion over `f` runs clean under `--safe-mode=safe --produce-proofs --check-proofs --stats-internal`: `unsat`, no unhandled rule, no trust step. That is evidence, not a settlement — the macro is expanded in preprocessing and `LAMBDA_ELIM` may simply not have fired. A benchmark that keeps a lambda alive to the rewriter is the open task. Note `--check-proofs-complete` cannot be passed here (see `i-3`); `--stats-internal` is the route |
 | **i-2** | **`stringLazyPreproc` escapes safe mode's promise — and safe mode says so itself.** It declares `no_support = ["proofs"]`, `default = "true"`, `category = "regular"`; `setDefaultsPre` only *reads* it, never disables it. **Verified by running:** `--safe-mode=safe --strings-lazy-pp` is refused with *"cannot set option strings-lazy-pp in safe mode, as this option does not support proofs"* — so safe mode refuses to let you set the option on the grounds that it lacks proof support, while running with it on by default. `--no-strings-lazy-pp` is refused too, so the guard also blocks the one assignment that would make the configuration safer | `modes check`, then run | **verdict: carry.** Clears all five rules. Falsified if a maintainer says the `no_support` annotation is stale — which is itself the answer we want |
-| **i-3** | **Proof completeness is obtained only as a side effect.** `--check-proofs-complete` appears nowhere in CI; in a safe build `setDefaultsPre` enables it from `--check-proofs`. **It also cannot be passed there** — the option is `category = "expert"` and safe and stable mode reject expert options — and *that is correct*: cvc5 established that making it settable would equally permit `--no-check-proofs-complete`, so the refusal is what keeps the guarantee non-negotiable. **The defect is not that the flag cannot be named**, which is where this row started; it is that adding a `--proof-granularity` flag to the `proof` tester would switch completeness off with no test failing | `ci proofs`, then run | an assertion in `setDefaultsPre` stating the implication (**R2**), which is a kind D (`dokimasia/README.md`) and retires our check |
+| **i-3** | **Proof completeness is obtained only as a side effect.** `--check-proofs-complete` appears nowhere in CI; in a safe build `setDefaultsPre` enables it from `--check-proofs`. **It also cannot be passed there** — the option is `category = "expert"` and safe and stable mode reject expert options — and *that is correct*: cvc5 established that making it settable would equally permit `--no-check-proofs-complete`, so the refusal is what keeps the guarantee non-negotiable. **The defect is not that the flag cannot be named**, which is where this row started; it is that adding a `--proof-granularity` flag to the `proof` tester would switch completeness off with no test failing | `ci proofs`, then run | an assertion in `setDefaultsPre` stating the implication (**R2**), which is a kind D (`dokimasia_analyzer/README.md`) and retires our check |
 | **i-4** | **Completeness depends on a search budget, and the budget is load-bearing.** Reconstruction runs under `--proof-rewrite-rcons-rec-limit` (default 5); when it fails the step stays coarse. This is **not a tuning knob on a decidable procedure** — FMCAD 2022 §IV-A states there is *"no guarantee that preconditions are simpler than the current equality to be proved, and so no guarantee of termination in general."* The paper measured 92–95% of rewrite *steps* reconstructed but only **20–22% of proofs fully fine-grained**, since one coarse step spoils a proof | `rewrites gaps` | nothing settles this short of a termination argument for the recursion. It bounds what any kernel contract can claim, and it is the strongest reason obligation 6 cannot be discharged today |
 | **i-5** | **The safe-mode disable list is hand-maintained and untested.** Nothing checks that it still covers every feature without proof support | `modes delta` | not a defect today — the check exists to catch the *next* feature added |
 | **i-15** | **The supported fragment is not expressible as a list of kinds.** Two expert options safe mode disables gate no term kind: `ufHoExp` restricts the declared *logic* (`logicInfo().isHigherOrder()`), `fpExp` restricts a *type* (via `checkForExperimentalFloatingPointType`, whose sort has kind `TYPE_CONSTANT` and cannot be excluded by kind). So any statement of the form "safe mode supports exactly these kinds" is incomplete, and `illegal_checker`'s kind deny list cannot be the whole story | `fragment check` | a decision on whether the fragment should be *stated* somewhere — the three mechanisms are each reasonable, but nothing writes down what they add up to |
@@ -413,7 +413,7 @@ Cleanups and unrestricted-mode gaps. Real, but nobody is relying on them.
 
 Changes we would like made. The reasoning for each is in the document named;
 these rows exist so there is one place to see what is outstanding. Kinds are
-from the promises (`dokimasia/README.md`): **B** an adoption, **C** a change to the
+from the promises (`dokimasia_analyzer/README.md`): **B** an adoption, **C** a change to the
 pipeline, **D** an assertion.
 
 ### Which ask moves which metric
@@ -481,9 +481,9 @@ worth as much as a finding.
 | s-2 | `ARRAYS_EQ_RANGE_EXPAND` and `DT_MATCH_ELIM` — two hard rewrite gaps | **blocked.** `EQ_RANGE` needs `--arrays-exp`, `MATCH` needs `--datatypes-exp` |
 | s-3 | "`EoPrinter::isHandled` refuses 37 rules" (172 − 135) | **superseded.** The subtraction was naive. The ledger computes it: 40 refused, of which 14 by design, 12 unreachable, 14 real gaps |
 | s-4 | `macrosQuantMode` escapes safe mode like `stringLazyPreproc` | **spurious.** Its effect is gated by `macrosQuant`, default `false`. A defaults-only check cannot see that gate |
-| s-6 | `SET_FILTER` is ungated in safe mode, and `SETS_FILTER_UP`/`DOWN` are refused by the seam there — so a `set.filter` benchmark should fail `--check-proofs-complete`. A rank-1 candidate | **spurious, and the most instructive miss so far.** Every link held in the source. But `set.filter` takes a predicate, a predicate is a function-typed term, and `TheoryUF::preRegisterTerm` throws `LogicException` on a function-typed term unless the logic is higher-order — which safe *and* stable mode refuse. One command settled what no amount of reading would have. The analysis is fixed rather than the row retracted: `Fragment.requires_higher_order` now recovers this axis from the type rules, and 13 kinds move to blocked. See the bar (`dokimasia/README.md`) |
+| s-6 | `SET_FILTER` is ungated in safe mode, and `SETS_FILTER_UP`/`DOWN` are refused by the seam there — so a `set.filter` benchmark should fail `--check-proofs-complete`. A rank-1 candidate | **spurious, and the most instructive miss so far.** Every link held in the source. But `set.filter` takes a predicate, a predicate is a function-typed term, and `TheoryUF::preRegisterTerm` throws `LogicException` on a function-typed term unless the logic is higher-order — which safe *and* stable mode refuse. One command settled what no amount of reading would have. The analysis is fixed rather than the row retracted: `Fragment.requires_higher_order` now recovers this axis from the type rules, and 13 kinds move to blocked. See the bar (`dokimasia_analyzer/README.md`) |
 | s-7 | "No `uf` kind is blocked in safe mode at all", used to strengthen `i-1` | **half wrong.** `HO_APPLY` is blocked, by the same logic axis as `s-6`. `LAMBDA` is *not* — its argument is not function-typed, only its result is — so `i-1` survives at the kind level, but the sweeping form of the claim does not. `tests/test_fragment.py` now asserts the corrected fact |
-| s-5 | The proof checker's TCB is 74% of `src/` | **retracted.** An artifact of a saturating closure mode; the real figure is 8.0%. See the retractions in `dokimasia/README.md` |
+| s-5 | The proof checker's TCB is 74% of `src/` | **retracted.** An artifact of a saturating closure mode; the real figure is 8.0%. See the retractions in `dokimasia_analyzer/README.md` |
 
 ## Filed
 
@@ -497,7 +497,7 @@ already disciplined: 12 of 13 registered rule checkers take nothing but a
 `NodeManager*`. Six included the headers of the solvers they were checking,
 putting `theory/strings/core_solver.h`, `theory/arith/linear/constraint.h`,
 `theory/theory.h` and `theory/rewriter.h` inside a surface of **179 files,
-41,446 lines, 8.0% of `src/`** (`dokimasia.tcb measure`).
+41,446 lines, 8.0% of `src/`** (`dokimasia_analyzer.tcb measure`).
 
 | from | include | uniquely worth | use |
 | --- | --- | --- | --- |
@@ -515,7 +515,7 @@ The coupling is lexical rather than semantic, so the fix is mechanical: move the
 helper to a dependency-light header both sides include. Where the edge is
 `unused` the fix is a deletion, and **the report originally gave the first
 mechanism for all six**, which is the last row of the retractions in
-`dokimasia/README.md`. The closure figures were right throughout.
+`dokimasia_analyzer/README.md`. The closure figures were right throughout.
 
 **Status.** cvc5 has a branch removing the three dead includes and moving the
 strings helpers to `strings::utils`, reporting the closure down to 141 files /
@@ -632,11 +632,11 @@ list and the build-time exclusion list must agree, and today they plainly do not
 
 Of everything in the register above, which is most worth a cvc5 maintainer's
 time — as a bug report, or as a patch a human carries? Nothing here is sent by a
-program; see the bar (`dokimasia/README.md`).
+program; see the bar (`dokimasia_analyzer/README.md`).
 
 
 
-Applying the bar (`dokimasia/README.md`). Two rows clear it; everything else
+Applying the bar (`dokimasia_analyzer/README.md`). Two rows clear it; everything else
 names the rule that blocks it.
 
 ### The verdicts
@@ -686,7 +686,7 @@ completeness testing off, and no test would fail.
 | **it is about the guarantee itself** | not a hole, but the mechanism that detects holes. Everything else this repository reports depends on it working |
 | **it takes one command to verify** | no build, no corpus, no argument about reachability. A maintainer can refute or confirm it in thirty seconds — and did, refuting one of the two remedies below |
 | **it is not a matter of taste** | the option's own help text says *"enabled by default in safe builds"*, and safe builds are exactly where it cannot be named |
-| **the fix is small and has a natural home** | an assertion in `setDefaultsPre` — a kind D (`dokimasia/README.md`), so the invariant lands in cvc5's tree and our `CI0002` check retires |
+| **the fix is small and has a natural home** | an assertion in `setDefaultsPre` — a kind D (`dokimasia_analyzer/README.md`), so the invariant lands in cvc5's tree and our `CI0002` check retires |
 | **we found it by running, not reading** | the static analysis got this ask *wrong* (see below), which is itself worth telling them |
 
 **The proposed fix.** This listed two forms; **the second was rejected by cvc5
@@ -696,7 +696,7 @@ on 2026-09-19 and is withdrawn.**
    safe build enables `checkProofsComplete`, assert it is set — **at the default
    and DSL-rewrite granularities only.** cvc5 supplied that condition: an
    unconditional assertion would fire on the deliberate lower-granularity
-   exception. Still the smallest change and still a kind D (`dokimasia/README.md`).
+   exception. Still the smallest change and still a kind D (`dokimasia_analyzer/README.md`).
 2. ~~**Exempt `checkProofsComplete` from the expert refusal**, so the safe-mode
    regression tester can name what it is testing.~~ **Withdrawn — this asked
    cvc5 to weaken the guarantee we are auditing.** An option's category governs
@@ -707,7 +707,7 @@ on 2026-09-19 and is withdrawn.**
    reproduced the opt-out, and reverted it at `215eed21a6c8380075c46513e69181a295b6e3b2`. **The expert refusal
    is the mechanism that makes completeness non-negotiable in safe mode**, and we
    read it as an obstacle to naming the guarantee. Recorded in
-   the retractions in `dokimasia/README.md`.
+   the retractions in `dokimasia_analyzer/README.md`.
 
 **What sank half of it, and what that leaves.** The report's own criterion was
 that a maintainer could refute it in thirty seconds, and one did: the refutation
@@ -851,12 +851,12 @@ that promises it** — the very property this ask exists to protect. Reproduced 
 cvc5 `a960d7d7210e731cf48ad7baa6ad42fc7345b297`, reverted at `215eed21a6c8380075c46513e69181a295b6e3b2`. The error was ours: we reasoned
 from *the positive flag is refused* to *the option should be settable*, without
 asking what else becomes settable, and it is recorded in
-the retractions in `dokimasia/README.md`.
+the retractions in `dokimasia_analyzer/README.md`.
 
 **The one surviving form: assert the implication where it is created** — in
 `setDefaultsPre`, where a safe build turns the option on, state that a safe build
 with `--check-proofs` has `checkProofsComplete` set. That is the
-kind D (`dokimasia/README.md`) form: the invariant moves into cvc5's tree and our
+kind D (`dokimasia_analyzer/README.md`) form: the invariant moves into cvc5's tree and our
 `CI0002` check retires. cvc5 adds the condition we had missed — **an
 unconditional assertion would also have to account for the intentional
 lower-granularity exception**, since the implication holds only at the default
@@ -974,7 +974,7 @@ wrong number. That is the whole robustness budget, and it is enough.
 Worth separating from the above, because these are things the tools *cannot*
 do rather than things that might stop working:
 
-- **Option gates are computed for rewrite rules only.** `dokimasia.gates` links
+- **Option gates are computed for rewrite rules only.** `dokimasia_analyzer.gates` links
   a rule to the term kinds its `rewriteViaRule` arm names, and those kinds to
   the options that legalise them. It says nothing about `ProofRule`s or trust
   steps, whose sites name no kind — those severities are still set by hand.

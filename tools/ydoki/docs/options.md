@@ -5,8 +5,8 @@ cvc5 `40a4bb7e4`. Its mirror is `theories.md`, and
 `../README.md` says why the two are separate questions.
 
 **This project adds no instrument.** Every figure is
-`python3 -m dokimasia.modes delta <cvc5>`, its `--mode stable` form, or
-`python3 -m dokimasia.modes check <cvc5>`.
+`python3 -m dokimasia_analyzer.modes delta <cvc5>`, its `--mode stable` form, or
+`python3 -m dokimasia_analyzer.modes check <cvc5>`.
 
 ## Where the candidates come from
 

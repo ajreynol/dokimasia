@@ -4,7 +4,7 @@ Run: python3 tests/test_signature.py [<cvc5>]
 """
 import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from dokimasia.signature.compare import _arg_count, _premise_shape, printed_name, scan  # noqa: E402
+from dokimasia_analyzer.signature.compare import _arg_count, _premise_shape, printed_name, scan  # noqa: E402
 
 FAILURES = []
 
@@ -32,7 +32,7 @@ def test_latex():
 
 
 def test_checker(root):
-    from dokimasia.signature.checker import agrees, scan_checkers
+    from dokimasia_analyzer.signature.checker import agrees, scan_checkers
     print("checker-implied arity:")
     c = scan_checkers(root)
     check("SUBS: the checker reads a third argument the docs omit",

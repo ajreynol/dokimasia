@@ -8,7 +8,7 @@ Run: python3 tests/test_buildmode.py [<cvc5>]
 import os, sys, tempfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from dokimasia.buildmode import buildmode as B  # noqa: E402
+from dokimasia_analyzer.buildmode import buildmode as B  # noqa: E402
 
 FAILURES = []
 

@@ -12,7 +12,7 @@ import tempfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dokimasia.tcb.closure import Closure, IncludeGraph  # noqa: E402
+from dokimasia_analyzer.tcb.closure import Closure, IncludeGraph  # noqa: E402
 
 FAILURES = []
 
@@ -125,7 +125,7 @@ def test_edge_use():
 
 def test_cvc5(root):
     print(f"cvc5 tree at {root}:")
-    from dokimasia.tcb.closure import SEED_SETS, resolve_src
+    from dokimasia_analyzer.tcb.closure import SEED_SETS, resolve_src
     import glob
     src = resolve_src(root)
     g = IncludeGraph.build(src)

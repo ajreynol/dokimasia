@@ -142,7 +142,7 @@ What is *not* an episode, with where each belongs instead:
 | not an episode | why | where it goes |
 | --- | --- | --- |
 | a claim of ours we caught ourselves | nobody at cvc5 saw it | nowhere in prose — the corrected tool and its test are the record |
-| a check of ours broken by a cvc5 rename | cvc5 renamed its own build types; we broke unaided | what a run learned about itself, in `dokimasia/README.md` |
+| a check of ours broken by a cvc5 rename | cvc5 renamed its own build types; we broke unaided | what a run learned about itself, in `dokimasia_analyzer/README.md` |
 | a pull request of ours cvc5 has not merged | however far along, the decision has not been taken | nowhere yet — it earns an entry when it lands |
 | a check that found nothing | that is a result, not an interaction | the measurement tables in `docs/README.md` |
 | a hypothesis waiting for a verdict | nothing has happened to it | the register in `docs/README.md` |

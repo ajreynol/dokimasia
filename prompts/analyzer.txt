@@ -7,7 +7,7 @@ documents first. This is a comparison of two producers, not a request to fix cvc
 Read source directly. Do not run Dokimasia's scanners, analyzer or report
 commands. Do not read its program dumps, bug database, initial-run record,
 generated static-analysis page, issue register, or filed findings. Do not read
-dokimasia/findings.py; the allowed identity helper below may import it. Your
+dokimasia_analyzer/findings.py; the allowed identity helper below may import it. Your
 answer must be independent of the program's answer.
 
 Use only emitted codes in docs/README.md. For each independently established

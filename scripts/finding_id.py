@@ -7,7 +7,7 @@ import sys
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from dokimasia.findings import finding_id, observation
+from dokimasia_analyzer.findings import finding_id, observation
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)

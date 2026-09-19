@@ -9,8 +9,8 @@ import sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 sys.path.insert(0, ROOT)
-from dokimasia.fragment.__main__ import document  # noqa: E402
-from dokimasia.fragment.fragment import EXPERT_OPTIONS, scan  # noqa: E402
+from dokimasia_analyzer.fragment.__main__ import document  # noqa: E402
+from dokimasia_analyzer.fragment.fragment import EXPERT_OPTIONS, scan  # noqa: E402
 
 PAGE = os.path.join(ROOT, "bug_db", "fragment.md")
 LOCK = os.path.join(ROOT, "scripts", "cvc5.lock")
@@ -97,7 +97,7 @@ def test_generated_page(root):
           document(scan(root)) == committed, True)
     if document(scan(root)) != committed:
         print("        regenerate it: "
-              "python3 -m dokimasia.fragment doc <cvc5> --out bug_db/fragment.md")
+              "python3 -m dokimasia_analyzer.fragment doc <cvc5> --out bug_db/fragment.md")
 
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dokimasia.rewrites.scan import _strip_comments, rare_to_enum, scan  # noqa: E402
+from dokimasia_analyzer.rewrites.scan import _strip_comments, rare_to_enum, scan  # noqa: E402
 
 FAILURES = []
 

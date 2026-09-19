@@ -14,8 +14,8 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path[:0] = [str(ROOT), str(ROOT / "scripts")]
-from dokimasia.findings import ANALYSES, DEFAULT_ANALYSES, CHECKS, collect, finding_id, observation
-from dokimasia.sanity import ExtractionError
+from dokimasia_analyzer.findings import ANALYSES, DEFAULT_ANALYSES, CHECKS, collect, finding_id, observation
+from dokimasia_analyzer.sanity import ExtractionError
 from bug_reports import DB, PAGE, append, read_dump, read_run, render, write_json
 import koine
 import targets
@@ -119,7 +119,7 @@ class AnalyzerTests(unittest.TestCase):
         with patch.object(targets, "CENSUS", census), patch.object(targets, "ROOT", self.base):
             # Supply implementation files expected by the digest without copying
             # the repository; only the census changes between these snapshots.
-            for name in ("dokimasia/x.py", "scripts/dokimasia_analyzer", "scripts/targets.py",
+            for name in ("dokimasia_analyzer/x.py", "scripts/dokimasia_analyzer", "scripts/targets.py",
                          "scripts/targets.json", "scripts/bug_reports.py", "scripts/koine.py",
                          "scripts/koine.lock"):
                 path = self.base / name
@@ -183,7 +183,7 @@ class AnalyzerTests(unittest.TestCase):
             self.assertIn(str(self.base / "missing"), p.stderr)
 
     def test_combined_report_defaults_and_optional_selection(self):
-        from dokimasia import __main__ as cli
+        from dokimasia_analyzer import __main__ as cli
         with patch.object(cli, "_run", return_value=(0, "")) as run, \
                 contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(cli.main(["report", str(self.tree)]), 0)
@@ -433,7 +433,7 @@ class AnalyzerTests(unittest.TestCase):
 
     @unittest.skipUnless(REAL_CVC5, "provide pinned cvc5 to check baseline lookup")
     def test_baselines_work_outside_repository(self):
-        p = subprocess.run([sys.executable, "-m", "dokimasia", "check",
+        p = subprocess.run([sys.executable, "-m", "dokimasia_analyzer", "check",
                             str(Path(REAL_CVC5).resolve())], cwd=self.base,
                            env=os.environ | {"PYTHONPATH": str(ROOT)}, capture_output=True, text=True)
         self.assertEqual(p.returncode, 0, p.stdout + p.stderr)

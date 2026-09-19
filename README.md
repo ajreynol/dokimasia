@@ -94,7 +94,7 @@ Dokimasia owns that history and its interpretation; Koine provides the tooling.
 commands refresh the view, and CI checks that it matches the JSON.
 
 The issue register (`docs/README.md`) records candidates, requests and settled
-hypotheses. Filed findings and retractions (`dokimasia/README.md`) remain the
+hypotheses. Filed findings and retractions (`dokimasia_analyzer/README.md`) remain the
 reviewed record. The database preserves observations across runs, including
 ones subsequently disputed or resolved. Disappearance does not close a finding.
 
@@ -148,7 +148,7 @@ the part to read first.
 | --- | --- |
 | The argument and the registers (`docs/README.md`) | the goal, the contract, the checks (`docs/README.md`), the register (`docs/README.md`) of what we ask cvc5 to act on, and the asks argued |
 | Maintenance (`docs/maintenance.md`) | running the analyzer (`docs/maintenance.md`), the command reference (`docs/maintenance.md`), pins, tests, the script catalogue and what the corpus reaches (`docs/maintenance.md`) |
-| Experience (`docs/experience.md`) | every interaction we have had with cvc5, numbered `E1` upward. Our own corrections are not episodes; they are the retractions in `dokimasia/README.md` |
+| Experience (`docs/experience.md`) | every interaction we have had with cvc5, numbered `E1` upward. Our own corrections are not episodes; they are the retractions in `dokimasia_analyzer/README.md` |
 | Discussion (`docs/discussion.md`) | the standing channel to the rest of the ecosystem, and the gate on responding to it |
 | Bug database (`bug_db/README.md`) | the data artifact: every observation (`bug_db/bugs.md`) and the supported fragment (`bug_db/fragment.md`), both generated |
 | The plan (`TODO.md`) | what is measured today, what is queued, and what we have decided not to do |
@@ -170,8 +170,8 @@ kept by Kanon. Anoieu implements the checker; CI pins its revision in
 **Written by AI agents, under light human supervision.** A human maintainer
 directs the work, reviews it and decides what is reported upstream. Findings
 are filed by the human. What this repository holds itself to is stated in its
-own tree — the promises (`dokimasia/README.md`) and
-the bar (`dokimasia/README.md`). They began as a position shared with
+own tree — the promises (`dokimasia_analyzer/README.md`) and
+the bar (`dokimasia_analyzer/README.md`). They began as a position shared with
 anoieu, in a [reporting policy](https://github.com/ajreynol/anoieu/blob/06bd7872ea5ce24bf4d264bf5e6958ed8edee3c2/docs/reports/reporting-policy.md)
 anoieu deprecated and then removed; that link is pinned to the last commit the
 page existed at, because provenance a reader cannot fetch is not provenance.

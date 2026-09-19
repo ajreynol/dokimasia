@@ -77,7 +77,7 @@ jobs:
       - name: the pin is real, upstream, and what the docs quote
         run: python3 tests/test_pin.py /tmp/cvc5
       - name: every ratchet is clean at the pinned commit
-        run: python3 -m dokimasia check /tmp/cvc5 --verbose
+        run: python3 -m dokimasia_analyzer check /tmp/cvc5 --verbose
       - name: collect observations and replay through Koine
         run: |
           scripts/dokimasia_analyzer --cvc5 /tmp/cvc5 --dump /tmp/new-bugs.json --db /tmp/bugs.json

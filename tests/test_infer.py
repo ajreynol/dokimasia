@@ -4,8 +4,8 @@ Run: python3 tests/test_infer.py [<cvc5>]
 """
 import os, sys, tempfile
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-from dokimasia import sanity  # noqa: E402
-from dokimasia.infer.coverage import CORE, _theory_of, scan  # noqa: E402
+from dokimasia_analyzer import sanity  # noqa: E402
+from dokimasia_analyzer.infer.coverage import CORE, _theory_of, scan  # noqa: E402
 
 FAILURES = []
 

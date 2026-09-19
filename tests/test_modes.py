@@ -8,7 +8,7 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dokimasia.modes.delta import (  # noqa: E402
+from dokimasia_analyzer.modes.delta import (  # noqa: E402
     ModeDelta, parse_option_defaults, parse_set_defaults, unsupported_but_enabled,
 )
 

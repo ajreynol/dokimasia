@@ -210,7 +210,7 @@ def test_facets():
              17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty"}
     text = read(CHECKS)
     catalogue = re.findall(r"^\| [✅◐○] \| `([A-Z]+)` \|", text, re.M)
-    produced = re.findall(r"^\| `([A-Z]+)` \| `dokimasia\.[a-z]+` \|", text, re.M)
+    produced = re.findall(r"^\| `([A-Z]+)` \| `dokimasia_analyzer\.[a-z]+` \|", text, re.M)
     check("the catalogue was found at all", len(catalogue) > 5,
           f"{len(catalogue)} rows")
     undeclared = sorted(set(produced) - set(catalogue))

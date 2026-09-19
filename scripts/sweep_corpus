@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run cvc5 over a benchmark corpus and record which proof holes it reaches.
 
-Produces `tests/corpus/reach-corpus.json`, the numerator `dokimasia.latent` subtracts from
+Produces `tests/corpus/reach-corpus.json`, the numerator `dokimasia_analyzer.latent` subtracts from
 the static inventory. This needs a *built* cvc5, which is why it is a script
 and not a subtool: every other analysis here reads a checkout and builds
 nothing.
@@ -25,7 +25,7 @@ import sys
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from dokimasia.paths import CENSUS
+from dokimasia_analyzer.paths import CENSUS
 
 #: Registered in src/smt/proof_final_callback.cpp. Verify against that file
 #: after any cvc5 bump: these are the statistic names, not the member names.

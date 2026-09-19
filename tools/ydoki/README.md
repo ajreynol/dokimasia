@@ -198,15 +198,15 @@ parent rather than answered here.
 Every figure above is something dokimasia already measures, and this project
 adds no instrument:
 
-- **`dokimasia.fragment`** — the term kinds per theory and how each is blocked.
-- **`dokimasia.modes`** — the whole option axis: which options each mode
+- **`dokimasia_analyzer.fragment`** — the term kinds per theory and how each is blocked.
+- **`dokimasia_analyzer.modes`** — the whole option axis: which options each mode
   changes, the guard each change sits under, and the line it happens at. The
   safe and stable deltas differing by exactly the `SAFE`-only block is what
   makes the priority set a set rather than an opinion.
-- **`dokimasia.ledger`** — one row per `ProofRule`: produced, checked,
+- **`dokimasia_analyzer.ledger`** — one row per `ProofRule`: produced, checked,
   elaborated, printed. The finite-field rows are the reason that theory is not
   grouped with the other two.
-- **`dokimasia.signature`** — the skolems the solver constructs and the seam
+- **`dokimasia_analyzer.signature`** — the skolems the solver constructs and the seam
   refuses, and which rules the signature declares.
 
 **The parent's registers remain the authority.** `docs/README.md`,

@@ -9,9 +9,9 @@ import tempfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from dokimasia.trust.census import census  # noqa: E402
+from dokimasia_analyzer.trust.census import census  # noqa: E402
 
-from dokimasia import sanity  # noqa: E402
+from dokimasia_analyzer import sanity  # noqa: E402
 
 FAILURES = []
 
