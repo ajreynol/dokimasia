@@ -272,7 +272,7 @@ Each pull request is then written up in [`experience.md`](experience.md), whose
 shape `tests/test_experience.py` holds. The run leaves both files uncommitted:
 reading that diff is the review. Deciding what is worth carrying upstream, and
 the rule that no program here sends anything to anybody, are unchanged and live
-with [the bar](experience.md#the-bar).
+with [the bar](../dokimasia/README.md#the-bar).
 
 ### Remaining work
 
@@ -283,7 +283,7 @@ with [the bar](experience.md#the-bar).
 - **Corrections and reopening have no shared mechanics.** Koine's writer
   appends; preserving a corrected claim, a retraction or a reopening is
   specified nowhere. Until it is, those decisions stay in
-  [`issues.md`](README.md#the-register) and [`findings.md`](experience.md#what-a-finding-is), and a closure that
+  [`issues.md`](README.md#the-register) and [`findings.md`](../dokimasia/README.md#what-a-finding-is), and a closure that
   turns out to be wrong is re-assessed in place.
 - **A rejected claim changes nothing today.** Where cvc5 declines a row, no rule
   says whether that touches the bar or only the row.
@@ -495,7 +495,7 @@ means the implementation was still under review when the run was made.
 
 [`issues.md`](README.md#the-register) remains the register for all `i-*` candidates, `R*`
 requests, process items, settled `s-*` hypotheses and filed `f-*` entries.
-[`findings.md`](experience.md#what-a-finding-is) retains the reporting kinds, filed record and
+[`findings.md`](../dokimasia/README.md#what-a-finding-is) retains the reporting kinds, filed record and
 retractions. Nothing is closed, reopened or promoted by a database append;
 closure is [its own assessment](maintenance.md#assessing-closure).
 
@@ -540,7 +540,7 @@ python3 -m dokimasia report <cvc5> --analysis tcb --analysis latent  # explicit 
 **[`dokimasia.buildmode`](../dokimasia/buildmode/)** — is a safe *build* still an
 unrestricted build with one option default flipped? That invariant is what keeps
 cvc5's deliberate refusal to combine safe mode with debug symbols nearly
-costless; see [the case study](experience.md#cvc5-12899--is-forbidding-safe-mode-with-debug-symbols-actually-a-restriction) for cvc5
+costless; see [the case study](experience.md#2026-09-17--cvc5-12899-is-forbidding-safe-mode-with-debug-symbols-a-restriction) for cvc5
 [#12899](https://github.com/cvc5/cvc5/pull/12899).
 
 ```bash

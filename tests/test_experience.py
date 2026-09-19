@@ -44,45 +44,66 @@ def check(label, ok, detail=""):
 
 
 def test_experience():
-    """One field block per pull request, summary short, and a lesson in each."""
+    """One entry per defect, in one shape, with a lesson in each.
+
+    The page is a log of concrete defects found in cvc5, so what is checked is
+    that every entry looks like every other one: the same field block, a summary
+    short enough to read, and a `Learned:` saying what the check got right or
+    wrong. The template is checked as well as the entries, because there may be
+    no new entry for a long time and the template is what the next run copies.
+    """
     print("the experience log:")
     LIMIT, SENTENCES = 250, 2
-    FIELDS = ("Commit:", "Closed:", "Summary:", "What the change did:",
-              "Attribution:", "Learned:")
+    ROWS = ("Status", "Identity", "Found by", "In cvc5", "Attribution")
+    PROSE = ("Summary:", "What was wrong:", "Learned:")
     raw = read(EXPERIENCE)
     text = re.sub(r"```.*?```", "", raw, flags=re.S)  # not the template
     check("it says where the log stands",
           "## Where this stands" in text, "no such section")
-    # The field that makes this a post-mortem rather than a changelog. It is the
-    # one a thin run drops first, so the template is checked even while there is
-    # nothing in the log to check it against.
+    check("it says how it is maintained, at the foot",
+          "## How this page is maintained" in text, "no such section")
+    # The template is the pattern. A reader should be able to see it without
+    # reverse-engineering it from the entries, and the next run copies it.
     template = re.search(r"```text\n(.*?)\n```", raw, re.S)
-    check("the entry template carries every field",
-          bool(template) and all(f"**{f}**" in template.group(1) for f in FIELDS),
+    body = template.group(1) if template else ""
+    check("the template carries every field block row",
+          bool(template) and all(f"**{r}**" in body for r in ROWS),
+          "the field block is what makes the pattern visible")
+    check("the template carries every prose field",
+          bool(template) and all(f"**{f}**" in body for f in PROSE),
           "a section with no Learned: records an event and not a lesson")
 
-    entries = re.split(r"^## (?=\d{4}-\d{2}-\d{2} )", text, flags=re.M)[1:]
+    entries = re.split(r"^### (?=\d{4}-\d{2}-\d{2} )", text, flags=re.M)[1:]
     if not entries:
-        print("  ok   nothing closed yet, so there is no entry to check")
+        print("  ok   nothing found yet, so there is no entry to check")
         return
+    print(f"  ok   {len(entries)} entries")
     for entry in entries:
         title = entry.splitlines()[0].strip()
-        check(f"{title}: names the pull request or says there is none",
-              bool(re.search(r"cvc5 #\d+|no pull request", title)), title)
-        for field in FIELDS:
+        short = title[:60]
+        check(f"{short}: says what the defect was, not just a date",
+              len(title.split("—", 1)[-1].strip()) > 10, title)
+        for row in ROWS:
+            n = len(re.findall(rf"^\| \*\*{re.escape(row)}\*\* \|", entry, re.M))
+            check(f"{short}: one **{row}** row", n == 1, f"found {n}")
+        for field in PROSE:
             n = len(re.findall(rf"^\*\*{re.escape(field)}\*\*", entry, re.M))
-            check(f"{title}: one **{field}**", n == 1, f"found {n}")
-        # An identity ties the story to the record. A write-up of a closure the
-        # database does not carry is the failure this file exists to prevent.
-        check(f"{title}: closes an identity the database can be checked against",
-              bool(re.search(r"dokimasia:[0-9a-f]{8,}", entry)),
-              "no dokimasia:* identity in the entry")
-        m = re.search(r"^\*\*Summary:\*\*(.*?)(?=\n\*\*|\Z)", entry, re.M | re.S)
+            check(f"{short}: one **{field}**", n == 1, f"found {n}")
+        # An entry ties itself to something checkable: a database identity, a
+        # filed finding id, or an em dash opening an explicit statement that
+        # there is neither. "No observation, and here is why" is a better answer
+        # than a bare dash, so the dash only has to come first.
+        ident = re.search(r"^\| \*\*Identity\*\* \| (.+?) \|", entry, re.M)
+        check(f"{short}: the identity is a row, a finding id, or an explicit none",
+              bool(ident) and bool(re.search(r"dokimasia:[0-9a-f]{8,}|`[fi]-\d+`|^—",
+                                             ident.group(1).strip())),
+              ident.group(1) if ident else "no Identity row")
+        m = re.search(r"^\*\*Summary:\*\*(.*?)(?=\n\*\*|\n\|)", entry, re.M | re.S)
         if m:
             s = " ".join(m.group(1).split())
-            check(f"{title}: the summary is {LIMIT} characters at most",
+            check(f"{short}: the summary is {LIMIT} characters at most",
                   len(s) <= LIMIT, f"{len(s)}")
-            check(f"{title}: the summary is {SENTENCES} sentences at most",
+            check(f"{short}: the summary is {SENTENCES} sentences at most",
                   len(re.findall(r"[.!?](?:\s|$)", s)) <= SENTENCES, s[:80])
 
 

@@ -1,334 +1,141 @@
-# Experience: our claims, and what came of them
+# Experience: the defects we found in cvc5
 
-Three things, in the order a claim moves through them: what a finding **is** and
-the bar it clears to be carried to cvc5; the **log** of what was filed and what
-was retracted; and **what cvc5 did** about the observations we recorded.
+**One entry per concrete defect**, newest first, each in the same shape: what was
+wrong in cvc5, what happened to it, and what that says about the check that
+found it. A defect leaves this page only by being written up in it — nothing is
+edited away, and a claim that turned out false stays as
+[a retraction](#retractions).
 
-Raw run observations are data and live in [`bug_db/`](../bug_db/README.md). The
-argument, the checks and the register of what we are asking cvc5 for are in
-[the documentation index](README.md).
+This is not the record of an observation. That is
+[`bug_db/`](../bug_db/README.md): identities, dates, archived evidence and the
+`closed_*` fields a closure adds. The database says *that* a change closed an
+observation; this page says what it meant. How the page is written and what each
+field has to carry is [at the foot](#how-this-page-is-maintained).
 
-## What a finding is
+## Where this stands
 
-The reviewed ledger: what a finding is, what clears the bar to be carried to
-cvc5, and the log of what has been filed and what has been retracted. Raw run
-observations live in [`bug_db/`](../bug_db/README.md); what cvc5 has since done
-about them is [`experience.md`](experience.md).
+**Five entries, one closed.** The log below covers cvc5
+`40a4bb7e4..dbf176dfb` and the branch answering `tcb-001`: one defect closed by
+a merged pull request, one acted on and not yet merged, one filed and open, and
+two questions that turned out to be no defect at all. A thin log is the honest
+reading of a thin window, not a backlog of write-ups nobody got to.
 
-Four kinds, extending anoieu's three:
-
-| | kind | what it asks of cvc5 |
-| --- | --- | --- |
-| **A** | a defect | an incomplete proof, named down to the input that produces it |
-| **B** | an adoption | run a check of ours in your CI, with the configuration it needs |
-| **C** | a change to the pipeline | to the proof infrastructure or to what safe mode promises |
-| **D** | **an assertion** | a patch adding an invariant to cvc5, so the check lives in your tree and not ours |
-
-**Kind A is what this repository is for.** An incomplete proof, named down to
-the input that produces it, is the only finding that directly serves
-[the goal](README.md#the-stance). The other three are instruments: B and D are ways of
-making a fix stick, C is a way of changing what the pipeline promises. They are
-cheap and worth doing, and none of them is the reason this exists.
-
-A note on D, since it is the most easily overrated: an assertion converts a
-silent hole into a loud failure and no more. It does not close a hole — it
-closes a *check*. That is the shared position *success is the check being
-deleted*, and D is how it happens here: where an invariant we check is one cvc5
-could check about itself at startup, the deliverable is the patch and our check
-goes with it. See
-[`docs/maintenance.md`](maintenance.md#d3--where-an-invariant-should-live).
-
-## The promises
-
-These originated as the position shared with anoieu, in a
-[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/06bd7872ea5ce24bf4d264bf5e6958ed8edee3c2/docs/reports/reporting-policy.md)
-that anoieu deprecated on 2026-09-18 and **removed on 2026-09-19**. They were
-cited here by name and not restated, which left the statement of our own policy
-in another repository's deprecated file — and that file no longer exists, so the
-citation above is pinned to the last commit it did. They are restated below
-because a policy you cannot read without leaving the tree is not one you can be
-held to, and a month later the tree you were leaving for may not have it. Cite a
-position **by name**, never by number.
-
-The tier says what backs it — **enforced**, something fails when it is broken;
-**structural**, the arrangement makes the failure hard rather than impossible;
-**intention**, nothing but our record. Several sit a tier above anoieu's because
-the mechanism here is a test rather than a habit; where that is so, the test is
-named, and a tier with no mechanism beside it is an intention wearing a better
-word.
-
-| | position | tier here | what backs it |
-| --- | --- | --- | --- |
-| **1** | **Silence is never evidence** | structural | where a check reports nothing, the most that may be said is that *those checks reported nothing*. Every code in [`checks.md`](README.md#structured-observations) carries a limitation column, and every archived observation a `limitation` field |
-| **4** | **Publish a candidate; carry a finding** | structural | candidates live in [`bug_db/`](../bug_db/README.md) under their own header; findings live in [the log](#the-log) below. Promoting one takes a deliberate act in a different file, not a slip |
-| **5** | **Presence is not reachability** | structural | *"this rule has no checker"* and *"and an ordinary run emits it"* are different claims, and only the second is worth somebody's time. [`reachability.md`](maintenance.md#what-the-corpus-reaches) is the measurement that separates them; the 182 latent holes are what it found |
-| **6** | **A false positive is ours — and so is anything we asked cvc5 to run** | enforced, for the half that can be | a check that fired wrongly is narrowed until it stops, and the narrowing is recorded in [the retractions](#retractions) in cvc5's terms rather than kinder ones. Eight `baseline --check` ratchets under `tests/baselines/` fail the build on a change that invents one |
-| **7** | **Every claim is re-checkable without us** | enforced | a number carries whatever regenerates it and the revision it was measured at. [`scripts/cvc5.lock`](../scripts/cvc5.lock) pins that revision, `tests/test_pin.py` enforces it, and CI fails if the pin names a commit reachable only on a fork — which is the retraction directly below that bought this rule |
-| **8** | **Closing is a verdict, not an absence** | enforced, for the launcher | no row leaves without one recorded, and *"won't fix, because —"* is worth as much as a fix. Koine's writer is additive and cannot delete a row; `tests/test_experience.py` fails if [`prompts/close_bug_db`](../prompts/close_bug_db) stops carrying **Absence closes nothing** and **Confirm the closure in the current source** |
-| **9** | **A reply is triage; an artifact settles it** | intention | what comes back from cvc5 is somebody's reading, made quickly and on our word. Here the settling artifact is a **cvc5 commit whose effect is re-read in current source** — not the commit message, and not the row going quiet. Failing to find one settles nothing |
-
-Two more are stated in this file rather than in this table, because they are
-load-bearing where they sit: *nothing crosses a repository boundary
-automatically* is [the bar](#the-bar), and *success is the check being deleted*
-is the note on kind D above.
-
-**And two about what we take, rather than what we say.** These came last, as a
-section anoieu added on 2026-09-17 and we signed on 2026-09-18; they are here
-because the page carrying them was deleted the next day and they would otherwise
-survive only inside a piece of correspondence that gets removed when it settles.
-
-| | position | tier here | what backs it |
-| --- | --- | --- | --- |
-| **13** | **Published is not available** | intention | reading a published tree needs nobody's permission, and making somebody's work the material of an exercise they have no stake in is a different act. The test is *who carries the cost if the output is misread* — for us that is always cvc5, which is the whole reason for the discipline |
-| **14** | **Unpublished work is not material** | intention, **with one qualification of ours** | clean when the material is a signature, which is released or not. A source tree has a third state: a personal branch on a public host is published in the only sense a machine can check and unreleased in every sense that matters. We sign this as *unreleased work is nobody's material* — forbidding the exercise nobody asked for, not forbidding an answer to a question somebody asks us about our own registers. Read strictly, with *no balancing test*, we could not sign it as written |
-
-The qualification is not a private reservation: it was put to anoieu when we
-signed, and our own `scripts/cvc5.lock` books a reachability census run against
-a personal fork as a debt for exactly this reason.
-
-Two things this repository adds, because the subject is a solver rather than a
-signature:
-
-- **Carrying a kind A means an input.** Not a code location and an argument — a
-  `.smt2` file, an option set, and the quoted `--check-proofs-complete` failure.
-  A claim that a path is reachable is worth nothing until something reaches it,
-  and the static analysis's job is to tell us *where to look*, not to substitute
-  for looking. What evidence each rank needs is set out in
-  [`docs/maintenance.md`](maintenance.md#d5--safe-mode-first-and-the-reproducer-is-the-deliverable).
-- **An assertion is not proposed until it has been run.** The promise is the
-  shared one; the precondition is ours. It is applied to a cvc5 build configured
-  `--assertions` and the regression suite passes with it in place. An assertion
-  we have not run is a hypothesis, and hypotheses go in [`issues.md`](README.md#the-register),
-  not in a patch.
-
-## The bar
-
-**This repository never opens a pull request against cvc5. No program here
-pushes a branch, opens an issue, posts a comment, or touches a tracker. A human
-does that, or it does not happen.** A hard rule about the *act*, not about the
-judgement: deciding what deserves to go upstream is this repository's job, and
-handing back an unranked list for somebody to sort is the work left undone.
-
-Five rules, by name so they can be cited. A candidate is **worth carrying** only
-when all five hold.
-
-| rule | it means |
-| --- | --- |
-| **theirs-not-ours** | it is a defect in cvc5. A parser bug, a stale baseline or a bad assumption of ours is fixed here and logged, never reported |
-| **run-it** | every claim about behaviour is backed by a command and its actual output. Static reasoning alone is a hypothesis |
-| **cheap-to-refute** | the evidence is a command, a reproducer, or a named line — checkable in minutes, without us |
-| **falsifiable** | we have said what would show it is wrong. A claim with no stated falsifier is not finished being thought about |
-| **worth-the-attention** | it earns the time it costs. Cleanups are bundled and go *after* something substantive lands, never before |
-
-Every candidate carries exactly one verdict, and every one is recorded.
-
-| verdict | means | lives in |
-| --- | --- | --- |
-| **carry** | all five hold; a person can take it upstream today | [`next-report.md`](experience.md#what-to-report-next), with the packet |
-| **not yet** | one or more fail — **name which** | [`issues.md`](README.md#the-register), rank and blocking rule on the row |
-| **never** | it is ours, or it will never earn the attention | [`issues.md`](README.md#settled) or the retraction log |
-
-*Not yet* is the verdict we issue most, and naming the failing rule is what makes
-it actionable: it says exactly what work would change the answer.
-
-**The carry packet** is what a person needs in order to act, and no more: the
-claim in one sentence and its rank; the command that reproduces it against a
-stated commit; the reproducer where the claim is about behaviour — a `.smt2`
-file, the option set, the quoted output; what would falsify it; and the patch as
-a diff in a file, never as a branch.
-
-### The bar is also a design constraint
-
-**Before building a check, ask what its output would be worth.** If everything a
-check can produce would come back *not yet — worth-the-attention*, the check is
-not worth building. That single question retires more work than any other test
-we have, and it is why [`TODO.md`](../TODO.md) declines a SARIF framework, a
-generated check registry, and a `holes/` corpus with no holes in it.
-
-**Design every check with its verification path.** A check that can only ever
-produce hypotheses fails **run-it** by construction, and will sit in the register
-forever. This is why `dokimasia.latent` ships with
-[`scripts/sweep_corpus`](../scripts/sweep_corpus): the static half alone could
-never clear the bar, so the runtime half is not an extra, it is what makes the
-analysis reportable at all.
-
-**Fix at the source, not in the report.** When a candidate dies because we were
-wrong, the deliverable is a corrected *analysis*, not a retraction. `SET_FILTER`
-did not just get struck from the register; `Fragment.requires_higher_order` now
-recovers the logic-level gate, so the whole class of mistake is gone. A
-retraction with no code change behind it means the analysis will make the same
-error again. Our own errors go through the same pipeline, inverted: a false
-positive is ours by promise, so it is filed against us, tested against the case
-that produced it, and logged in [the retractions](#retractions) below.
-
-## What to report next
-
-
-
-Applying [the bar](experience.md#the-bar). Two rows clear it; everything else
-names the rule that blocks it.
-
-### The verdicts
-
-| verdict | row | |
-| --- | --- | --- |
-| **carry** | `i-3` / `R2` | completeness in safe mode is obtained by configuration and nothing asserts it *(the category half of this ask was rejected — see below)* |
-| **carry** | `i-2` | `stringLazyPreproc` — safe mode refuses to let you set it *because it lacks proof support*, and leaves it on |
-| not yet — **run-it** | `i-1`, `i-22`, `i-6` | a static argument with no input. `i-1` has had one attempt fail |
-| not yet — **run-it** | the 182 [latent holes](maintenance.md#what-the-corpus-reaches) | declared, and nothing has reached them |
-| not yet — **worth-the-attention** | the dead-declaration cleanups | bundled, and only after something substantive lands |
-| never | `i-4` | a termination argument for the reconstruction search settles it, and nothing else does |
-
-### The recommendation
-
-**Report the completeness flag first: in safe mode the guarantee is obtained only
-as a side effect, and nothing asserts it.** ([`i-3`](README.md#the-register),
-[`R2`](README.md#open--asks))
-
-> **Amended 2026-09-19.** This read *"`--check-proofs-complete` cannot be set in
-> either mode whose contract it enforces"*, which is true and was the wrong
-> emphasis: cvc5 has since established that it *should not* be settable there,
-> because the same change would permit switching completeness off. The
-> unsettability is the guarantee working, not the defect. The defect is below
-> it — the implication is unasserted.
-
-One command is the whole report:
-
-```
-$ cvc5 --safe-mode=safe --produce-proofs --check-proofs --check-proofs-complete f.smt2
-(error "Fatal error in option parsing: expert option check-proofs-complete
-        cannot be set in safe mode.")
-```
-
-`checkProofsComplete` is `category = "expert"` in `proof_options.toml`. Safe and
-stable mode reject expert options. So the flag can only be passed in the
-unrestricted job — the one mode that makes no completeness promise. In safe
-mode the guarantee is obtainable **only** as a side effect: `setDefaultsPre`
-turns the option on when `--check-proofs` is set and no `--proof-granularity`
-was requested. Adding a granularity flag to the proof tester would switch
-completeness testing off, and no test would fail.
-
-**Why this one.**
-
-| criterion | |
-| --- | --- |
-| **it is about the guarantee itself** | not a hole, but the mechanism that detects holes. Everything else this repository reports depends on it working |
-| **it takes one command to verify** | no build, no corpus, no argument about reachability. A maintainer can refute or confirm it in thirty seconds — and did, refuting one of the two remedies below |
-| **it is not a matter of taste** | the option's own help text says *"enabled by default in safe builds"*, and safe builds are exactly where it cannot be named |
-| **the fix is small and has a natural home** | an assertion in `setDefaultsPre` — a [kind D](experience.md#what-a-finding-is), so the invariant lands in cvc5's tree and our `CI0002` check retires |
-| **we found it by running, not reading** | the static analysis got this ask *wrong* (see below), which is itself worth telling them |
-
-**The proposed fix.** This listed two forms; **the second was rejected by cvc5
-on 2026-09-19 and is withdrawn.**
-
-1. **Assert the implication where it is created.** In `setDefaultsPre`, after a
-   safe build enables `checkProofsComplete`, assert it is set — **at the default
-   and DSL-rewrite granularities only.** cvc5 supplied that condition: an
-   unconditional assertion would fire on the deliberate lower-granularity
-   exception. Still the smallest change and still a [kind D](experience.md#what-a-finding-is).
-2. ~~**Exempt `checkProofsComplete` from the expert refusal**, so the safe-mode
-   regression tester can name what it is testing.~~ **Withdrawn — this asked
-   cvc5 to weaken the guarantee we are auditing.** An option's category governs
-   both assignments, so making it settable in safe mode equally permits
-   `--no-check-proofs-complete` and `(set-option :check-proofs-complete false)`,
-   and `setDefaultsPre` honours an explicit user assignment through
-   `checkProofsCompleteWasSetByUser`. cvc5 built the promotion at `a960d7d7210e731cf48ad7baa6ad42fc7345b297`,
-   reproduced the opt-out, and reverted it at `215eed21a6c8380075c46513e69181a295b6e3b2`. **The expert refusal
-   is the mechanism that makes completeness non-negotiable in safe mode**, and we
-   read it as an obstacle to naming the guarantee. Recorded in
-   [the retractions](experience.md#retractions).
-
-**What sank half of it, and what that leaves.** The report's own criterion was
-that a maintainer could refute it in thirty seconds, and one did: the refutation
-is `cvc5 --check-proofs --no-check-proofs-complete f.smt2` printing `false`. The
-remaining claim is untouched and is the one to carry — **completeness in safe
-mode is obtained by configuration, and adding a `--proof-granularity` flag to the
-proof tester would switch it off with no test failing.** That wants an assertion,
-not a category change.
-
-### The second carry: `i-2`
-
-Two commands, and they contradict each other:
-
-```
-$ cvc5 --safe-mode=safe --strings-lazy-pp f.smt2
-(error "Fatal error in option parsing: cannot set option strings-lazy-pp in
-        safe mode, as this option does not support proofs")
-```
-
-...while `strings_options.toml` gives it `default = "true"` and `setDefaultsPre`
-never turns it off. **Safe mode refuses to let you set the option on the grounds
-that it does not support proofs, and then runs with it on.**
-
-`--no-strings-lazy-pp` is refused too, so the guard also blocks the one
-assignment that would make the configuration safer — a user who has read the
-annotation and wants to comply cannot.
-
-Either reading is a defect and the fix is a maintainer's one-line call: disable
-it in safe mode, or drop the stale annotation. It is cheap to receive, which is
-why it goes with `i-3` rather than behind it.
-
-### Runner-up, and why it is second
-
-**[`i-23`](README.md#the-register) — the `safeMode == UNRESTRICTED` guard in
-`EoPrinter::isHandled` is inert.** Ten rules are accepted only in unrestricted
-builds; none of the ten can be *produced* in safe or stable mode. Verified by
-running: transcendental kinds are refused outright, and `set.filter` needs a
-function-typed argument and so the higher-order logic both modes reject.
-
-It is second because the fix is not obvious and the payoff is smaller. Deleting
-the cases would be **wrong** — they would fall through to `default: return
-false` and flip unrestricted mode from handled to unhandled. The right change is
-to move them to the always-handled list or to document why the condition cannot
-matter, and which of those is right is a question for whoever wrote it. It is a
-good *question*, not a good patch.
-
-### Explicitly not recommended yet
-
-- **`i-1` (`LAMBDA_ELIM`).** Our strongest safe-mode candidate, and the one
-  nearest to a `set.filter`-shaped mistake. The sweeping claim beside it — *no
-  `uf` kind is blocked in safe mode* — turned out to be [half
-  wrong](README.md#settled). One reproducer attempt has already failed. **Do not
-  carry this without an input.**
-- **Anything resting on the 79 fall-through inferences.** Real by construction,
-  but [the corpus reaches none of them in safe mode](maintenance.md#what-the-corpus-reaches), so
-  severity is unestablished and a maintainer would rightly ask for one input.
-- **The dead-declaration cleanups** (4 dead `TrustId`s, 14 dead `InferenceId`s,
-  3 dead `PREPROCESS_*` ids, the `PREPROCESS_BV_GUASS` misspelling). These are
-  the *most* landable as a patch and the least valuable: near-zero risk,
-  near-zero benefit, and they spend the credit that should go to the first
-  report above. Worth bundling into one PR **after** something substantive has
-  been accepted, never before.
-
-### The general rule this session suggests
-
-**Prefer the claim a maintainer can refute in one command.** Of the four things
-this repository got wrong recently, three were static arguments that read
-correctly and were false; every one was caught by running something. A report
-whose evidence is a command carries its own refutation, which is the property
-that makes it cheap to receive.
+The open hypotheses that have *not* reached this page — the ones still waiting
+for a verdict — are the register in [`docs/README.md`](README.md#the-register).
+A row moves here when something happened to it.
 
 ## The log
 
-Ranks: **1** an incomplete proof in `--safe-mode=safe` (a contract violation,
-needs an input); **2** a hole reachable in safe mode, no input yet; **3** a gap
-in stable or unrestricted.
+### 2026-09-19 — the proof checkers included headers they never used
 
-| # | what | kind | rank | state |
-| --- | --- | --- | --- | --- |
-| [tcb-001](experience.md#tcb-001--proof-rule-checkers-compile-against-the-theory-solvers-they-check) | six proof rule checkers compile against the theory solvers they check, to reach `static` helpers parked on solver classes | C | — | open, refactoring proposed |
+| | |
+| --- | --- |
+| **Status** | **acted on by cvc5**, in the branch answering `tcb-001` |
+| **Identity** | `f-1` — filed finding, not a database observation |
+| **Found by** | `dokimasia.tcb cuts`, then `Closure.edge_use` |
+| **In cvc5** | `theory/arith/proof_checker.cpp`, `theory/datatypes/proof_checker.cpp`, `theory/builtin/proof_checker.cpp` |
+| **Attribution** | cites us — the response names the report and re-runs `dokimasia.tcb measure` |
 
-Everything else this repository currently believes is in
-[`TODO.md`](README.md#the-register) as an
-unconfirmed candidate, and stays there until it is reproduced.
+**Summary:** Three of cvc5's proof checkers pulled in headers they made no use
+of, which made the code a proof checker must be right about look larger than it
+is. Deleting four lines removed 38 files from that surface.
 
-### `tcb-001` — proof rule checkers compile against the theory solvers they check
+**What was wrong:** `theory/arith/proof_checker.cpp` included
+`theory/arith/linear/constraint.h` and referenced none of the names it declares;
+`theory/datatypes/proof_checker.cpp` did the same with `theory/rewriter.h` and
+`expr/dtype_cons.h`, and `theory/builtin/proof_checker.cpp` with
+`theory/quantifiers/extended_rewrite.h`. A dead include still enters the
+compile-time closure, so each one inflated the checker's trusted surface for
+nothing.
+
+**What cvc5 did:** Removed all four includes, and separately extracted the
+helpers behind the two *live* solver dependencies: `getConcatConclusion`,
+`getDecomposeConclusion`, `getExtensionalityConclusion`,
+`getSufficientNonEmptyOverlap`, `eagerReduce` and `lengthPositive` moved to
+`strings::utils`, so the strings checker no longer includes `core_solver.h` or
+`term_registry.h`. Validated by byte-for-byte identical CPC proofs on five
+benchmarks and 525 passing regressions. **The measured closure fell from 179
+files / 41,448 lines to 141 / 31,541.**
+
+**Learned:** The check was pointing at something real and **the report attached
+the wrong mechanism to part of it** — see the retraction below. The lesson is in
+the tool now: `cuts` weighed an include by how much closure it carried and never
+asked whether the file used what it included, so a dead include and a
+load-bearing one produced identical rows and the prose supplied a reason for
+both. Weight and deadness are different questions, and a cut list answers only
+the first.
+
+### 2026-09-19 — `SUBS`'s documentation omitted an argument its checker reads
+
+| | |
+| --- | --- |
+| **Status** | **closed** by [cvc5 #12948](https://github.com/cvc5/cvc5/pull/12948) — `6e62c7cf595273b7fdfdc0a607aa53a8555530ee` |
+| **Identity** | `dokimasia:398b7ed5b492831606d98491` (`SIG0003`) |
+| **Found by** | `dokimasia.signature checker` |
+| **In cvc5** | `include/cvc5/cvc5_proof_rule.h`, against `theory/builtin/proof_checker.cpp` |
+| **Attribution** | cites us — *"Based on an initial pass from ajreynol/dokimasia"* |
+
+**Summary:** cvc5's substitution proof rule takes a third argument that selects
+how the substitutions get applied, but its reference documentation described
+only two. A reader building or auditing such a proof would not have known the
+argument was there.
+
+**What was wrong:** The `\inferrule` block above `EVALUE(SUBS)` read
+`\inferrule{F_1 \dots F_n \mid t, ids?}`, and its prose said the substitutions
+are *"applied in reverse order"* as though that were the only possibility.
+`BuiltinProofRuleChecker::checkInternal` has all along asserted
+`1 <= args.size() && args.size() <= 3` and read `args[2]` as a second
+`MethodId`, `ida`, defaulting to `SBA_SEQUENTIAL`.
+
+**What cvc5 did:** Rewrote the block to
+`\inferrule{F_1 \dots F_n \mid t, ids?, ida?}`, restated the conclusion as
+`\texttt{apply}_{ida}(t, \sigma_{ids}(F_1), \dots)`, and named the three modes
+— `SBA_SEQUENTIAL`, `SBA_SIMUL`, `SBA_FIXPOINT` — with the termination condition
+the fixpoint mode requires. **The checker was not touched; the documentation was
+brought up to it.** The same pull request deleted four dead `TrustId`s and
+fourteen unproduced `InferenceId`s, which closed nothing here: none carried an
+observation.
+
+**Learned:** `SIG0003` compares two partial parsers — LaTeX on one side,
+`Assert`s and subscript reads on the other — and the worry was that a
+disagreement between two approximations is an artifact rather than a finding.
+Here it was not, and the fix landed on the side the check said was wrong. What
+made this row actionable where others in the same facet are not: it named one
+rule, one file, and two numbers to compare, so confirming it took reading a
+single comment and a single `else if`. The 24 `SIG0002` rows name a skolem and a
+file but no comparable discriminator, and none of them moved.
+
+### 2026-09-18 — six proof rule checkers compile against the solvers they check
+
+| | |
+| --- | --- |
+| **Status** | **filed**, partly addressed — see the entry above |
+| **Identity** | `f-1` / `R3` |
+| **Found by** | `dokimasia.tcb measure`, `cuts`, `why` |
+| **In cvc5** | `theory/*/proof_checker.cpp` |
+| **Attribution** | ours, reported |
+
+**Summary:** The component that decides whether a cvc5 proof is valid is worth
+as much as it is small, and six of its thirteen rule checkers were compiled
+against the theory solvers they check.
+
+**What was wrong:** the helpers those checkers want are `static` methods parked
+on solver classes — pure functions of `NodeManager*` and `Node` that do not need
+the solver — and C++ makes you include the whole class to reach one. The
+coupling is lexical rather than semantic, which is why the fix is mechanical.
+The full writeup as filed follows, including the correction to its original
+account of *why* each edge existed.
+
+**Learned:** the closure figures were right throughout and the mechanism
+attached to them was not, which is the retraction below. A measurement can be
+exactly correct and still carry a wrong story if the tool never checked the
+story.
 
 **Status:** open · **Kind:** C (a change to the pipeline) · **Reported against:**
 cvc5 `40a4bb7e4` · **Severity:** not a bug — an architectural coupling with a
 cheap, local fix
 
-### Summary
+#### Summary
 
 cvc5's internal proof checker is the natural candidate for a trusted kernel: it
 is the component that decides whether a cvc5 proof is valid. Its value depends
@@ -364,7 +171,7 @@ The fix is mechanical, local, and does not change behaviour: move the pure stati
 helpers out of the solver classes into dependency-light headers that both the
 solver and the checker include.
 
-### How to reproduce
+#### How to reproduce
 
 No build required; the tool reads a source tree.
 
@@ -378,7 +185,7 @@ python3 -m dokimasia.tcb why     <cvc5> theory/strings/core_solver.h
 Seeds are `ProofChecker`, `ProofRuleChecker` and all 13 registered theory rule
 checkers (`SEED_SETS["proof-checker"]`).
 
-### The measurement
+#### The measurement
 
 ```
 closure         179 files      41,446 lines
@@ -395,7 +202,7 @@ Ten theory subsystems are inside it. The heaviest individual checkers:
 | `theory/arith/nl/transcendental/proof_checker.cpp` | 55 files, 13,811 lines |
 | `theory/arith/proof_checker.cpp` | 52 files, 13,153 lines |
 
-### The finding
+#### The finding
 
 Every load-bearing edge is a checker including a solver. `cuts` reports what each
 is uniquely worth — the lines that leave the closure if that one `#include` goes:
@@ -422,7 +229,7 @@ is the whole fix.
 shrink the closure; the other 16 are reachable by another path and are dead
 anyway. `python3 -m dokimasia.tcb cuts <cvc5>` lists them.
 
-### Root cause
+#### Root cause
 
 The helpers the checkers want are `static` methods on solver classes. From
 `theory/strings/core_solver.h`:
@@ -443,7 +250,7 @@ checker and the solver genuinely share a conclusion-computing function — which
 is correct and desirable, since the checker should compute the same conclusion
 the solver claimed — but sharing it should not mean depending on the solver.
 
-### Proposed refactoring
+#### Proposed refactoring
 
 **Extract the shared pure helpers into dependency-light headers.**
 
@@ -470,7 +277,7 @@ The same shape applies to `transcendental` ↔ `sine_solver.h`, which is `used`.
 the include is dead and `git rm` of one line is the entire change — as cvc5
 established, and as the tool now reports without being told.
 
-### On `Env` — we checked, and it is not the problem
+#### On `Env` — we checked, and it is not the problem
 
 An earlier hypothesis was that `Env` was the culprit, since
 `BuiltinProofRuleChecker` is the one checker that takes one:
@@ -491,7 +298,7 @@ reach the solver" true by construction rather than by convention — not a
 line-count one. We would rather see the solver-header extraction done first; it
 is cheaper and it is where the weight actually is.
 
-### Why this is worth doing
+#### Why this is worth doing
 
 `--check-proofs` is most valuable when the checker is small and independent of
 the code that produced the proof. Two of these couplings are directly
@@ -506,7 +313,7 @@ Shrinking the checker's dependency surface is also the most concrete step
 available toward being able to say *which part of cvc5 is its proof kernel* —
 an argument that gets shorter every time a coupling like this is removed.
 
-### Keeping it fixed
+#### Keeping it fixed
 
 ```bash
 python3 -m dokimasia.tcb baseline <cvc5> --write   # record
@@ -517,7 +324,7 @@ Runs in seconds, needs no build, and fits cvc5's existing nightly. The ratchet
 turns one way; if growth is intended, the baseline moves in the same commit with
 a reason.
 
-### What we got wrong first
+#### What we got wrong first
 
 Recorded because our own errors belong in the same place as our findings.
 
@@ -540,27 +347,170 @@ question, not an `#include` question, and answering it properly needs a build.
 `options/options.h` is produced from the `.toml` files at build time and is not
 in the source tree, so edges through it are not followed.
 
-## Retractions
+### 2026-09-17 — cvc5 #12905: a real bug report that is not a proof bug
 
-Kept visible, because the log of what we got wrong is the more useful half.
+| | |
+| --- | --- |
+| **Status** | **no defect of ours** — a routing question, answered with a boundary |
+| **Identity** | — |
+| **Found by** | a maintainer's request |
+| **In cvc5** | [#12905](https://github.com/cvc5/cvc5/issues/12905), `theory_engine.cpp:2030` |
+| **Attribution** | n/a |
 
-| # | what we claimed | what was true |
-| --- | --- | --- |
-| `i-3` / `R2` | `checkProofsComplete` should stop being an **expert** option, so the safe-mode tester can name the guarantee it is testing | **the ask was for cvc5 to weaken the thing we were auditing, and it was rejected.** An option's category governs *both* assignments: promoting it also permits `--no-check-proofs-complete` and `(set-option :check-proofs-complete false)`, and `setDefaultsPre` honours an explicit user assignment through `checkProofsCompleteWasSetByUser`. So the promotion converts a guarantee that safe mode turns on into one a user can switch off — **the expert refusal is the mechanism keeping it non-negotiable, not an obstacle to stating it.** cvc5 built the promotion at `a960d7d7210e731cf48ad7baa6ad42fc7345b297`, reproduced the opt-out, and reverted it at `215eed21a6c8380075c46513e69181a295b6e3b2`. We reasoned from *the positive flag is refused* to *the option should be settable* without asking what else becomes settable, and one `--no-` run would have shown it. The chain's fifth link, `explicit-completeness`, is withdrawn from `CiModel.completeness_chain` and its `CI0002` entity retired; links three and four carry the exposure that is real. The surviving ask is the assertion form alone, and cvc5 notes it must allow for the deliberate lower-granularity exception |
-| tcb-001 | six proof rule checkers include their theory solvers **to reach `static` helpers parked on solver classes** | **true of the strings edge, and asserted of five others without evidence.** cvc5 replied that the arithmetic checker uses nothing from `linear/constraint.h` and the datatypes checker nothing from `theory/rewriter.h`; both were dead includes, deleted in a line each, and the helper extraction the finding proposed for them was work nobody needed to do. The measurement could not have supported the claim: `cuts` weighed an include edge by how much closure it carried and never asked whether the file used what it included, so a dead include and a load-bearing one came out identical and the prose supplied a mechanism for both. `Closure.edge_use` now classifies every edge `used`, `unused` or `unknown` — `unknown` is never collapsed into `unused`, since calling a live include dead is the same error reflected — and `tests/test_tcb.py` pins the three edges cvc5 named. The closure figures were right throughout and are unchanged |
-| every published number | measured against cvc5 `16c4001e53`, quoted as though anyone could check it | **that commit is not on `cvc5/cvc5`.** It is on the `ajreynol/CVC4` fork, so no reader could fetch it, and the promise that *every claim is re-checkable without us* was void for the whole document set. The baselines happened to be valid — all eight ratchets are clean at upstream `40a4bb7e4` — so nothing measured was wrong, but nothing was checkable either. Now pinned in [`scripts/cvc5.lock`](../scripts/cvc5.lock), enforced by `tests/test_pin.py`, and fetched in CI by a job that fails if the pin is fork-only |
-| `infer`/`inferid` baselines | our baselines named `SETS_RELS_TCLOSURE_DOWN` as an `InferenceId` cvc5 emits | **no such id has ever existed in cvc5.** `git log --all -S` finds it in no commit; the enum at `40a4bb7e4` carries `SETS_RELS_TCLOSURE_FWD` and `_UP`. The baselines had been written rather than generated by running the tools, so two of the eight ratchets failed against the very commit they were recorded at. Both are regenerated and all eight are clean; found while writing [`why.md`](README.md#why-cvc5-should-care) |
-| `dokimasia.infer baseline --check` | an id leaving the unhandled set was reported as *now reconstructed* | it leaves for two unrelated reasons — the theory now proves it, or it is no longer emitted. The tool could not distinguish them, so a rename in cvc5 would have been reported as an improvement in cvc5's proof coverage. The delta now marks the second case `?` and says *no longer emitted, NOT reconstructed* |
-| tcb-001 (draft) | the checker's TCB is **74% of `src/`** | an artifact of a mode that followed each header to its `.cpp`; the closure saturates at cvc5's whole link unit, and an unrelated seed (`printer/printer.cpp`) gave the identical figure. The compile-time surface is **8.0%**. The mode is no longer the default and warns; `tests/test_tcb.py` guards the result |
+**Summary:** A fatal cvc5 failure on a strings benchmark was routed here. It is
+a real bug and not a proof-completeness one, so what this repository owed was a
+boundary rather than a verifier.
 
-## Case studies
+**What was wrong:** nothing of ours. The question was whether an assertion
+failure reachable from an ordinary benchmark is this repository's subject, and
+the answer turns on whether the reproducer produces a *proof hole* — which it
+does not.
 
-A cvc5 design question, answered with a verifier rather than an opinion. The
-shape: read the decision, find the invariant that makes it cheap, build a check
-that fires when the invariant breaks, and report the check rather than the
-opinion. Two so far.
+**Learned:** the routing test is cheap and worth having written down, because
+more of these will arrive. A case that ends in a boundary constrains future
+behaviour exactly as a verifier does.
 
-### cvc5 #12899 — is forbidding safe mode with debug symbols actually a restriction?
+**The request.** cvc5 [#12905](https://github.com/cvc5/cvc5/issues/12905) — a
+fatal failure at `theory_engine.cpp:2030` on a strings-and-quantifiers
+benchmark:
+
+```
+(declare-const x Int)
+(assert (exists ((s String) (t Int))
+  (and (= 1 (str.len (str.++ (str.substr s 0 1) (str.at s t))))
+       (not (str.suffixof (ite (str.in_re "/" (str.to_re s))
+                               (str.substr s 0 x)
+                               (str.replace "/" s "")) s)))))
+(check-sat)
+```
+
+> *wasn't sent to you, so why are you explaining it trivially, for fact
+> `(not (= (+ (str.len @quantifiers_skolemize_2) (* (- 1) (str.len @purify_4))) 0))`*
+
+**This is not a proof bug.** It is a theory-explanation defect: a fact reached
+the explanation machinery that the engine did not think it had sent. Nothing in
+it concerns whether a step can produce a proof, which is the whole of what this
+repository is for.
+
+**Two questions follow, and they have different answers.**
+
+#### 1. What does this repository do with it?
+
+**Nothing, and it says so.** dokimasia holds one role — *what no proof step
+covers* — and an assertion failure in theory combination is not it. Taking it
+would be the most ordinary failure mode available to a tool with a working
+analysis and spare attention: scope creep dressed as helpfulness.
+
+The register stays clean: #12905 gets no `i-` id, because
+[`issues.md`](README.md#the-register) is *things we are asking cvc5 to act on*, and we are
+asking nothing. cvc5 already has the report; a second opinion from us is not a
+contribution.
+
+**The one thing worth checking is whether the classification is right.** "Not a
+proof bug" is a claim, and the cheap version is: does the reproducer produce a
+proof hole? If it did, the issue would be partly ours after all. That check is
+[the corpus sweep](maintenance.md#what-the-corpus-reaches) pointed at one file, and it costs a
+minute.
+
+#### 2. Where does the *learning* live?
+
+This is the question worth a case study, because the answer is not "nowhere".
+
+The maintainer will answer #12905 — reproduce it, locate it, fix it or explain
+why it is not a bug. **That answer is evidence about how cvc5 issues get
+addressed**, and it is evidence this repository is well placed to collect and
+badly placed to act on. We ran assistants against cvc5 issues already, through a
+`prompts/check_cvc5_issue` launcher since retired with the rest of that
+workflow; what we have never done is record what the human answer taught that
+the assistant missed.
+
+**The current home is [Paideia](https://github.com/ajreynol/paideia).** The
+original decision was to start `empeiria` as a child project under Dokimasia's
+`tools/`, using the existing issue workflow and reporting discipline. On
+2026-09-18, the maintainer moved it and `anakrisis` to Paideia. That repository
+is now the source of truth for their charters, plans, protocols and ledgers.
+
+[Empeiria's charter](https://github.com/ajreynol/paideia/blob/main/tools/empeiria/README.md)
+owns the question of **working a cvc5 bug and learning from how the maintainers
+answered**. General cvc5 development belongs there. Dokimasia keeps the proof
+question: if an issue exposes a proof-completeness gap, that gap enters this
+repository's register. Performance, including proof-production overhead,
+belongs to
+[Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros)
+and is outside this repository's scope.
+
+#### What the original decision sought to change
+
+The maintainer's side of the loop was already defined — that launcher wrote a
+`TRIAGE:` block and left `HUMAN RESPONSE:` empty for a person. What was missing
+is what happened **after** the response arrived: the answer was read and the
+file was forgotten.
+
+The change is small and is the whole point: **the response is an artifact, and
+the delta between it and the triage is the thing worth keeping.** Not the
+issue, not the fix — the difference between what an assistant concluded and what
+a maintainer did. The work to record and learn from it belongs to Paideia,
+which carries its status.
+
+#### Verdict
+
+| | |
+| --- | --- |
+| **never** — for the issue itself | #12905 is not ours. No id, no register row, no report. The only work it earns is confirming it produces no proof hole |
+| **carry — to ourselves** | the routing decision; [Empeiria in Paideia](https://github.com/ajreynol/paideia/tree/main/tools/empeiria) holds the general bug-work question |
+| what would change it | the reproducer turning out to produce a trust step or an unhandled rule, which would make it partly a proof bug and partly ours |
+
+**What we are not claiming.** We have not run the reproducer. The
+classification rests on reading the assertion message, which names theory
+explanation and not proof production — good enough to decline the issue, not
+good enough to assert there is no proof hole behind it. That check is queued,
+not done.
+
+#### A note on scope, since more of these will arrive
+
+The generalisable part is the second question, not the first. Declining
+out-of-scope work is easy and this repository should keep doing it. The harder
+discipline is **noticing that the out-of-scope thing still produced evidence**,
+and putting the evidence somewhere with a boundary around it rather than either
+absorbing it or throwing it away.
+
+The routing test, for the next one:
+
+1. **Is it ours?** If it is about whether a step can produce a proof, it is a
+   normal candidate and goes in the register.
+2. **Is it about performance?** Time and memory overhead, including that of
+   producing proofs, belong to
+   [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
+3. **Is it general cvc5 development or learning from that work?** Route it to
+   [Paideia](https://github.com/ajreynol/paideia); its project charters determine
+   what work it takes on.
+4. **If none applies, decline it and say why in one line.** Silence reads as
+   agreement, and a tool that quietly collects other people's problems has
+   stopped having a role.
+
+### 2026-09-17 — cvc5 #12899: is forbidding safe mode with debug symbols a restriction?
+
+| | |
+| --- | --- |
+| **Status** | **no defect** — the decision is sound, and now has a verifier behind it |
+| **Identity** | — no observation: `BUILD0001` returned none, which is the result |
+| **Found by** | `dokimasia.buildmode check` — 8 conditionals, all benign |
+| **In cvc5** | `configure.sh`, and the eight `CVC5_SAFE_MODE` conditionals in `src/` |
+| **Attribution** | ours, offered |
+
+**Summary:** cvc5 forbids combining a safe build with debug symbols. The
+question worth answering was not why it is forbidden but what forbidding it
+costs, and that rests on an invariant a check can hold.
+
+**What was wrong:** nothing — the decision is a reasonable simplification, and
+reading it as an oversight would have got the case wrong. What was missing was
+any way to know it stays cheap: the claim *a safe build differs only in
+defaults, text and reporting* is checkable, and nothing was checking it.
+
+**Learned:** this is the shape to repeat. An opinion is worth nothing to
+somebody who knows the code better than we do; a reading of the source is worth
+something once. The invariant with the verifier attached is the only answer that
+survives the next edit.
 
 **The design decision.** cvc5's configure script does not allow a safe build to
 be combined with debug symbols. This is **deliberate and for clarity**: the
@@ -587,7 +537,7 @@ about, and what
 
 *Measured against cvc5 `40a4bb7e4`.*
 
-### What a safe build actually is
+#### What a safe build actually is
 
 `ENABLE_SAFE_MODE` does three things in `CMakeLists.txt`: defines
 `-DCVC5_SAFE_MODE`, turns off `USE_POLY` / `USE_COCOA` / `USE_NORMALIZ`, and
@@ -613,7 +563,7 @@ Two further facts complete the picture:
 The safe build's only semantic act is to change the *starting value* of a
 runtime option, which is exactly what `--safe-mode=safe` does.
 
-### What the restriction costs
+#### What the restriction costs
 
 Three things a safe build gives you, and whether a debug build with
 `--safe-mode=safe` gives them too:
@@ -656,7 +606,7 @@ that produces safe-build diagnostics, and cannot have one. Whether anybody has
 wanted that is a question for cvc5, not for us. Our contribution is that the
 list is this short, and that we can keep it this short.
 
-### The invariant, and why it is the real subject
+#### The invariant, and why it is the real subject
 
 > **A safe build differs from an unrestricted build only in (a) the default
 > value of the `safeMode` option, (b) the text of diagnostics, and (c) what the
@@ -679,7 +629,7 @@ Keeping it also has a benefit beyond this question: while it holds, "safe mode"
 is unambiguous. Every claim anyone makes about safe mode — ours included — is
 true of both the build and the flag, and nobody has to say which.
 
-### The check
+#### The check
 
 ```bash
 python3 -m dokimasia.buildmode check <cvc5>    # BUILD0001
@@ -702,7 +652,7 @@ than silently staying approved.
 invariant can break, because a checker nobody has seen fail is a checker nobody
 should trust.
 
-### What we would ask of cvc5
+#### What we would ask of cvc5
 
 **Not a change to the configure script.** The restriction is a reasonable
 simplification and we are not arguing against it; whether the one lost
@@ -719,7 +669,7 @@ Better still if cvc5 owns it rather than us. The same property could be a
 build-time test or an assertion in their tree, at which point our check retires.
 That is the [kind D](#what-a-finding-is) outcome and we prefer it.
 
-### Verdict
+#### Verdict
 
 | | |
 | --- | --- |
@@ -733,140 +683,62 @@ sites; the divergence we demonstrate empirically is the diagnostic text. A
 direct A/B of a safe build against `--safe-mode=safe` over the regression suite
 would settle it completely, and needs a build we do not have.
 
-### cvc5 #12905 — a real bug report that is not a proof bug
+## Retractions
 
-**The request.** cvc5 [#12905](https://github.com/cvc5/cvc5/issues/12905) — a
-fatal failure at `theory_engine.cpp:2030` on a strings-and-quantifiers
-benchmark:
+Kept visible, because the log of what we got wrong is the more useful half. Each
+is a claim we made about cvc5 that turned out to be false.
 
-```
-(declare-const x Int)
-(assert (exists ((s String) (t Int))
-  (and (= 1 (str.len (str.++ (str.substr s 0 1) (str.at s t))))
-       (not (str.suffixof (ite (str.in_re "/" (str.to_re s))
-                               (str.substr s 0 x)
-                               (str.replace "/" s "")) s)))))
-(check-sat)
-```
+Kept visible, because the log of what we got wrong is the more useful half.
 
-> *wasn't sent to you, so why are you explaining it trivially, for fact
-> `(not (= (+ (str.len @quantifiers_skolemize_2) (* (- 1) (str.len @purify_4))) 0))`*
+| # | what we claimed | what was true |
+| --- | --- | --- |
+| `i-3` / `R2` | `checkProofsComplete` should stop being an **expert** option, so the safe-mode tester can name the guarantee it is testing | **the ask was for cvc5 to weaken the thing we were auditing, and it was rejected.** An option's category governs *both* assignments: promoting it also permits `--no-check-proofs-complete` and `(set-option :check-proofs-complete false)`, and `setDefaultsPre` honours an explicit user assignment through `checkProofsCompleteWasSetByUser`. So the promotion converts a guarantee that safe mode turns on into one a user can switch off — **the expert refusal is the mechanism keeping it non-negotiable, not an obstacle to stating it.** cvc5 built the promotion at `a960d7d7210e731cf48ad7baa6ad42fc7345b297`, reproduced the opt-out, and reverted it at `215eed21a6c8380075c46513e69181a295b6e3b2`. We reasoned from *the positive flag is refused* to *the option should be settable* without asking what else becomes settable, and one `--no-` run would have shown it. The chain's fifth link, `explicit-completeness`, is withdrawn from `CiModel.completeness_chain` and its `CI0002` entity retired; links three and four carry the exposure that is real. The surviving ask is the assertion form alone, and cvc5 notes it must allow for the deliberate lower-granularity exception |
+| tcb-001 | six proof rule checkers include their theory solvers **to reach `static` helpers parked on solver classes** | **true of the strings edge, and asserted of five others without evidence.** cvc5 replied that the arithmetic checker uses nothing from `linear/constraint.h` and the datatypes checker nothing from `theory/rewriter.h`; both were dead includes, deleted in a line each, and the helper extraction the finding proposed for them was work nobody needed to do. The measurement could not have supported the claim: `cuts` weighed an include edge by how much closure it carried and never asked whether the file used what it included, so a dead include and a load-bearing one came out identical and the prose supplied a mechanism for both. `Closure.edge_use` now classifies every edge `used`, `unused` or `unknown` — `unknown` is never collapsed into `unused`, since calling a live include dead is the same error reflected — and `tests/test_tcb.py` pins the three edges cvc5 named. The closure figures were right throughout and are unchanged |
+| every published number | measured against cvc5 `16c4001e53`, quoted as though anyone could check it | **that commit is not on `cvc5/cvc5`.** It is on the `ajreynol/CVC4` fork, so no reader could fetch it, and the promise that *every claim is re-checkable without us* was void for the whole document set. The baselines happened to be valid — all eight ratchets are clean at upstream `40a4bb7e4` — so nothing measured was wrong, but nothing was checkable either. Now pinned in [`scripts/cvc5.lock`](../scripts/cvc5.lock), enforced by `tests/test_pin.py`, and fetched in CI by a job that fails if the pin is fork-only |
+| `infer`/`inferid` baselines | our baselines named `SETS_RELS_TCLOSURE_DOWN` as an `InferenceId` cvc5 emits | **no such id has ever existed in cvc5.** `git log --all -S` finds it in no commit; the enum at `40a4bb7e4` carries `SETS_RELS_TCLOSURE_FWD` and `_UP`. The baselines had been written rather than generated by running the tools, so two of the eight ratchets failed against the very commit they were recorded at. Both are regenerated and all eight are clean; found while writing [`why.md`](README.md#why-cvc5-should-care) |
+| `dokimasia.infer baseline --check` | an id leaving the unhandled set was reported as *now reconstructed* | it leaves for two unrelated reasons — the theory now proves it, or it is no longer emitted. The tool could not distinguish them, so a rename in cvc5 would have been reported as an improvement in cvc5's proof coverage. The delta now marks the second case `?` and says *no longer emitted, NOT reconstructed* |
+| tcb-001 (draft) | the checker's TCB is **74% of `src/`** | an artifact of a mode that followed each header to its `.cpp`; the closure saturates at cvc5's whole link unit, and an unrelated seed (`printer/printer.cpp`) gave the identical figure. The compile-time surface is **8.0%**. The mode is no longer the default and warns; `tests/test_tcb.py` guards the result |
 
-**This is not a proof bug.** It is a theory-explanation defect: a fact reached
-the explanation machinery that the engine did not think it had sent. Nothing in
-it concerns whether a step can produce a proof, which is the whole of what this
-repository is for.
+## How this page is maintained
 
-**Two questions follow, and they have different answers.**
+**Who writes it.** [`prompts/close_bug_db`](../prompts/close_bug_db), which
+reads a window of cvc5 history against the revision the observations were taken
+at and leaves this file and [`bug_db/bugs.json`](../bug_db/bugs.json) changed and
+uncommitted. A maintainer reads the diff. No entry is written by hand, and none
+is written for a closure the database does not carry.
 
-### 1. What does this repository do with it?
+**The template.** One section per defect, newest first, whatever number of
+database rows it touched — the unit is the thing that happened, not the row.
 
-**Nothing, and it says so.** dokimasia holds one role — *what no proof step
-covers* — and an assertion failure in theory combination is not it. Taking it
-would be the most ordinary failure mode available to a tool with a working
-analysis and spare attention: scope creep dressed as helpfulness.
-
-The register stays clean: #12905 gets no `i-` id, because
-[`issues.md`](README.md#the-register) is *things we are asking cvc5 to act on*, and we are
-asking nothing. cvc5 already has the report; a second opinion from us is not a
-contribution.
-
-**The one thing worth checking is whether the classification is right.** "Not a
-proof bug" is a claim, and the cheap version is: does the reproducer produce a
-proof hole? If it did, the issue would be partly ours after all. That check is
-[the corpus sweep](maintenance.md#what-the-corpus-reaches) pointed at one file, and it costs a
-minute.
-
-### 2. Where does the *learning* live?
-
-This is the question worth a case study, because the answer is not "nowhere".
-
-The maintainer will answer #12905 — reproduce it, locate it, fix it or explain
-why it is not a bug. **That answer is evidence about how cvc5 issues get
-addressed**, and it is evidence this repository is well placed to collect and
-badly placed to act on. We ran assistants against cvc5 issues already, through a
-`prompts/check_cvc5_issue` launcher since retired with the rest of that
-workflow; what we have never done is record what the human answer taught that
-the assistant missed.
-
-**The current home is [Paideia](https://github.com/ajreynol/paideia).** The
-original decision was to start `empeiria` as a child project under Dokimasia's
-`tools/`, using the existing issue workflow and reporting discipline. On
-2026-09-18, the maintainer moved it and `anakrisis` to Paideia. That repository
-is now the source of truth for their charters, plans, protocols and ledgers.
-
-[Empeiria's charter](https://github.com/ajreynol/paideia/blob/main/tools/empeiria/README.md)
-owns the question of **working a cvc5 bug and learning from how the maintainers
-answered**. General cvc5 development belongs there. Dokimasia keeps the proof
-question: if an issue exposes a proof-completeness gap, that gap enters this
-repository's register. Performance, including proof-production overhead,
-belongs to
-[Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros)
-and is outside this repository's scope.
-
-### What the original decision sought to change
-
-The maintainer's side of the loop was already defined — that launcher wrote a
-`TRIAGE:` block and left `HUMAN RESPONSE:` empty for a person. What was missing
-is what happened **after** the response arrived: the answer was read and the
-file was forgotten.
-
-The change is small and is the whole point: **the response is an artifact, and
-the delta between it and the triage is the thing worth keeping.** Not the
-issue, not the fix — the difference between what an assistant concluded and what
-a maintainer did. The work to record and learn from it belongs to Paideia,
-which carries its status.
-
-### Verdict
+```text
+### <date> — <the defect, in one line, in cvc5's terms>
 
 | | |
 | --- | --- |
-| **never** — for the issue itself | #12905 is not ours. No id, no register row, no report. The only work it earns is confirming it produces no proof hole |
-| **carry — to ourselves** | the routing decision; [Empeiria in Paideia](https://github.com/ajreynol/paideia/tree/main/tools/empeiria) holds the general bug-work question |
-| what would change it | the reproducer turning out to produce a trust step or an unhandled rule, which would make it partly a proof bug and partly ours |
+| **Status** | closed by cvc5 #<pr> — <sha> · filed · acted on · no defect · retracted |
+| **Identity** | <dokimasia:… (CODE)>, or the finding id, or — |
+| **Found by** | the command or check code that produced it |
+| **In cvc5** | the files a reader would open |
+| **Attribution** | cites us · independent · cannot tell — and what that rests on |
 
-**What we are not claiming.** We have not run the reproducer. The
-classification rests on reading the assertion message, which names theory
-explanation and not proof production — good enough to decline the issue, not
-good enough to assert there is no proof hole behind it. That check is queued,
-not done.
+**Summary:** what was actually wrong, for somebody who works on neither
+project: no identities, no check codes, no procedure. **Two sentences, 250
+characters at most.**
 
-### A note on scope, since more of these will arrive
+**What was wrong:** the mechanism in cvc5, at the level of the code somebody
+would have had to read.
 
-The generalisable part is the second question, not the first. Declining
-out-of-scope work is easy and this repository should keep doing it. The harder
-discipline is **noticing that the out-of-scope thing still produced evidence**,
-and putting the evidence somewhere with a boundary around it rather than either
-absorbing it or throwing it away.
+**What cvc5 did:** long enough to be checkable against the diff. Omit where
+nothing has happened yet.
 
-The routing test, for the next one:
+**Learned:** what this says about the check that produced it — whether it was
+pointing where we thought, what it over- or under-claimed, and what would have
+made the row easier for cvc5 to act on.
+```
 
-1. **Is it ours?** If it is about whether a step can produce a proof, it is a
-   normal candidate and goes in the register.
-2. **Is it about performance?** Time and memory overhead, including that of
-   producing proofs, belong to
-   [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
-3. **Is it general cvc5 development or learning from that work?** Route it to
-   [Paideia](https://github.com/ajreynol/paideia); its project charters determine
-   what work it takes on.
-4. **If none applies, decline it and say why in one line.** Silence reads as
-   agreement, and a tool that quietly collects other people's problems has
-   stopped having a role.
-
-## What cvc5 did
-
-A living log of **the cvc5 changes that closed a recorded observation** — one
-section per cvc5 pull request, newest first, written in the same run that marks
-the closure in [`bug_db/bugs.json`](../bug_db/bugs.json).
-
-**What it is for.** A static analyzer can produce findings forever without any
-of them being worth producing. The one external signal that a check points at
-something real is that somebody who did not run it changed the code anyway. This
-file is where that signal is legible: each entry is a change cvc5 made, said at
-a level somebody who works on neither project can read, with what it says about
-the check underneath it. A check whose observations nothing ever closes is a
-check measuring something nobody agrees is wrong, and that shows up here as
-silence.
+**`Learned` is the field that makes this a post-mortem rather than a
+changelog**, and it is the one a thin run drops first. A section without it
+records that something happened and nothing about what to do differently.
 
 **Attribution is secondary, and recorded anyway.** Whether cvc5 made the change
 because we reported it or found it themselves, the observation is closed either
@@ -874,136 +746,13 @@ way and the check was pointing at something real either way. Only the first is
 also evidence that the *reporting* works. So the field says which, in one line,
 and nothing here argues for credit.
 
-**This is not the record of the claim.** That is
-[`bug_db/`](../bug_db/README.md): the identity, the original claim, the dates,
-the archived evidence, and the `closed_on` / `closed_commit` / `closed_pr` /
-`closed_why` fields a closure adds to an entry. The database says *that* a
-change closed an observation and which change it was; this file says what it
-meant. An entry here without a closed identity behind it is a story, and the
-database is what keeps it honest.
+**What a closure rests on.** A closure is a decision about a **cvc5 change**,
+never about a row going quiet: absence closes nothing, and the claim has to be
+re-read in cvc5's current source rather than taken from a commit message. The
+rules are in the launcher and are checked by `tests/test_experience.py`.
 
-**Who writes it.** [`prompts/close_bug_db`](../prompts/close_bug_db), which
-reads a window of cvc5 history against the revision the observations were taken
-at and leaves both files changed and uncommitted. A maintainer reads the diff.
-No entry is written by hand, and none is written for a closure the database does
-not carry.
-
-
-### What a run learned about itself
-
-Salvaged from the retired `postmortem.md`, which asked a question no other file
-here asks and which the [reporting removal](../TODO.md#reporting) dropped
-without a successor: *what did working this run teach us about how we work* —
-as against `Learned:`, which is about the check that produced the observation.
-A window turns up facts about our own tooling that belong to no pull request and
-so fit in no entry below. They go here, newest first, one line each, and an empty
-section is the honest state when a run turned up nothing.
-
-**2026-09-19, window `40a4bb7e4..dbf176dfb`.**
-
-- **The `ci` check's mode heuristic broke silently on a cvc5 rename.**
-  `Job.mode` in `dokimasia/ci/scan.py` keys on the literal substrings
-  `safe-mode` / `stable-mode` in a matrix `config:` value; cvc5 #12899 renamed
-  those values to `safe` / `stable`. The safe-mode job is still there and still
-  runs `--tester proof`, but the check now classifies every job `unrestricted`,
-  which silently disarms `CI0001` and makes two links of the `CI0002` chain read
-  `NO` for a reason that has nothing to do with cvc5. **A check keyed on a
-  spelling cvc5 is free to change will fail open, and this one did.**
-- **Two of the window's four candidate closures were entity renames.** cvc5
-  #12906 renamed the CI job names carrying all four `CI0004` rows, and #12901
-  renamed the `InferenceId` carrying an `INFERID0001` row — in both cases the
-  condition moved intact under a new name. A re-run will read both as
-  disappearances. *Absence closes nothing* is the rule that caught this; what it
-  cost was re-deriving each claim by hand, because nothing in the record links
-  an identity to its renamed successor.
-- **A retraction went stale in our favour.** [`findings.md`](experience.md#retractions)
-  records that our baselines named `SETS_RELS_TCLOSURE_DOWN`, and that **no such
-  id has ever existed in cvc5**. That was true when written. As of #12901 the id
-  exists, because cvc5 renamed `TCLOSURE_UP` to it. The retraction stays — it is
-  the record of an error we made — but it now needs the date qualifier it did
-  not need before.
-
-### The shape of an entry
-
-One section per pull request, whatever number of observations it closed, because
-the unit of the thing that happened is the change and not the row.
-
-```text
-## <date> — cvc5 #<pr> — <what the change was>
-
-**Commit:** <full sha> — <the commit subject>
-
-**Closed:** <identity (code)>, <identity (code)>, …
-
-**Summary:** what was actually wrong with the software, for somebody who works
-on neither project: no identities, no check codes, no procedure. **Two
-sentences, 250 characters at most.**
-
-**What the change did:** the mechanism, at the level of the code somebody would
-have had to read to write it. Long enough to be checkable against the diff.
-
-**Attribution:** cites us | independent | cannot tell — and what that rests on.
-
-**Learned:** what this says about the check that produced the observation —
-whether it was pointing where we thought, what it over- or under-claimed, and
-what would have made the row easier for cvc5 to act on.
-```
-
-`Learned:` is the field that makes this a post-mortem rather than a changelog,
-and it is the one a run drops first when a window is thin. A section without it
-records that something happened and nothing about what to do differently.
-
-## Where this stands
-
-**One observation closed, out of 197.** The first window read — cvc5
-`40a4bb7e4..dbf176dfb`, 42 commits — closed a single row, and the log below has
-the one entry that window earned. A thin log is the honest reading of a thin
-window, not a backlog of write-ups nobody got to.
-
-## The log of changes
-
-## 2026-09-19 — cvc5 #12948 — `SUBS`'s documentation gains the argument its checker already read
-
-**Commit:** `6e62c7cf595273b7fdfdc0a607aa53a8555530ee` — Minor simplifications to trust ids and proof docs (#12948)
-
-**Closed:** `dokimasia:398b7ed5b492831606d98491` (`SIG0003`)
-
-**Summary:** cvc5's substitution proof rule takes a third argument that selects
-how the substitutions get applied, but its reference documentation described
-only two. A reader building or auditing such a proof would not have known the
-argument was there.
-
-**What the change did:** the `\inferrule` block above `EVALUE(SUBS)` in
-`include/cvc5/cvc5_proof_rule.h` read `\inferrule{F_1 \dots F_n \mid t, ids?}`,
-and its prose said the substitutions are "applied in reverse order" as though
-that were the only possibility. `BuiltinProofRuleChecker::checkInternal` has all
-along asserted `1 <= args.size() && args.size() <= 3` and read `args[2]` as a
-second `MethodId`, `ida`, defaulting to `SBA_SEQUENTIAL`. The commit rewrote the
-block to `\inferrule{F_1 \dots F_n \mid t, ids?, ida?}`, restated the
-conclusion as `\texttt{apply}_{ida}(t, \sigma_{ids}(F_1), \dots)`, and named
-the three modes — `SBA_SEQUENTIAL`, `SBA_SIMUL`, `SBA_FIXPOINT` — with the
-termination condition the fixpoint mode requires. The checker was not touched;
-the documentation was brought up to it. The same pull request also deleted four
-dead `TrustId`s and fourteen unproduced `InferenceId`s, which closed nothing
-here: none of those ids carried an observation.
-
-**Attribution:** cites us. The pull request body reads, in full, "Based on an
-initial pass from https://github.com/ajreynol/dokimasia". The observation had
-also been written up as `i-21` in the [issue register](README.md#the-register).
-
-**Learned:** the check was pointing exactly where it claimed to. `SIG0003`
-compares two partial parsers — LaTeX on one side, `Assert`s and subscript reads
-on the other — and its recorded limitation says so; the worry was that a
-disagreement between two approximations is an artifact rather than a finding.
-Here it was not: the documented argument count was genuinely short of what the
-checker reads, and the fix landed on the documentation side, which is where the
-check said the error was. Worth noting what made this row actionable where
-others in the same facet are not — it named one rule, one file, and two concrete
-numbers to compare (`(2, 1)` documented against an `args[2]` read), so
-confirming it took reading a single comment and a single `else if`. The 24
-`SIG0002` rows in the same facet name a skolem and a file but no comparable
-discriminator, and none of them moved. That `i-20` had to be ground down through
-five rounds of parser fixes to leave this one residue is the other half of the
-lesson: a check whose output is mostly its own parsing noise buys its findings
-expensively, and cvc5 still states rule arity in LaTeX only, so the next such
-row costs the same.
+**Where the rest lives.** What counts as a finding, the promises we publish
+under and the bar a claim clears before anybody carries it are the analyzer's
+design philosophy, in [`dokimasia/README.md`](../dokimasia/README.md). The
+register of open hypotheses and everything we are asking cvc5 to act on is in
+[`docs/README.md`](README.md#the-register).

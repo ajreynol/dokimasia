@@ -98,6 +98,6 @@ in [`docs/experience.md`](../docs/experience.md), one section per pull request.
 
 Reviewed verdicts, replies and retractions stay in the
 [issue register](../docs/README.md#the-register) and the
-[findings ledger](../docs/experience.md#what-a-finding-is); see
+[findings ledger](../dokimasia/README.md#what-a-finding-is); see
 [assessing closure](../docs/maintenance.md#assessing-closure) for the mechanics
 and what is still missing.

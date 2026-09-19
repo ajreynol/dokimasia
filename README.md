@@ -94,7 +94,7 @@ Dokimasia owns that history and its interpretation; Koine provides the tooling.
 commands refresh the view, and CI checks that it matches the JSON.
 
 The [issue register](docs/README.md#the-register) records candidates, requests and settled
-hypotheses. [Filed findings and retractions](docs/experience.md#what-a-finding-is) remain the
+hypotheses. [Filed findings and retractions](dokimasia/README.md#what-a-finding-is) remain the
 reviewed record. The database preserves observations across runs, including
 ones subsequently disputed or resolved. Disappearance does not close a finding.
 
@@ -168,8 +168,8 @@ kept by Kanon. Anoieu implements the checker; CI pins its revision in
 **Written by AI agents, under light human supervision.** A human maintainer
 directs the work, reviews it and decides what is reported upstream. Findings
 are filed by the human. What this repository holds itself to is stated in its
-own tree — [the promises](docs/experience.md#the-promises) and
-[the bar](docs/experience.md#the-bar). They began as a position shared with
+own tree — [the promises](dokimasia/README.md#the-promises) and
+[the bar](dokimasia/README.md#the-bar). They began as a position shared with
 anoieu, in a [reporting policy](https://github.com/ajreynol/anoieu/blob/06bd7872ea5ce24bf4d264bf5e6958ed8edee3c2/docs/reports/reporting-policy.md)
 anoieu deprecated and then removed; that link is pinned to the last commit the
 page existed at, because provenance a reader cannot fetch is not provenance.

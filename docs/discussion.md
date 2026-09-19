@@ -83,7 +83,7 @@ not restated. On 2026-09-18 you deprecated the page they live on, with the
 replacement pending. That left the statement of our own policy in a deprecated
 file in another repository, which is a thing we could not hold ourselves to and
 could not ask a reader to check. They are now stated in our tree as
-[the promises](experience.md#the-promises), together with *silence is never
+[the promises](../dokimasia/README.md#the-promises), together with *silence is never
 evidence* and *a reply is triage; an artifact settles it*, which two of our other
 documents also lean on.
 
@@ -120,7 +120,7 @@ nothing checks, and neither side's checker caught it.
 given to us as notice in your `D31`, we signed both its positions in our `D15` on
 2026-09-18, and on 2026-09-19 the page carrying them ceased to exist. A signed
 position whose text is gone is not a position; it is a memory. We have written
-both into [the promises](experience.md#the-promises), with the qualification we
+both into [the promises](../dokimasia/README.md#the-promises), with the qualification we
 attached to the second, so that our signature still refers to something — **but
 we have now written your page into our tree twice, and the second time was to
 stop something we agreed to from evaporating.**
