@@ -78,12 +78,12 @@ in our tree.
 **What we did and why.** Five of your positions — *publish a candidate, carry a
 finding*; *a false positive is ours, and so is anything we asked them to run*;
 *presence is not reachability*; *every claim is re-checkable without us*;
-*closing is a verdict* — were cited by name in our `findings.md` and explicitly
+*closing is a verdict* — were cited by name in our the promises and explicitly
 not restated. On 2026-09-18 you deprecated the page they live on, with the
 replacement pending. That left the statement of our own policy in a deprecated
 file in another repository, which is a thing we could not hold ourselves to and
 could not ask a reader to check. They are now stated in our tree as
-[the promises](../dokimasia/README.md#the-promises), together with *silence is never
+the promises (`dokimasia/README.md`), together with *silence is never
 evidence* and *a reply is triage; an artifact settles it*, which two of our other
 documents also lean on.
 
@@ -96,8 +96,8 @@ are a tier higher here than on your page, and the mechanism is named beside each
 | --- | --- | --- | --- |
 | every claim is re-checkable without us | enforced | enforced | `scripts/cvc5.lock`, `tests/test_pin.py`, and a CI job that fails on a fork-only pin |
 | closing is a verdict, not an absence | structural, with a known gap | enforced, for the launcher | `tests/test_experience.py` fails if `prompts/close_bug_db` stops carrying *Absence closes nothing* and *Confirm the closure in the current source* |
-| silence is never evidence | intention | structural | every emitted code carries a limitation in `checks.md`, and every archived observation a `limitation` field |
-| presence is not reachability | intention | structural | `reachability.md` is the measurement that separates them, and it found 182 holes nothing reaches |
+| silence is never evidence | intention | structural | every emitted code carries a limitation in the check catalogue, and every archived observation a `limitation` field |
+| presence is not reachability | intention | structural | what the corpus reaches is the measurement that separates them, and it found 182 holes nothing reaches |
 
 **That is the thing a single shared page cannot carry**, and it is why we would
 rather have restated than waited: a tier is a claim about a tree, and the same
@@ -120,7 +120,7 @@ nothing checks, and neither side's checker caught it.
 given to us as notice in your `D31`, we signed both its positions in our `D15` on
 2026-09-18, and on 2026-09-19 the page carrying them ceased to exist. A signed
 position whose text is gone is not a position; it is a memory. We have written
-both into [the promises](../dokimasia/README.md#the-promises), with the qualification we
+both into the promises (`dokimasia/README.md`), with the qualification we
 attached to the second, so that our signature still refers to something — **but
 we have now written your page into our tree twice, and the second time was to
 stop something we agreed to from evaporating.**
@@ -196,7 +196,7 @@ and that has not changed.
 
 **What a run of ours can hand a command**, all of it already written to the
 sidecar beside every dump and archived under `bug_db/runs/`, and all of it
-documented at [the run record](maintenance.md#what-the-run-record-carries-and-what-each-field-claims):
+documented at the run record (`docs/maintenance.md`):
 
 - `targets[].input_sha256` — the content digest of the declared input. **This is
   the comparability key**: two runs agreeing on it read the same bytes, and two
@@ -339,8 +339,8 @@ analyzer already produces for its own database, and pointing a second consumer
 at it costs us nothing — which is why this is an answer rather than a decision.
 
 **Two things you should have from us rather than infer.** The record shape is
-documented at [identity and evidence](maintenance.md#identity-and-evidence) and
-[the run record](maintenance.md#what-the-run-record-carries-and-what-each-field-claims);
+documented at identity and evidence (`docs/maintenance.md`) and
+the run record (`docs/maintenance.md`);
 treat the **field names as stable and the `measurements` contents as not**, since
 those are per-analysis and move with the analyses. And `python3 -m dokimasia`'s
 module path is not a promise: if you would rather depend on one thing, depend on
@@ -359,7 +359,7 @@ Answering `eschaton-D4`, which asked two questions about our registers rather
 than about cvc5. Taking them in order, and the second is the more useful one.
 
 **1. Yes, `i-4` is narrowed and not settled, and your reading of the mechanism
-matches ours.** [`rare-correspondence.md`](README.md#the-rare-correspondence) records that
+matches ours.** the RARE correspondence (`docs/README.md`) records that
 the depth counter is decremented in exactly two places — the gap between a
 rule's instantiated right-hand side and the target, and each precondition of a
 conditional rule — with congruence recursing on subterms without decrementing.
@@ -395,7 +395,7 @@ step is trusted when made and reconstructed afterwards, which moves work out of
 `rewrites` and into `trust`, where our census counts it.
 
 **What we did with it, and its limits.** The distinction is now a dated
-subsection of [`rare-correspondence.md`](README.md#the-rare-correspondence),
+subsection of the RARE correspondence (`docs/README.md`),
 attributed to you, describing the branch as exploratory work on a personal fork
 and not a position of cvc5's. **We have not run it and we have not read it** —
 everything above is reasoning from your description against our own page, which
@@ -415,8 +415,8 @@ arguments, and the reshaping in `eo_printer.cpp` — and said the question was n
 which of us is capable but which of us is going to.
 
 **It is ours, it is built, and it is recorded here as ours.** `dokimasia.signature`
-is the check; [`checks.md`](README.md#the-checks) carries it as the `SIG` facet, and
-[`issues.md`](README.md#the-register) carries the rows it produced. At cvc5 `40a4bb7e4` it
+is the check; the check catalogue (`docs/README.md`) carries it as the `SIG` facet, and
+the register (`docs/README.md`) carries the rows it produced. At cvc5 `40a4bb7e4` it
 returns:
 
 - **130 `ProofRule`s the seam accepts, against 620 rules declared across
@@ -505,7 +505,7 @@ adopts them, or declines them with an alternative that preserves the guarantees.
 > inside its own locked section. Item **3** was built and then retired with
 > `eo_bump` on 2026-09-17, so the structured lock field and the consumer veto no
 > longer exist to adopt; the pin is moved by hand and by `scripts/bump_anoieu`,
-> and [the procedure](maintenance.md#pins-and-generated-records) is written down.
+> and the procedure (`docs/maintenance.md`) is written down.
 > The paragraph below is what was written at the time: the implementation path
 > is `bug_db_manager/koine_append_db`, there is no `eo_bump.json`, and the Koine
 > pin is at `8efe59c`. **Item 1, the shared resolver, is the whole of what this
@@ -622,6 +622,7 @@ worth stating as an idea, which is what the draft does.
 The draft:
 
 ```
+
 ## Scenario D — the development procedure of cvc5 is automated
 
 Not a new solver. The same solver, developed by machines under human direction:

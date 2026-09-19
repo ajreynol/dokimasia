@@ -27,17 +27,58 @@ def check(label, got, want):
 def documents():
     """Every written document, front page and plan included, as repo-relative paths.
 
-    `docs/` is walked rather than listed: a filed finding and a case study are
-    the documents a cvc5 maintainer actually opens, and a guard that stops at
-    the top level passes on the tree while leaving those two unread.
+    `docs/` and the package README are walked rather than listed, so a guard
+    cannot pass on the tree while leaving a document nobody remembered unread.
     """
-    found = ["README.md", "TODO.md"]
+    found = ["README.md", "TODO.md", "dokimasia/README.md", "bug_db/README.md"]
     for base, _dirs, names in os.walk(os.path.join(ROOT, "docs")):
         for name in sorted(names):
             if name.endswith(".md"):
                 rel = os.path.relpath(os.path.join(base, name), ROOT)
                 found.append(rel.replace(os.sep, "/"))
-    return sorted(found)
+    return sorted(p for p in found if os.path.exists(os.path.join(ROOT, p)))
+
+
+def test_no_document_links_a_document():
+    """No document links another of ours, or a heading inside itself.
+
+    Every documentation refactor here has ended the same way: the prose moved,
+    the cross-references did not, and the breakage surfaced as a red policy job
+    rather than as a reader noticing. One restructuring left ten dead anchors in
+    the tree and six more that no checker caught at all, because they pointed at
+    headings inside the file that had just lost them.
+
+    So documents **name** each other -- `docs/experience.md`, in backticks --
+    and never link. A name cannot rot into a wrong destination, and the reader
+    loses one click on a tree of four documents. Links to data, to code and to
+    other repositories are untouched: those are not this failure mode, and the
+    first two are already guarded by the resolver above.
+    """
+    print("\ndocuments name each other, never link:")
+    ours = set(documents())
+    # The generated views are scanned too, and for the sharper reason: a page
+    # rewritten whole re-creates whatever its generator emits, so a link put
+    # back in `scripts/bug_reports.py` would reappear on every render and
+    # survive any hand cleanup.
+    scanned = ours | {p for p in ("bug_db/bugs.md", "bug_db/fragment.md")
+                      if os.path.exists(os.path.join(ROOT, p))}
+    offenders = []
+    for rel in sorted(scanned):
+        base = os.path.dirname(rel)
+        with open(os.path.join(ROOT, rel), encoding="utf-8") as fh:
+            body = fh.read()
+        for m in re.finditer(r"\[([^\]]*)\]\(([^)\s]+)\)", body):
+            target = m.group(2)
+            if target.startswith(("http", "mailto")):
+                continue
+            if target.startswith("#"):
+                offenders.append(f"{rel}: {m.group(0)[:48]} (heading in itself)")
+                continue
+            path = os.path.normpath(os.path.join(base, target.split("#")[0]))
+            if path.replace(os.sep, "/") in ours:
+                offenders.append(f"{rel}: {m.group(0)[:48]}")
+    check(f"{len(scanned)} documents and generated views, none linking another",
+          offenders, [])
 
 
 def test_lock():
@@ -134,6 +175,7 @@ if __name__ == "__main__":
           all(any(p == name for p in docs)
               for name in ("docs/experience.md", "docs/README.md",
                            "docs/maintenance.md")), True)
+    test_no_document_links_a_document()
     test_docs_agree(d, set(allowed), scoped)
     test_printed_claims(d)
     root = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("CVC5")

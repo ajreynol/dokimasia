@@ -8,17 +8,17 @@ documents complete the set, and `docs/` holds nothing else:
 | | |
 | --- | --- |
 | **this page** | the goal, the contract, the checks, and everything we are asking cvc5 to act on |
-| [`maintenance.md`](maintenance.md) | how to run it, what each command answers, the pins, the tests and the script catalogue |
-| [`experience.md`](experience.md) | what a finding is, the bar it clears, the log and retractions, and what cvc5 did about them |
-| [`discussion.md`](discussion.md) | the standing channel to the rest of the ecosystem, and the gate on responding to it |
+| `maintenance.md` | how to run it, what each command answers, the pins, the tests and the script catalogue |
+| `experience.md` | what a finding is, the bar it clears, the log and retractions, and what cvc5 did about them |
+| `discussion.md` | the standing channel to the rest of the ecosystem, and the gate on responding to it |
 
 The analyzer's own design philosophy — what counts as a finding, the promises we
 publish under, and the bar a claim clears — is a package document,
-[`dokimasia/README.md`](../dokimasia/README.md).
+`dokimasia/README.md`.
 
 Generated views are data artifacts and live with the data, in
-[`bug_db/`](../bug_db/README.md): [`bugs.md`](../bug_db/bugs.md) is every
-recorded observation, [`fragment.md`](../bug_db/fragment.md) is the supported
+`bug_db/`: `bugs.md` is every
+recorded observation, `fragment.md` is the supported
 fragment per theory.
 
 **The boundary is cvc5's proofs.** General cvc5 development belongs to
@@ -40,10 +40,10 @@ no benchmark in hand.
 
 **Only claims we can back.** Every number we publish comes from a tool here that
 runs in seconds against a checkout. A claim we cannot measure is a design note
-and lives in [`TODO.md`](../TODO.md) as one. What we will and will not say about
-somebody else's code is [the promises](../dokimasia/README.md#the-promises), each with
+and lives in `TODO.md` as one. What we will and will not say about
+somebody else's code is the promises (`dokimasia/README.md`), each with
 the tier and the mechanism behind it, enforced at the edge by
-[the bar](../dokimasia/README.md#the-bar).
+the bar (`dokimasia/README.md`).
 
 ### The operating constraint: agility
 
@@ -196,7 +196,7 @@ Adding a `--proof-granularity` flag to the proof tester — an ordinary thing to
 want — breaks link 4 and completeness testing stops. **No test fails.** A fifth
 link once asked for the flag to be named here; it was withdrawn, because making
 the option settable would equally permit `--no-check-proofs-complete`
-([the retraction](experience.md#retractions) has the detail).
+(the retraction (`docs/experience.md`) has the detail).
 
 **Safe mode's disable list is hand-maintained and unchecked.** The guard fires
 when a user *sets* an option, never on its default value, which is how
@@ -225,7 +225,7 @@ distinction has killed several of our own rows — `s-1` through `s-7` below.
 
 **Kind A — an incomplete proof named down to the input that produces it — is
 what this repository is for, and we have produced none.** One finding is filed
-([`tcb-001`](experience.md#2026-09-18--six-proof-rule-checkers-compile-against-the-solvers-they-check)),
+(`tcb-001` (`docs/experience.md`)),
 a kind C refactoring ask. The accurate summary is **instrumentation that works,
 a small number of live hypotheses, and no confirmed hole.** A cvc5 maintainer is
 entitled to weigh it on that basis.
@@ -240,7 +240,7 @@ the whole argument for `R1`.
 The facets we audit. Each is a namespace of check codes; each check owns a
 witness; each says something about the pipeline that is true or false. There are
 **the eighteen facets** below, and the individual claims are in
-[the register](#the-register).
+the register.
 
 ✅ live · ◐ partial · ○ designed
 
@@ -264,20 +264,21 @@ witness; each says something about the pipeline that is true or false. There are
 | ✅ | `FRAG` | **the supported fragment** | which term kinds may appear per theory under safe mode — and do the three enforcement mechanisms actually cover it? |
 | ✅ | `SIG` | **signature agreement** | do the rules and skolems cvc5 can print exist in the Eunoia signature, and does its own documentation match? |
 | ✅ | `LATENT` | **the latent set** | of the holes the facets above declare, which has no input behind it — the static inventory minus what a corpus reached |
-| ○ | `KRN` | **kernel obligations** | see [the wishues](README.md#the-two-wishues) |
+| ○ | `KRN` | **kernel obligations** | see the wishues |
 
 Two of these — the ledger's arity column, and severity derived from reachability
 rather than presence — are things [cvc5 asked anoieu
 for](https://github.com/ajreynol/anoieu/blob/main/docs/README.md). They are C++
 questions, so they live here.
+
 ## What each facet has produced
 
 Only the live ones, and only what a check actually returned against a checkout.
-The register row for each is in [`issues.md`](README.md#the-register).
+The register row for each is below.
 
 | prefix | tool | measured at `40a4bb7e4` | rows |
 | --- | --- | --- | --- |
-| `TCB` | `dokimasia.tcb` | 179 files, 41,446 lines, 8.0% of `src/`; 6 rule checkers compile against the solvers they check | [`f-1`](experience.md#2026-09-18--six-proof-rule-checkers-compile-against-the-solvers-they-check) |
+| `TCB` | `dokimasia.tcb` | 179 files, 41,446 lines, 8.0% of `src/`; 6 rule checkers compile against the solvers they check | `f-1` (`docs/experience.md`) |
 | `MODE` | `dokimasia.modes` | 24 distinct option settings changed in safe mode; 2 options declare no proof support and stay on, of which 1 survives review | `i-2`, `i-5` |
 | `RULE` | `dokimasia.ledger` | 170 rules: 113 always printable, 17 conditionally, 40 never — 14 by design, 12 unreachable, **14 real gaps** | `i-7`, `i-12` |
 | `TRUST` | `dokimasia.trust` | 75 declared ids: 70 live, 4 dead, 8 sites built with `TrustId::NONE` | `i-9`, `i-10`, `i-11` |
@@ -287,12 +288,12 @@ The register row for each is in [`issues.md`](README.md#the-register).
 | `CI` | `dokimasia.ci` | 4 of 22 jobs run a proof tester; all 4 completeness links hold, and the guarantee still rests on configuration | `i-3`, `i-13`, `i-14` |
 | `GATE` | `dokimasia.gates` | 59 term kinds carry an option gate; verdicts blocked / partial / open per rule | `i-1`, `s-1`–`s-5` |
 | `FRAG` | `dokimasia.fragment` | 341 kinds over 14 theories (216 available, 125 blocked); two safe-mode options gate no kind at all | `i-15` |
-| `BUILD` | `dokimasia.buildmode` | **8 conditionals on the safe-build macro, all benign**; 0 excluded sources; 0 behavioural readers of `isSafeBuild()` | [`cases/safe-build-vs-safe-mode.md`](experience.md#2026-09-17--cvc5-12899-is-forbidding-safe-mode-with-debug-symbols-a-restriction) |
-| `LATENT` | `dokimasia.latent` | **182 of 203 declared holes reached by no input**; 21 reached only outside safe mode; 0 in safe mode | [`reachability.md`](maintenance.md#what-the-corpus-reaches) |
+| `BUILD` | `dokimasia.buildmode` | **8 conditionals on the safe-build macro, all benign**; 0 excluded sources; 0 behavioural readers of `isSafeBuild()` | the cvc5 #12899 case study (`docs/experience.md`) |
+| `LATENT` | `dokimasia.latent` | **182 of 203 declared holes reached by no input**; 21 reached only outside safe mode; 0 in safe mode | what the corpus reaches (`docs/maintenance.md`) |
 | `SIG` | `dokimasia.signature` | 0 printable rules undeclared; 24 skolems constructed and unprintable; 1 documented arity disagreement | `i-19`, `i-20`, `i-21` |
 
 The `MODE` row is the shape to notice: the check returned two options and one of
-them ([`s-4`](README.md#settled), `macrosQuantMode`) was spurious — its effect is
+them (`s-4`, `macrosQuantMode`) was spurious — its effect is
 gated by a flag defaulting to `false`, which a defaults-only comparison cannot
 see. The tool prints that limit beside the result.
 
@@ -300,12 +301,12 @@ see. The tool prints that limit beside the result.
 
 | prefix | blocked on |
 | --- | --- |
-| `PP` | the pass↔trust-id correspondence is not derivable by name (`i-11`, [`R7`](README.md#open--asks)) |
+| `PP` | the pass↔trust-id correspondence is not derivable by name (`i-11`, `R7`) |
 | `ELAB` | granularity is a runtime property; deciding it statically needs the elaboration graph, not the rule list |
 | `SEAM` | `SEAM0002` — characterising the unhandled *argument* set of the conditional arms, not just the rule |
-| `INFERID` | nothing; it is live but its precision is bounded by `i-8`, which is cvc5's to fix ([`R4`](README.md#open--asks)) |
-| `API` | needs the call site, which is the AST tier — see [`tooling.md`](maintenance.md#the-static-analysis-landscape) |
-| `KRN` | [`i-4`](README.md#the-register): reconstruction runs under a search budget with no termination argument, which bounds what any kernel contract can claim |
+| `INFERID` | nothing; it is live but its precision is bounded by `i-8`, which is cvc5's to fix (`R4`) |
+| `API` | needs the call site, which is the AST tier — see the static-analysis landscape (`docs/maintenance.md`) |
+| `KRN` | `i-4`: reconstruction runs under a search budget with no termination argument, which bounds what any kernel contract can claim |
 
 ## The check-code convention
 
@@ -314,13 +315,13 @@ A check code is `PREFIX` plus four digits — `RULE0001`, `TRUST0003`,
 signatures. A code names a *question asked of the code*, not an occurrence: one
 code can return many rows or none, and returning none is a fact about the check
 rather than about cvc5. The structured analyzer's emitted codes are below.
-Designed checks remain in [`TODO.md`](../TODO.md) and are not emitted.
+Designed checks remain in `TODO.md` and are not emitted.
 
 ## Structured observations
 
 These codes describe static observations, not reviewed verdicts. Both the
 program and the independent agent use this catalogue. The
-[analyzer guide](maintenance.md#identity-and-evidence) defines the entity keys.
+analyzer guide (`docs/maintenance.md`) defines the entity keys.
 
 | code | emitted when | limitation |
 | --- | --- | --- |
@@ -356,16 +357,16 @@ measurements: lack of that mechanism does not establish lack of a proof.
 **Everything we are asking cvc5 to act on**: defects we believe exist, changes
 we would like made, and process suggestions — one register, one id space.
 
-Two registers, split by who acts. [`TODO.md`](../TODO.md) holds **work we do**;
+Two registers, split by who acts. `TODO.md` holds **work we do**;
 this section holds **things cvc5 would act on** — `i-*` defects, `R*` asks,
 `p-*` process. Everything else on this page is rationale. The rule: *if somebody
 is expected to do something about it, it is in one of the two registers.* A
 numbered section in a design argument — `H1`–`H11` in
-[proof hygiene](#proof-hygiene) below — is a named argument, not a task; where
+proof hygiene below — is a named argument, not a task; where
 it implies an action it has a row here.
 
 **These are hypotheses, not filed findings.** A finding is confirmed and lives
-in [`experience.md`](experience.md#the-log); this is what is waiting for a
+in `experience.md`; this is what is waiting for a
 verdict.
 
 Ranks: **1** an incomplete proof under `--safe-mode=safe` — a contract
@@ -380,11 +381,11 @@ The ones worth someone's attention.
 | --- | --- | --- | --- |
 | **i-1** | **`LAMBDA_ELIM` may be a genuine safe-mode gap.** *(Strengthened: the fragment analysis finds **no `uf` kind blocked in safe mode at all** — `ufHoExp` gates the declared logic, not `Kind::LAMBDA`, so a lambda reaching the rewriter is not excluded by kind.)* The seam accepts it only when `safeMode == UNRESTRICTED`, `TheoryUfRewriter::rewriteViaRule` applies it, and its arm fires on `Kind::LAMBDA`, which no gate blocks in safe mode | `gates rule` | **still an input, and one attempt has failed.** `(define-fun f ((x Int)) Int (+ x 1))` with an assertion over `f` runs clean under `--safe-mode=safe --produce-proofs --check-proofs --stats-internal`: `unsat`, no unhandled rule, no trust step. That is evidence, not a settlement — the macro is expanded in preprocessing and `LAMBDA_ELIM` may simply not have fired. A benchmark that keeps a lambda alive to the rewriter is the open task. Note `--check-proofs-complete` cannot be passed here (see `i-3`); `--stats-internal` is the route |
 | **i-2** | **`stringLazyPreproc` escapes safe mode's promise — and safe mode says so itself.** It declares `no_support = ["proofs"]`, `default = "true"`, `category = "regular"`; `setDefaultsPre` only *reads* it, never disables it. **Verified by running:** `--safe-mode=safe --strings-lazy-pp` is refused with *"cannot set option strings-lazy-pp in safe mode, as this option does not support proofs"* — so safe mode refuses to let you set the option on the grounds that it lacks proof support, while running with it on by default. `--no-strings-lazy-pp` is refused too, so the guard also blocks the one assignment that would make the configuration safer | `modes check`, then run | **verdict: carry.** Clears all five rules. Falsified if a maintainer says the `no_support` annotation is stale — which is itself the answer we want |
-| **i-3** | **Proof completeness is obtained only as a side effect.** `--check-proofs-complete` appears nowhere in CI; in a safe build `setDefaultsPre` enables it from `--check-proofs`. **It also cannot be passed there** — the option is `category = "expert"` and safe and stable mode reject expert options — and *that is correct*: cvc5 established that making it settable would equally permit `--no-check-proofs-complete`, so the refusal is what keeps the guarantee non-negotiable. **The defect is not that the flag cannot be named**, which is where this row started; it is that adding a `--proof-granularity` flag to the `proof` tester would switch completeness off with no test failing | `ci proofs`, then run | an assertion in `setDefaultsPre` stating the implication (**R2**), which is a [kind D](../dokimasia/README.md#what-a-finding-is) and retires our check |
-| **i-4** | **Completeness depends on a search budget, and the budget is load-bearing.** Reconstruction runs under `--proof-rewrite-rcons-rec-limit` (default 5); when it fails the step stays coarse. This is **not a tuning knob on a decidable procedure** — [FMCAD 2022 §IV-A](README.md#the-rare-correspondence) states there is *"no guarantee that preconditions are simpler than the current equality to be proved, and so no guarantee of termination in general."* The paper measured 92–95% of rewrite *steps* reconstructed but only **20–22% of proofs fully fine-grained**, since one coarse step spoils a proof | `rewrites gaps` | nothing settles this short of a termination argument for the recursion. It bounds what any kernel contract can claim, and it is the strongest reason [obligation 6](README.md#the-two-wishues) cannot be discharged today |
+| **i-3** | **Proof completeness is obtained only as a side effect.** `--check-proofs-complete` appears nowhere in CI; in a safe build `setDefaultsPre` enables it from `--check-proofs`. **It also cannot be passed there** — the option is `category = "expert"` and safe and stable mode reject expert options — and *that is correct*: cvc5 established that making it settable would equally permit `--no-check-proofs-complete`, so the refusal is what keeps the guarantee non-negotiable. **The defect is not that the flag cannot be named**, which is where this row started; it is that adding a `--proof-granularity` flag to the `proof` tester would switch completeness off with no test failing | `ci proofs`, then run | an assertion in `setDefaultsPre` stating the implication (**R2**), which is a kind D (`dokimasia/README.md`) and retires our check |
+| **i-4** | **Completeness depends on a search budget, and the budget is load-bearing.** Reconstruction runs under `--proof-rewrite-rcons-rec-limit` (default 5); when it fails the step stays coarse. This is **not a tuning knob on a decidable procedure** — FMCAD 2022 §IV-A states there is *"no guarantee that preconditions are simpler than the current equality to be proved, and so no guarantee of termination in general."* The paper measured 92–95% of rewrite *steps* reconstructed but only **20–22% of proofs fully fine-grained**, since one coarse step spoils a proof | `rewrites gaps` | nothing settles this short of a termination argument for the recursion. It bounds what any kernel contract can claim, and it is the strongest reason obligation 6 cannot be discharged today |
 | **i-5** | **The safe-mode disable list is hand-maintained and untested.** Nothing checks that it still covers every feature without proof support | `modes delta` | not a defect today — the check exists to catch the *next* feature added |
 | **i-15** | **The supported fragment is not expressible as a list of kinds.** Two expert options safe mode disables gate no term kind: `ufHoExp` restricts the declared *logic* (`logicInfo().isHigherOrder()`), `fpExp` restricts a *type* (via `checkForExperimentalFloatingPointType`, whose sort has kind `TYPE_CONSTANT` and cannot be excluded by kind). So any statement of the form "safe mode supports exactly these kinds" is incomplete, and `illegal_checker`'s kind deny list cannot be the whole story | `fragment check` | a decision on whether the fragment should be *stated* somewhere — the three mechanisms are each reasonable, but nothing writes down what they add up to |
-| **i-17** | **The RARE↔C++ correspondence is established only by runtime search.** A RARE rule that misstates the rewrite never matches and is never reported; a rewrite with no rule, and a rule the search fails to find in budget, produce the same trust step and so cannot be told apart. Nothing checks the 439 declarations against the rewriter that implements them | design note | see [`rare-correspondence.md`](README.md#the-rare-correspondence). E1 (instantiate each rule, run the rewriter) is the direct test and belongs upstream |
+| **i-17** | **The RARE↔C++ correspondence is established only by runtime search.** A RARE rule that misstates the rewrite never matches and is never reported; a rewrite with no rule, and a rule the search fails to find in budget, produce the same trust step and so cannot be told apart. Nothing checks the 439 declarations against the rewriter that implements them | design note | see the RARE correspondence. E1 (instantiate each rule, run the rewriter) is the direct test and belongs upstream |
 | **i-18** | **`datatypes` and `quantifiers` have no RARE rules at all**, and both are enabled in safe mode. Every rewrite they perform must reconstruct through a hand-written `ProofRewriteRule` or become a trust step | `rewrites correspondence` | where reconstruction failure is structurally concentrated. Worth a corpus read before assuming it bites |
 | **i-22** | **79 inferences fall through to a trust step by construction.** Their theory has an `InferProofCons` whose default case builds `ProofRule::TRUST`, and its switch does not name them: strings reconstructs 68 of the 86 ids it emits (78%), datatypes 11 of 26 (42%), sets 13 of 58 (22%) | `infer coverage` | each is a hole *by construction*, not by accident — the fall-through is what the code does when the switch misses. Severity still needs the gate: many are behind expert options |
 | **i-6** | **Ten theories emit inferences with no `InferProofCons` at all** — quantifiers (74), arith (68), uf (20), bags (32), sep (13), arrays, bv, fp, ff, and the theory core (10) | `infer coverage` | **not** the same as having no proofs: several attach a `ProofGenerator` at the inference site instead, which the switch-based analysis cannot see. Settling it needs the call site, and that is the AST tier |
@@ -401,7 +402,7 @@ Cleanups and unrestricted-mode gaps. Real, but nobody is relying on them.
 | i-9 | **8 trust steps are built with `TrustId::NONE`** — a declared hole with no stated reason, so nothing downstream can attribute them | `trust census` |
 | i-10 | **3 `PREPROCESS_*` trust ids are dead**: both `bv_to_int` ids and `PREPROCESS_BITVECTOR_EAGER_ATOMS`. That pass's actual trust step is `INT_BLASTER`, built in a different file | `trust passes` |
 | i-11 | **The pass↔trust-id correspondence is not derivable by name.** 7 ids do not follow their pass filename, including `PREPROCESS_BV_GUASS` — a misspelling of Gauss | `trust passes` |
-| i-16 | **The RARE↔enum correspondence is exact but under-stated.** The generated marker names the rule, not its file, so a rule's owning theory is not recoverable from the header; hand-written entries are identified only by *absence* of a marker; RARE files carry six basenames and no extension; and the `ite-` prefix is claimed by both `booleans` and `builtin`. *The missing source file is now an accepted cost — the marker sits in a public header and the RARE layout is not ours to publish there (**R7b**, [withdrawn](#withdrawn)); we scan the two directories instead. The other three remain under-stated, and only identification-by-absence is worth an ask ([H11 C2](README.md#proof-hygiene)).* | `rewrites correspondence` |
+| i-16 | **The RARE↔enum correspondence is exact but under-stated.** The generated marker names the rule, not its file, so a rule's owning theory is not recoverable from the header; hand-written entries are identified only by *absence* of a marker; RARE files carry six basenames and no extension; and the `ite-` prefix is claimed by both `booleans` and `builtin`. *The missing source file is now an accepted cost — the marker sits in a public header and the RARE layout is not ours to publish there (**R7b**, withdrawn); we scan the two directories instead. The other three remain under-stated, and only identification-by-absence is worth an ask (H11 C2).* | `rewrites correspondence` |
 | **i-21** | **`SUBS`'s documentation omits an argument the checker reads.** The doc says `\inferrule{F_1 \dots F_n \mid t, ids?}` — one required argument plus an optional `ids`. The checker asserts `1 <= args.size() && args.size() <= 3` and reads `args[2]` as a second `MethodId` (`ida`, defaulting to `SBA_SEQUENTIAL`), which selects how the substitution is *applied*. Nothing in the documentation mentions it | `signature checker` |
 | i-19 | **24 `SkolemId`s are constructed by the solver and refused by the Eunoia seam.** A skolem the seam cannot print sinks a proof exactly as an unprintable rule does. Most are bags/sets/relations/transcendental — safe mode disables those — but `GROUND_TERM`, `BV_TO_INT_UF` and `SHARED_SELECTOR` want checking | `signature skolems` |
 | i-20 | **The `\inferrule` documentation is prose, not a specification.** Comparing it against the *checker* took five rounds of parser fixes (10 → 3 → 2 → 3 → 1 disagreements) as LaTeX conventions were accounted for: dots inside a conjunction, `\,` thin spaces, bare ellipses between listed premises, and `DSL_REWRITE` alone separating its arguments with spaces rather than commas. The residue is one real finding (`i-21`). **The docs are readable by people and barely by machines**, which is why nothing checks them. cvc5 states a rule's arity in LaTeX only — unlike `SkolemId`, which states "Number of skolem indices: N" in a structured field and is checkable directly | `signature arity`, `signature checker` |
@@ -413,12 +414,12 @@ Cleanups and unrestricted-mode gaps. Real, but nobody is relying on them.
 
 Changes we would like made. The reasoning for each is in the document named;
 these rows exist so there is one place to see what is outstanding. Kinds are
-from [`findings.md`](../dokimasia/README.md#what-a-finding-is): **B** an adoption, **C** a change to the
+from the promises (`dokimasia/README.md`): **B** an adoption, **C** a change to the
 pipeline, **D** an assertion.
 
 ### Which ask moves which metric
 
-The [analysis groups](../TODO.md#what-the-analysis-is-for) each carry numbers we
+The analysis groups (`TODO.md`) each carry numbers we
 watch. If you are a cvc5 developer wondering where effort would show up, this is
 the map. **R1 and R2 are the two we would ask for first** — R2 is a small
 assertion, though no longer the one-line change we first called it, and R1 is
@@ -441,18 +442,18 @@ the one that makes everything else exact.
 
 | # | ask | kind | why | where argued |
 | --- | --- | --- | --- | --- |
-| **R1** | **emit cvc5's proof registries as JSON** from a build target | C | the highest-leverage ask by a distance: makes our whole table tier exact instead of parsed, and retires most of the fragility below. Three parser bugs in one session are the argument | [coupling](README.md#r1--emit-the-tables-cvc5-already-has) |
-| **R2** | **make the completeness guarantee statable** — assert in `setDefaultsPre` that a safe build with `--check-proofs` at default or DSL-rewrite granularity has `checkProofsComplete` on | D | *(corrected twice. By running it: the flag is `category = "expert"`, so safe **and** stable mode refuse it — it cannot be named in either job whose mode carries the contract. Then by cvc5, who **rejected the second form of this ask**: dropping the expert category also permits `--no-check-proofs-complete`, and `setDefaultsPre` honours an explicit user assignment, so the promotion would make the guarantee opt-out-able. Built at `a960d7d7210e731cf48ad7baa6ad42fc7345b297`, reverted at `215eed21a6c8380075c46513e69181a295b6e3b2`. The expert refusal is the mechanism, not the obstacle; only the assertion form survives, and it must allow for the deliberate lower-granularity exception.)* (`i-3`, [retracted](experience.md#retractions)) | [coupling](README.md#r2--make-the-completeness-guarantee-statable) |
-| **R3** | extract the pure `static` helpers out of solver classes | C | six rule checkers compile against the solvers they check. Filed as `f-1` | [coupling](README.md#r3--get-the-theory-solvers-out-of-the-proof-checkers-includes) |
-| **R4** | one `InferenceId`, one production site | C | until an id names one program point, inference coverage cannot be precise (`i-8`) | [coupling](README.md#r4--one-inferenceid-one-place) |
-| **R5** | make `no_support` cover defaults, or derive safe mode's list from it | C | the `SolverEngine` guard fires on assignment only, which is how `stringLazyPreproc` gets through (`i-2`) | [coupling](README.md#the-asks-argued) |
-| **R6** | declare which seam refusals are *by design* | C | we infer "macro or trust step, so intended" from naming and elaboration — a heuristic that already needed one correction | [coupling](README.md#r6--declare-what-the-seam-is-supposed-to-reject) |
-| **R7** | make the pass↔`TrustId` correspondence derivable, and fix `BV_GUASS` | C | `i-11` | [coupling](README.md#r7--make-the-passtrustid-correspondence-derivable) |
-| **R8** | make safe mode prune code at build time | C | `CVC5_SAFE_MODE` prunes almost nothing today; each feature moved from runtime-disabled to not-compiled turns a class of hole into a link error | [coupling](README.md#r8--safe-mode-as-a-build-time-property) |
-| **R9** | **test each RARE rule against the rewriter** — instantiate the match, rewrite, compare to the target | C | the only thing that catches a rule that *misstates* the rewrite, which today fails silently forever (`i-17`). Belongs upstream, beside the rewriter. Partial is fine | [rare-correspondence E1](README.md#the-rare-correspondence) |
-| **R10** | adopt the proof hygiene standard, or rule on it | B | eleven rules, most ratifying existing practice; the contested ones are `H1`, `H5`, `H6` | [hygiene](README.md#proof-hygiene) |
-| **R11** | run our checks in cvc5 CI, and upload SARIF | B | `p-1`; the ledger and mode ratchets run in seconds and need no baseline | [tooling](maintenance.md#d1--three-artifacts-by-what-each-question-needs) |
-| **R12** | **run the corpus with `--stats-internal` and publish the `finalProof::*` counters** — *[we did this for `regress0`](maintenance.md#what-the-corpus-reaches): safe mode reaches **0** holes over 1,061 proofs, unrestricted reaches one benchmark in ten, and 10 of 70 live `TrustId`s are touched. The ask is now for the levels and corpora we cannot run* | B | the cheapest experiment either side can run, and the one that decides how much the rest of this is worth. cvc5's counters are a numerator — holes some input reached; our census is the denominator — holes that exist to be reached. Nobody currently knows the ratio, and it cuts both ways: if the corpus has touched most of them the static surface has little headroom and we should narrow accordingly | [why](README.md#1-we-supply-the-denominator-your-own-counters-lack) |
+| **R1** | **emit cvc5's proof registries as JSON** from a build target | C | the highest-leverage ask by a distance: makes our whole table tier exact instead of parsed, and retires most of the fragility below. Three parser bugs in one session are the argument | coupling |
+| **R2** | **make the completeness guarantee statable** — assert in `setDefaultsPre` that a safe build with `--check-proofs` at default or DSL-rewrite granularity has `checkProofsComplete` on | D | *(corrected twice. By running it: the flag is `category = "expert"`, so safe **and** stable mode refuse it — it cannot be named in either job whose mode carries the contract. Then by cvc5, who **rejected the second form of this ask**: dropping the expert category also permits `--no-check-proofs-complete`, and `setDefaultsPre` honours an explicit user assignment, so the promotion would make the guarantee opt-out-able. Built at `a960d7d7210e731cf48ad7baa6ad42fc7345b297`, reverted at `215eed21a6c8380075c46513e69181a295b6e3b2`. The expert refusal is the mechanism, not the obstacle; only the assertion form survives, and it must allow for the deliberate lower-granularity exception.)* (`i-3`, retracted (`docs/experience.md`)) | coupling |
+| **R3** | extract the pure `static` helpers out of solver classes | C | six rule checkers compile against the solvers they check. Filed as `f-1` | coupling |
+| **R4** | one `InferenceId`, one production site | C | until an id names one program point, inference coverage cannot be precise (`i-8`) | coupling |
+| **R5** | make `no_support` cover defaults, or derive safe mode's list from it | C | the `SolverEngine` guard fires on assignment only, which is how `stringLazyPreproc` gets through (`i-2`) | coupling |
+| **R6** | declare which seam refusals are *by design* | C | we infer "macro or trust step, so intended" from naming and elaboration — a heuristic that already needed one correction | coupling |
+| **R7** | make the pass↔`TrustId` correspondence derivable, and fix `BV_GUASS` | C | `i-11` | coupling |
+| **R8** | make safe mode prune code at build time | C | `CVC5_SAFE_MODE` prunes almost nothing today; each feature moved from runtime-disabled to not-compiled turns a class of hole into a link error | coupling |
+| **R9** | **test each RARE rule against the rewriter** — instantiate the match, rewrite, compare to the target | C | the only thing that catches a rule that *misstates* the rewrite, which today fails silently forever (`i-17`). Belongs upstream, beside the rewriter. Partial is fine | rare-correspondence E1 |
+| **R10** | adopt the proof hygiene standard, or rule on it | B | eleven rules, most ratifying existing practice; the contested ones are `H1`, `H5`, `H6` | hygiene |
+| **R11** | run our checks in cvc5 CI, and upload SARIF | B | `p-1`; the ledger and mode ratchets run in seconds and need no baseline | tooling (`docs/maintenance.md`) |
+| **R12** | **run the corpus with `--stats-internal` and publish the `finalProof::*` counters** — *we did this for `regress0` (`docs/maintenance.md`): safe mode reaches **0** holes over 1,061 proofs, unrestricted reaches one benchmark in ten, and 10 of 70 live `TrustId`s are touched. The ask is now for the levels and corpora we cannot run* | B | the cheapest experiment either side can run, and the one that decides how much the rest of this is worth. cvc5's counters are a numerator — holes some input reached; our census is the denominator — holes that exist to be reached. Nobody currently knows the ratio, and it cuts both ways: if the corpus has touched most of them the static surface has little headroom and we should narrow accordingly | why |
 
 ### Withdrawn
 
@@ -481,15 +482,15 @@ worth as much as a finding.
 | s-2 | `ARRAYS_EQ_RANGE_EXPAND` and `DT_MATCH_ELIM` — two hard rewrite gaps | **blocked.** `EQ_RANGE` needs `--arrays-exp`, `MATCH` needs `--datatypes-exp` |
 | s-3 | "`EoPrinter::isHandled` refuses 37 rules" (172 − 135) | **superseded.** The subtraction was naive. The ledger computes it: 40 refused, of which 14 by design, 12 unreachable, 14 real gaps |
 | s-4 | `macrosQuantMode` escapes safe mode like `stringLazyPreproc` | **spurious.** Its effect is gated by `macrosQuant`, default `false`. A defaults-only check cannot see that gate |
-| s-6 | `SET_FILTER` is ungated in safe mode, and `SETS_FILTER_UP`/`DOWN` are refused by the seam there — so a `set.filter` benchmark should fail `--check-proofs-complete`. A rank-1 candidate | **spurious, and the most instructive miss so far.** Every link held in the source. But `set.filter` takes a predicate, a predicate is a function-typed term, and `TheoryUF::preRegisterTerm` throws `LogicException` on a function-typed term unless the logic is higher-order — which safe *and* stable mode refuse. One command settled what no amount of reading would have. The analysis is fixed rather than the row retracted: `Fragment.requires_higher_order` now recovers this axis from the type rules, and 13 kinds move to blocked. See [the bar](../dokimasia/README.md#the-bar) |
+| s-6 | `SET_FILTER` is ungated in safe mode, and `SETS_FILTER_UP`/`DOWN` are refused by the seam there — so a `set.filter` benchmark should fail `--check-proofs-complete`. A rank-1 candidate | **spurious, and the most instructive miss so far.** Every link held in the source. But `set.filter` takes a predicate, a predicate is a function-typed term, and `TheoryUF::preRegisterTerm` throws `LogicException` on a function-typed term unless the logic is higher-order — which safe *and* stable mode refuse. One command settled what no amount of reading would have. The analysis is fixed rather than the row retracted: `Fragment.requires_higher_order` now recovers this axis from the type rules, and 13 kinds move to blocked. See the bar (`dokimasia/README.md`) |
 | s-7 | "No `uf` kind is blocked in safe mode at all", used to strengthen `i-1` | **half wrong.** `HO_APPLY` is blocked, by the same logic axis as `s-6`. `LAMBDA` is *not* — its argument is not function-typed, only its result is — so `i-1` survives at the kind level, but the sweeping form of the claim does not. `tests/test_fragment.py` now asserts the corrected fact |
-| s-5 | The proof checker's TCB is 74% of `src/` | **retracted.** An artifact of a saturating closure mode; the real figure is 8.0%. See [retractions](experience.md#retractions) |
+| s-5 | The proof checker's TCB is 74% of `src/` | **retracted.** An artifact of a saturating closure mode; the real figure is 8.0%. See retractions (`docs/experience.md`) |
 
 ## Filed
 
 | # | what | where |
 | --- | --- | --- |
-| f-1 | Six proof rule checkers compile against the theory solvers they check, to reach `static` helpers parked on solver classes | [`tcb-001`](experience.md#2026-09-18--six-proof-rule-checkers-compile-against-the-solvers-they-check) |
+| f-1 | Six proof rule checkers compile against the theory solvers they check, to reach `static` helpers parked on solver classes | `tcb-001` (`docs/experience.md`) |
 
 ## Proof hygiene
 
@@ -601,11 +602,11 @@ list and the build-time exclusion list must agree, and today they plainly do not
 
 Of everything in the register above, which is most worth a cvc5 maintainer's
 time — as a bug report, or as a patch a human carries? Nothing here is sent by a
-program; see [the bar](../dokimasia/README.md#the-bar).
+program; see the bar (`dokimasia/README.md`).
 
 
 
-Applying [the bar](../dokimasia/README.md#the-bar). Two rows clear it; everything else
+Applying the bar (`dokimasia/README.md`). Two rows clear it; everything else
 names the rule that blocks it.
 
 ### The verdicts
@@ -615,15 +616,15 @@ names the rule that blocks it.
 | **carry** | `i-3` / `R2` | completeness in safe mode is obtained by configuration and nothing asserts it *(the category half of this ask was rejected — see below)* |
 | **carry** | `i-2` | `stringLazyPreproc` — safe mode refuses to let you set it *because it lacks proof support*, and leaves it on |
 | not yet — **run-it** | `i-1`, `i-22`, `i-6` | a static argument with no input. `i-1` has had one attempt fail |
-| not yet — **run-it** | the 182 [latent holes](maintenance.md#what-the-corpus-reaches) | declared, and nothing has reached them |
+| not yet — **run-it** | the 182 latent holes (`docs/maintenance.md`) | declared, and nothing has reached them |
 | not yet — **worth-the-attention** | the dead-declaration cleanups | bundled, and only after something substantive lands |
 | never | `i-4` | a termination argument for the reconstruction search settles it, and nothing else does |
 
 ### The recommendation
 
 **Report the completeness flag first: in safe mode the guarantee is obtained only
-as a side effect, and nothing asserts it.** ([`i-3`](README.md#the-register),
-[`R2`](README.md#open--asks))
+as a side effect, and nothing asserts it.** (`i-3`,
+`R2`)
 
 > **Amended 2026-09-19.** This read *"`--check-proofs-complete` cannot be set in
 > either mode whose contract it enforces"*, which is true and was the wrong
@@ -655,7 +656,7 @@ completeness testing off, and no test would fail.
 | **it is about the guarantee itself** | not a hole, but the mechanism that detects holes. Everything else this repository reports depends on it working |
 | **it takes one command to verify** | no build, no corpus, no argument about reachability. A maintainer can refute or confirm it in thirty seconds — and did, refuting one of the two remedies below |
 | **it is not a matter of taste** | the option's own help text says *"enabled by default in safe builds"*, and safe builds are exactly where it cannot be named |
-| **the fix is small and has a natural home** | an assertion in `setDefaultsPre` — a [kind D](../dokimasia/README.md#what-a-finding-is), so the invariant lands in cvc5's tree and our `CI0002` check retires |
+| **the fix is small and has a natural home** | an assertion in `setDefaultsPre` — a kind D (`dokimasia/README.md`), so the invariant lands in cvc5's tree and our `CI0002` check retires |
 | **we found it by running, not reading** | the static analysis got this ask *wrong* (see below), which is itself worth telling them |
 
 **The proposed fix.** This listed two forms; **the second was rejected by cvc5
@@ -665,7 +666,7 @@ on 2026-09-19 and is withdrawn.**
    safe build enables `checkProofsComplete`, assert it is set — **at the default
    and DSL-rewrite granularities only.** cvc5 supplied that condition: an
    unconditional assertion would fire on the deliberate lower-granularity
-   exception. Still the smallest change and still a [kind D](../dokimasia/README.md#what-a-finding-is).
+   exception. Still the smallest change and still a kind D (`dokimasia/README.md`).
 2. ~~**Exempt `checkProofsComplete` from the expert refusal**, so the safe-mode
    regression tester can name what it is testing.~~ **Withdrawn — this asked
    cvc5 to weaken the guarantee we are auditing.** An option's category governs
@@ -676,7 +677,7 @@ on 2026-09-19 and is withdrawn.**
    reproduced the opt-out, and reverted it at `215eed21a6c8380075c46513e69181a295b6e3b2`. **The expert refusal
    is the mechanism that makes completeness non-negotiable in safe mode**, and we
    read it as an obstacle to naming the guarantee. Recorded in
-   [the retractions](experience.md#retractions).
+   the retractions (`docs/experience.md`).
 
 **What sank half of it, and what that leaves.** The report's own criterion was
 that a maintainer could refute it in thirty seconds, and one did: the refutation
@@ -710,7 +711,7 @@ why it goes with `i-3` rather than behind it.
 
 ### Runner-up, and why it is second
 
-**[`i-23`](README.md#the-register) — the `safeMode == UNRESTRICTED` guard in
+**`i-23` — the `safeMode == UNRESTRICTED` guard in
 `EoPrinter::isHandled` is inert.** Ten rules are accepted only in unrestricted
 builds; none of the ten can be *produced* in safe or stable mode. Verified by
 running: transcendental kinds are refused outright, and `set.filter` needs a
@@ -727,11 +728,11 @@ good *question*, not a good patch.
 
 - **`i-1` (`LAMBDA_ELIM`).** Our strongest safe-mode candidate, and the one
   nearest to a `set.filter`-shaped mistake. The sweeping claim beside it — *no
-  `uf` kind is blocked in safe mode* — turned out to be [half
-  wrong](README.md#settled). One reproducer attempt has already failed. **Do not
+  `uf` kind is blocked in safe mode* — turned out to be half
+  wrong. One reproducer attempt has already failed. **Do not
   carry this without an input.**
 - **Anything resting on the 79 fall-through inferences.** Real by construction,
-  but [the corpus reaches none of them in safe mode](maintenance.md#what-the-corpus-reaches), so
+  but the corpus reaches none of them in safe mode (`docs/maintenance.md`), so
   severity is unestablished and a maintainer would rightly ask for one input.
 - **The dead-declaration cleanups** (4 dead `TrustId`s, 14 dead `InferenceId`s,
   3 dead `PREPROCESS_*` ids, the `PREPROCESS_BV_GUASS` misspelling). These are
@@ -782,7 +783,7 @@ time. R1 makes several of the asks below unnecessary rather than merely easier.
 
 `--check-proofs-complete` appears nowhere in `.github/` or `test/`. In a safe
 build, `setDefaultsPre` enables it as a side effect of `--check-proofs`, so
-completeness is tested through a chain nothing asserts. See [`CI0002`](README.md#the-register).
+completeness is tested through a chain nothing asserts. See `CI0002`.
 
 **Corrected, by running it.** This ask first read *"pass the flag explicitly in
 the proof tester; it costs one line."* That is impossible, and one command shows
@@ -820,12 +821,12 @@ that promises it** — the very property this ask exists to protect. Reproduced 
 cvc5 `a960d7d7210e731cf48ad7baa6ad42fc7345b297`, reverted at `215eed21a6c8380075c46513e69181a295b6e3b2`. The error was ours: we reasoned
 from *the positive flag is refused* to *the option should be settable*, without
 asking what else becomes settable, and it is recorded in
-[the retractions](experience.md#retractions).
+the retractions (`docs/experience.md`).
 
 **The one surviving form: assert the implication where it is created** — in
 `setDefaultsPre`, where a safe build turns the option on, state that a safe build
 with `--check-proofs` has `checkProofsComplete` set. That is the
-[kind D](../dokimasia/README.md#what-a-finding-is) form: the invariant moves into cvc5's tree and our
+kind D (`dokimasia/README.md`) form: the invariant moves into cvc5's tree and our
 `CI0002` check retires. cvc5 adds the condition we had missed — **an
 unconditional assertion would also have to account for the intentional
 lower-granularity exception**, since the implication holds only at the default
@@ -836,14 +837,14 @@ and DSL-rewrite granularities.
 Six rule checkers `#include` the headers of the solvers they check, to reach
 `static` helpers parked on solver classes. Extracting those helpers into
 dependency-light headers shrinks the checker's compile-time surface and breaks
-the coupling. Written up as [`tcb-001`](experience.md#2026-09-18--six-proof-rule-checkers-compile-against-the-solvers-they-check).
+the coupling. Written up as `tcb-001` (`docs/experience.md`).
 
 ### R4 — one InferenceId, one place
 
 51 ids are produced at more than one site, 14 are produced nowhere, and 21
 inferences are emitted with a sentinel id. Until an id names one program point,
 "the inferences theory X can make" is not an enumerable set, and the `INFER`
-coverage analysis cannot be precise. [`docs/README.md`](README.md#proof-hygiene).
+coverage analysis cannot be precise. `docs/README.md`.
 
 ### R5 — make `no_support` cover defaults
 
@@ -873,7 +874,7 @@ declared hole.
 
 ### R7b — put the RARE source file in the generated marker — **withdrawn**
 
-*Kept for the reasoning. The ask is [withdrawn](README.md#withdrawn) and should
+*Kept for the reasoning. The ask is withdrawn and should
 not be carried.*
 
 The argument was: `mkrewrites.py` already emits
@@ -896,7 +897,7 @@ This is the general shape worth remembering: **an ask that is cheap in the
 generator can still be expensive in the published surface**, and the cost lands
 on cvc5's users rather than on the maintainer who would apply it. Our
 convenience is not a reason to widen an API. See
-[H11](README.md#proof-hygiene), whose C1
+H11, whose C1
 is withdrawn with this row.
 
 ### R7c — state a rule's arity in a structured field
@@ -912,7 +913,7 @@ would make `RULE0010` a two-line check instead of a research project.
 `ENABLE_SAFE_MODE` exists and prunes almost nothing of cvc5's own code: five
 files in `src/` mention `CVC5_SAFE_MODE`, two only to reword an error message.
 Moving features from "disabled at runtime" to "not compiled" turns a class of
-proof hole into a link error. [`docs/README.md`](README.md#a-safe-build-that-cannot-be-unsafe).
+proof hole into a link error. `docs/README.md`.
 
 ## What we parse, and what would break us
 

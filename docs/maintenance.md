@@ -1,7 +1,7 @@
 # Maintaining dokimasia
 
 Dokimasia owns analysis of cvc5's proof-production source and its
-[`bug_db/`](../bug_db/README.md) data artifact: records, evidence, triage and
+`bug_db/` data artifact: records, evidence, triage and
 closure decisions. Koine maintains the shared database writer.
 Kanon owns ecosystem policy; Anoieu implements the optional policy checker.
 
@@ -16,9 +16,9 @@ and is outside Dokimasia's scope.
 
 Keep commands and their helpers in `scripts/`, assistant launchers in `prompts/`,
 and analysis implementations in `dokimasia/`. Add documents to the
-[documentation index](README.md). Observations are recorded by the analyzer and
-closed by [an assessment of cvc5's history](#assessing-closure); what a closure
-meant is written up in [`experience.md`](experience.md).
+documentation index (`docs/README.md`). Observations are recorded by the analyzer and
+closed by an assessment of cvc5's history; what a closure
+meant is written up in `experience.md`.
 
 Regression baselines live in `tests/baselines/<analysis>.json`; the runtime
 census lives in `tests/corpus/reach-corpus.json`. Default paths resolve from the
@@ -30,12 +30,12 @@ describe.
 The analyzer and assistant default to the nine analyses in the README.
 Standalone gates, fragment, TCB and latent reports are optional developer
 measurements; the eight baseline ratchets and build invariant are the CI
-regression suite. See [the command reference](maintenance.md#the-command-reference).
+regression suite. See the command reference.
 
 Two documents are generated and neither is edited by hand:
-[`fragment.md`](../bug_db/fragment.md), written whole by
+`fragment.md`, written whole by
 `python3 -m dokimasia.fragment doc`, and
-[`bug_db/bugs.md`](../bug_db/bugs.md), written whole by
+`bug_db/bugs.md`, written whole by
 `scripts/append_findings --render-only`. Both are regenerated and diffed by the
 checks below, so neither can drift from the code beside it.
 
@@ -98,7 +98,7 @@ scripts/append_findings scratch/new-bugs.json --dry-run
 
 To update the database after reviewing that run, omit `--dry-run` from the last
 command. `prompts/dokimasia_analyzer_agent` produces an independent dump;
-the [analyzer guide](maintenance.md#an-independent-second-producer) covers comparison.
+the analyzer guide covers comparison.
 
 ## Checks before handing off a change
 
@@ -163,7 +163,7 @@ that check succeeds; a failed, unfinished or unavailable check leaves the pin
 unchanged. Record the checked commit and CI result with the change.
 
 Refresh the dedicated checkout using the commands under
-[Local dependencies](#local-dependencies), then run the integration checks
+Local dependencies, then run the integration checks
 before accepting the pin change. This pin selects the append utility and is
 independent of the policy checker.
 
@@ -201,21 +201,21 @@ change a check merely to get a green pin.
 
 `bump_anoieu` owns the JSON checker lock and the compatibility check described
 above. The remaining shared dependency work is recorded in
-[discussion D6](discussion.md#d6--shared-dependency-and-database-mechanics).
+discussion D6 (`docs/discussion.md`).
 
 Only `bugs.json` determines database membership. The generated page is a view,
 and the content-addressed run archives preserve the source version, evidence
 and original dump independently of scratch files. Do not hand-edit these to
 resolve a triage disagreement. Keep that decision in the existing findings
-register. See [the analyzer guide](maintenance.md#running-the-analyzer) for identity, replay and conflict
+register. See the analyzer guide for identity, replay and conflict
 semantics.
 
 ## Assessing closure
 
 An observation is closed by **a change in cvc5 that somebody can point at**,
 never by a later run failing to see it. The
-[bug database](../bug_db/README.md) and the
-[analyzer guide](maintenance.md#identity-and-evidence) both say so; the mechanics
+bug database (`bug_db/README.md`) and the
+analyzer guide both say so; the mechanics
 here are what make it hold. The question the assessment asks is *what did this
 commit change*, not *is this row still there*, so every closure arrives with a
 commit attached and most commits close nothing.
@@ -268,22 +268,22 @@ closure was wrong. Re-assess it — do not tidy the record. The generated page
 renders the original claim and is unaffected either way, which
 `scripts/append_findings --render-only --check` confirms.
 
-Each pull request is then written up in [`experience.md`](experience.md), whose
+Each pull request is then written up in `experience.md`, whose
 shape `tests/test_experience.py` holds. The run leaves both files uncommitted:
 reading that diff is the review. Deciding what is worth carrying upstream, and
 the rule that no program here sends anything to anybody, are unchanged and live
-with [the bar](../dokimasia/README.md#the-bar).
+with the bar (`dokimasia/README.md`).
 
 ### Remaining work
 
 - **A curated row still has no fingerprint anybody can recompute.** Rows in
-  [`issues.md`](README.md#the-register) are written by hand, so a closure assessed against
+  the register (`docs/README.md`) are written by hand, so a closure assessed against
   the database cannot settle the register entry that quotes it. Settles when a
   row carries the `dokimasia:*` identity the analyzer already emits.
 - **Corrections and reopening have no shared mechanics.** Koine's writer
   appends; preserving a corrected claim, a retraction or a reopening is
   specified nowhere. Until it is, those decisions stay in
-  [`issues.md`](README.md#the-register) and [`findings.md`](../dokimasia/README.md#what-a-finding-is), and a closure that
+  the register (`docs/README.md`) and the promises (`dokimasia/README.md`), and a closure that
   turns out to be wrong is re-assessed in place.
 - **A rejected claim changes nothing today.** Where cvc5 declines a row, no rule
   says whether that touches the bar or only the row.
@@ -302,7 +302,7 @@ scripts/dokimasia_analyzer --analysis ledger --analysis ci
 ```
 
 The last command selects analyses explicitly; omitting `--analysis` runs the
-nine [advertised analyses](../README.md#what-the-analyzer-checks): `ledger`,
+nine advertised analyses (`README.md`): `ledger`,
 `ci`, `buildmode`, `modes`, `rewrites`, `trust`, `infer`, `inferid`, and `signature`.
 The program and assistant launcher share this default. Standalone `gates`,
 `fragment`, `tcb`, and `latent` measurements are developer tools, included only
@@ -346,10 +346,10 @@ Input content is hashed before and after analysis to reject a changing checkout.
 | `scratch/new-bugs.json` | this run's stable observation records; `--dump` changes the path |
 | `scratch/new-bugs.json.run.json` | matching evidence, actual coverage, measurements, target revision and input content digest |
 | [bug_db/bugs.json](../bug_db/bugs.json) | Dokimasia's accumulated observation history, recorded through Koine's writer |
-| [bug_db/bugs.md](../bug_db/bugs.md) | generated Markdown view of that database |
+| bug_db/bugs.md | generated Markdown view of that database |
 | `bug_db/runs/*.json` | archived observations and run records, named by their content digest |
 
-[`bug_db/`](../bug_db/README.md) is this repository's data artifact.
+`bug_db/` is this repository's data artifact.
 
 Archives are saved before the database append, so a database entry never depends
 on an overwritten scratch file. An archive may also exist for an append that
@@ -444,8 +444,8 @@ was reconfirmed. Absent observations remain in the database unchanged.
 `deps/koine`. It requires the exact pinned commit and a clean tracked tree. It
 does not clone or change a checkout. Set up that dependency before updating the
 database; `--dry-run` and analyzer `--no-update` do not require Koine.
-The [maintenance guide](maintenance.md#local-dependencies) describes setup;
-[pin updates](maintenance.md#pins-and-generated-records) require a successful
+The maintenance guide describes setup;
+pin updates require a successful
 upstream check at the selected commit and local integration checks.
 
 ```bash
@@ -493,11 +493,11 @@ The initial database is a fresh run at the source revision in
 run records its date, source digest, analyzer content digest and revision; a dirty analyzer flag
 means the implementation was still under review when the run was made.
 
-[`issues.md`](README.md#the-register) remains the register for all `i-*` candidates, `R*`
+the register (`docs/README.md`) remains the register for all `i-*` candidates, `R*`
 requests, process items, settled `s-*` hypotheses and filed `f-*` entries.
-[`findings.md`](../dokimasia/README.md#what-a-finding-is) retains the reporting kinds, filed record and
+the promises (`dokimasia/README.md`) retains the reporting kinds, filed record and
 retractions. Nothing is closed, reopened or promoted by a database append;
-closure is [its own assessment](maintenance.md#assessing-closure).
+closure is its own assessment.
 
 Useful correspondences are `SEAM0001` with `i-7`, `INFER0002` with `i-22`,
 `SIG0003` for `SUBS` with `i-21`, and `MODE0001` for `stringLazyPreproc` with
@@ -505,12 +505,12 @@ Useful correspondences are `SEAM0001` with `i-7`, `INFER0002` with `i-22`,
 defaults-only scanner's result; `s-4` records why interpreting it as a reachable
 defect was wrong. These are links between records, not new verdicts.
 
-[Closure](maintenance.md#assessing-closure) is assessed separately, from cvc5's
+Closure is assessed separately, from cvc5's
 own history rather than from a run: `prompts/close_bug_db` marks an entry only
 where a named commit can be shown to have made its claim false, and
-[`experience.md`](experience.md) records what that change did. To carry a
+`experience.md` records what that change did. To carry a
 structured observation into the reviewed register instead, review its claim and
-archived evidence first. In the corresponding `issues.md` row, record the
+archived evidence first. In the corresponding the register row, record the
 `dokimasia:*` identity, link the archived run, and state what would settle the
 claim. Reuse an existing row for the same question; a database id alone is not a
 reviewed report. Keep replies and resolutions in the register and findings
@@ -524,7 +524,7 @@ tree; the comments are recorded examples, not assertions about current upstream.
 
 
 The advertised interface is `scripts/dokimasia_analyzer`, with the nine analyses
-listed in [the README](../README.md#what-the-analyzer-checks). The commands below
+listed in the README (`README.md`). The commands below
 expose their implementation details and optional measurements for development.
 Standalone `gates`, `fragment`, `tcb`, and `latent` reports are opt-in; none
 emits observation records. The TCB baseline remains part of the CI checks.
@@ -540,7 +540,7 @@ python3 -m dokimasia report <cvc5> --analysis tcb --analysis latent  # explicit 
 **[`dokimasia.buildmode`](../dokimasia/buildmode/)** — is a safe *build* still an
 unrestricted build with one option default flipped? That invariant is what keeps
 cvc5's deliberate refusal to combine safe mode with debug symbols nearly
-costless; see [the case study](experience.md#2026-09-17--cvc5-12899-is-forbidding-safe-mode-with-debug-symbols-a-restriction) for cvc5
+costless; see the case study (`docs/experience.md`) for cvc5
 [#12899](https://github.com/cvc5/cvc5/pull/12899).
 
 ```bash
@@ -625,7 +625,7 @@ python3 -m dokimasia.rewrites gaps     <cvc5>     # applied, and unprintable
 
 **[`dokimasia.fragment`](../dokimasia/fragment/)** — optional report of the logical fragment cvc5
 supports, per theory, and whether it is enforced. `doc` generates
-[`bug_db/fragment.md`](../bug_db/fragment.md), rewriting it whole;
+`bug_db/fragment.md`, rewriting it whole;
 `tests/test_fragment.py` regenerates and diffs it at the pinned commit.
 
 ```bash
@@ -664,7 +664,7 @@ python3 -m dokimasia.gates verdicts <cvc5>        # blocked / partial / open
 
 The low-level commands keep their existing output and exit conventions.
 A candidate needs the option gate and a reproducer before it becomes a
-proof-completeness defect. See [the checks](README.md#the-checks) and [the register](README.md#the-register).
+proof-completeness defect. See the checks (`docs/README.md`) and the register (`docs/README.md`).
 
 ## What the corpus reaches
 
@@ -691,7 +691,6 @@ It also sets the honest bound on this repository: **on regress0, safe mode is
 clean.** A safe-mode completeness defect, if one exists, is not in this corpus —
 which is exactly the population our static analysis claims to be for, and
 exactly why finding one is hard.
-
 
 ### The subtraction, as a number
 
@@ -723,7 +722,6 @@ The census this subtracts is recorded in
 version, corpus, commit, and the exact counters queried — and is regenerated by
 [`scripts/sweep_corpus`](../scripts/sweep_corpus).
 
-
 ### What this validates, and what it corrects
 
 
@@ -747,7 +745,6 @@ produces a `THEORY_UF` trust lemma in unrestricted and **none** in safe mode.
 The same holds for `iso_icl_repgen004` and `SEQ032_size2`. Safe mode is not
 merely refusing inputs — it changes the strategy so the hole is not taken.
 
-
 ### Limits, stated
 
 
@@ -768,7 +765,6 @@ merely refusing inputs — it changes the strategy so the hole is not taken.
   the most dangerous result an experiment can return, and it survived one round
   of interpretation before a spot check caught it.
 
-
 ### Reproducing
 
 
@@ -780,7 +776,7 @@ cvc5 --safe-mode=safe --produce-proofs --check-proofs --stats-internal b.smt2 \
 Note that `--check-proofs-complete` **cannot** be added in safe or stable mode:
 it is `category = "expert"` and both modes refuse expert options — and it should
 not be, since the same change would permit `--no-check-proofs-complete`. See
-[`R2`](README.md#open--asks). `--stats-internal` sets the same internal flag, so
+`R2` (`docs/README.md`). `--stats-internal` sets the same internal flag, so
 the counters are available where the option is not.
 
 ## The static-analysis landscape
@@ -847,7 +843,7 @@ exists for the handful of invariants cheap enough to hold in production.
 so it is the only one where an incomplete proof is a **contract violation**
 rather than a known gap.
 
-See [the contract](README.md#the-contract). `--safe-mode=safe` is the only
+See the contract (`docs/README.md`). `--safe-mode=safe` is the only
 configuration cvc5 promises complete proofs in, so it is the only configuration
 where an incomplete proof is a **contract violation** rather than a known gap.
 

@@ -2,11 +2,11 @@
 
 The candidates on this axis, with the command that produced each figure, read at
 cvc5 `40a4bb7e4` — the revision `scripts/cvc5.lock` pins, so anybody can fetch
-it and re-run the right-hand column. Its mirror is [`options.md`](options.md),
-and [`../README.md`](../README.md) says why the two are separate questions.
+it and re-run the right-hand column. Its mirror is `options.md`,
+and `../README.md` says why the two are separate questions.
 
 **This project adds no instrument.** Where a row needed a measurement dokimasia
-does not take, it is in [`ledger.md`](ledger.md) as a question rather than
+does not take, it is in `ledger.md` as a question rather than
 reported here as a number.
 
 ## The four candidates, layer by layer

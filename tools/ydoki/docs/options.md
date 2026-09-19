@@ -1,8 +1,8 @@
 # The option axis: what safe mode stops cvc5 doing
 
 The candidates on this axis, with the parent's measurements behind each, read at
-cvc5 `40a4bb7e4`. Its mirror is [`theories.md`](theories.md), and
-[`../README.md`](../README.md) says why the two are separate questions.
+cvc5 `40a4bb7e4`. Its mirror is `theories.md`, and
+`../README.md` says why the two are separate questions.
 
 **This project adds no instrument.** Every figure is
 `python3 -m dokimasia.modes delta <cvc5>`, its `--mode stable` form, or
@@ -124,7 +124,7 @@ above.
   changes, not a measurement that anything got slower or went unsolved. `nlCov`
   matters only on inputs where coverings beat the alternative, and nothing here
   says how many those are. **This is the single biggest gap on this axis** and
-  it is booked in [`ledger.md`](ledger.md).
+  it is booked in `ledger.md`.
 - **Not the cost of proof support.** *Declares no proof support* is an
   annotation, not a measure of how far the technique is from having proofs.
 - **Not that stable is the right comparison.** Tier 1 is the safe↔stable gap

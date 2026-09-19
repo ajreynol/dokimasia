@@ -111,7 +111,7 @@ being told which claim is wrong.
   given that somebody has already decided to spend the effort.
 - **No new checks in the parent.** Where an argument needs a measurement the
   parent does not have, that is a request recorded in
-  [`docs/ledger.md`](docs/ledger.md) for a person to weigh — not a change this
+  `docs/ledger.md` for a person to weigh — not a change this
   project makes.
 - **No performance argument.** Proof-production overhead is outside dokimasia's
   scope and therefore outside this one's. **This bites hardest on the option
@@ -139,7 +139,7 @@ Four, given as the starting set rather than derived here: **finite fields**,
 account for **80 of the 125 term kinds** safe mode blocks.
 
 They are not four instances of one problem, and
-[`docs/theories.md`](docs/theories.md) is the parent's measurements behind that
+`docs/theories.md` is the parent's measurements behind that
 claim, at cvc5 `40a4bb7e4`:
 
 | candidate | kinds blocked | proof rules | checker | signature | refused skolems |
@@ -163,7 +163,7 @@ much is missing* is not the same question as *what it would take*.
 ## The candidates on the option axis
 
 Not given but derived, because here the guard does the deriving:
-[`docs/options.md`](docs/options.md) has the measurements and the tiers.
+`docs/options.md` has the measurements and the tiers.
 
 **The priority set is the five options `setDefaultsPre` clears in its
 `SAFE`-only block** — `nlCov`, `ufSymmetryBreaker`, `cegqiBv`,
@@ -190,7 +190,7 @@ configuring them, not refusing a capability.
 **And the biggest gap on this axis is one we cannot close from the source.**
 Nothing here says any of the five is load-bearing — `nlCov` matters only on
 inputs where coverings beat the alternative, and that needs a build and a
-corpus. It is booked in [`docs/ledger.md`](docs/ledger.md) as a question for the
+corpus. It is booked in `docs/ledger.md` as a question for the
 parent rather than answered here.
 
 ## It builds on the parent, and here is where

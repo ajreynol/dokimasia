@@ -7,10 +7,10 @@ and the bar it clears before anybody carries it to cvc5.
 
 Two other pages complete the picture and neither is repeated here: the argument
 for the whole repository, the check catalogue and the register of what we ask
-cvc5 to act on are in [`docs/README.md`](../docs/README.md); the concrete
+cvc5 to act on are in `docs/README.md`; the concrete
 defects this has actually found in cvc5, and what cvc5 did about them, are in
-[`docs/experience.md`](../docs/experience.md). Commands are in
-[`docs/maintenance.md`](../docs/maintenance.md#the-command-reference).
+`docs/experience.md`. Commands are in
+`docs/maintenance.md`.
 
 ## The modules
 
@@ -40,8 +40,8 @@ rather than return a confidently empty answer.
 
 The reviewed ledger: what a finding is, what clears the bar to be carried to
 cvc5, and the log of what has been filed and what has been retracted. Raw run
-observations live in [`bug_db/`](../bug_db/README.md); what cvc5 has since done
-about them is [`experience.md`](../docs/experience.md).
+observations live in `bug_db/`; what cvc5 has since done
+about them is `experience.md`.
 
 Four kinds, extending anoieu's three:
 
@@ -54,7 +54,7 @@ Four kinds, extending anoieu's three:
 
 **Kind A is what this repository is for.** An incomplete proof, named down to
 the input that produces it, is the only finding that directly serves
-[the goal](README.md#the-stance). The other three are instruments: B and D are ways of
+the goal. The other three are instruments: B and D are ways of
 making a fix stick, C is a way of changing what the pipeline promises. They are
 cheap and worth doing, and none of them is the reason this exists.
 
@@ -64,7 +64,8 @@ closes a *check*. That is the shared position *success is the check being
 deleted*, and D is how it happens here: where an invariant we check is one cvc5
 could check about itself at startup, the deliverable is the patch and our check
 goes with it. See
-[`docs/maintenance.md`](../docs/maintenance.md#d3--where-an-invariant-should-live).
+`docs/maintenance.md`.
+
 ## The promises
 
 These originated as the position shared with anoieu, in a
@@ -86,17 +87,17 @@ word.
 
 | | position | tier here | what backs it |
 | --- | --- | --- | --- |
-| **1** | **Silence is never evidence** | structural | where a check reports nothing, the most that may be said is that *those checks reported nothing*. Every code in [`checks.md`](README.md#structured-observations) carries a limitation column, and every archived observation a `limitation` field |
-| **4** | **Publish a candidate; carry a finding** | structural | candidates live in [`bug_db/`](../bug_db/README.md) under their own header; findings live in [the log](#the-log) below. Promoting one takes a deliberate act in a different file, not a slip |
-| **5** | **Presence is not reachability** | structural | *"this rule has no checker"* and *"and an ordinary run emits it"* are different claims, and only the second is worth somebody's time. [`reachability.md`](../docs/maintenance.md#what-the-corpus-reaches) is the measurement that separates them; the 182 latent holes are what it found |
-| **6** | **A false positive is ours — and so is anything we asked cvc5 to run** | enforced, for the half that can be | a check that fired wrongly is narrowed until it stops, and the narrowing is recorded in [the retractions](#retractions) in cvc5's terms rather than kinder ones. Eight `baseline --check` ratchets under `tests/baselines/` fail the build on a change that invents one |
+| **1** | **Silence is never evidence** | structural | where a check reports nothing, the most that may be said is that *those checks reported nothing*. Every code in the check catalogue carries a limitation column, and every archived observation a `limitation` field |
+| **4** | **Publish a candidate; carry a finding** | structural | candidates live in `bug_db/` under their own header; findings live in the log below. Promoting one takes a deliberate act in a different file, not a slip |
+| **5** | **Presence is not reachability** | structural | *"this rule has no checker"* and *"and an ordinary run emits it"* are different claims, and only the second is worth somebody's time. what the corpus reaches (`docs/maintenance.md`) is the measurement that separates them; the 182 latent holes are what it found |
+| **6** | **A false positive is ours — and so is anything we asked cvc5 to run** | enforced, for the half that can be | a check that fired wrongly is narrowed until it stops, and the narrowing is recorded in the retractions in cvc5's terms rather than kinder ones. Eight `baseline --check` ratchets under `tests/baselines/` fail the build on a change that invents one |
 | **7** | **Every claim is re-checkable without us** | enforced | a number carries whatever regenerates it and the revision it was measured at. [`scripts/cvc5.lock`](../scripts/cvc5.lock) pins that revision, `tests/test_pin.py` enforces it, and CI fails if the pin names a commit reachable only on a fork — which is the retraction directly below that bought this rule |
 | **8** | **Closing is a verdict, not an absence** | enforced, for the launcher | no row leaves without one recorded, and *"won't fix, because —"* is worth as much as a fix. Koine's writer is additive and cannot delete a row; `tests/test_experience.py` fails if [`prompts/close_bug_db`](../prompts/close_bug_db) stops carrying **Absence closes nothing** and **Confirm the closure in the current source** |
 | **9** | **A reply is triage; an artifact settles it** | intention | what comes back from cvc5 is somebody's reading, made quickly and on our word. Here the settling artifact is a **cvc5 commit whose effect is re-read in current source** — not the commit message, and not the row going quiet. Failing to find one settles nothing |
 
 Two more are stated in this file rather than in this table, because they are
 load-bearing where they sit: *nothing crosses a repository boundary
-automatically* is [the bar](#the-bar), and *success is the check being deleted*
+automatically* is the bar, and *success is the check being deleted*
 is the note on kind D above.
 
 **And two about what we take, rather than what we say.** These came last, as a
@@ -121,11 +122,11 @@ signature:
   A claim that a path is reachable is worth nothing until something reaches it,
   and the static analysis's job is to tell us *where to look*, not to substitute
   for looking. What evidence each rank needs is set out in
-  [`docs/maintenance.md`](../docs/maintenance.md#d5--safe-mode-first-and-the-reproducer-is-the-deliverable).
+  `docs/maintenance.md`.
 - **An assertion is not proposed until it has been run.** The promise is the
   shared one; the precondition is ours. It is applied to a cvc5 build configured
   `--assertions` and the regression suite passes with it in place. An assertion
-  we have not run is a hypothesis, and hypotheses go in [`issues.md`](README.md#the-register),
+  we have not run is a hypothesis, and hypotheses go in the register,
   not in a patch.
 
 ## The bar
@@ -151,9 +152,9 @@ Every candidate carries exactly one verdict, and every one is recorded.
 
 | verdict | means | lives in |
 | --- | --- | --- |
-| **carry** | all five hold; a person can take it upstream today | [`next-report.md`](../docs/README.md#what-to-carry-next), with the packet |
-| **not yet** | one or more fail — **name which** | [`issues.md`](README.md#the-register), rank and blocking rule on the row |
-| **never** | it is ours, or it will never earn the attention | [`issues.md`](README.md#settled) or the retraction log |
+| **carry** | all five hold; a person can take it upstream today | what to carry next (`docs/README.md`), with the packet |
+| **not yet** | one or more fail — **name which** | the register, rank and blocking rule on the row |
+| **never** | it is ours, or it will never earn the attention | the register or the retraction log |
 
 *Not yet* is the verdict we issue most, and naming the failing rule is what makes
 it actionable: it says exactly what work would change the answer.
@@ -169,7 +170,7 @@ a diff in a file, never as a branch.
 **Before building a check, ask what its output would be worth.** If everything a
 check can produce would come back *not yet — worth-the-attention*, the check is
 not worth building. That single question retires more work than any other test
-we have, and it is why [`TODO.md`](../TODO.md) declines a SARIF framework, a
+we have, and it is why `TODO.md` declines a SARIF framework, a
 generated check registry, and a `holes/` corpus with no holes in it.
 
 **Design every check with its verification path.** A check that can only ever
@@ -186,13 +187,13 @@ recovers the logic-level gate, so the whole class of mistake is gone. A
 retraction with no code change behind it means the analysis will make the same
 error again. Our own errors go through the same pipeline, inverted: a false
 positive is ours by promise, so it is filed against us, tested against the case
-that produced it, and logged in [the retractions](#retractions) below.
+that produced it, and logged in the retractions below.
 
 ## Why a check and not an answer
 
 **A cvc5 developer asks a design question. We answer it with a check.** That is
 the highest-value thing this repository does per hour spent, and the
-[case studies](../docs/experience.md#the-log) are where the answers land.
+case studies (`docs/experience.md`) are where the answers land.
 
 A design question from a maintainer — *why can't safe mode have debug symbols?*,
 *is this restriction still needed?*, *does this flag still do anything?* — has
@@ -228,7 +229,7 @@ Every case follows it, and a new one should:
    safe-mode skip.
 5. **Ship the verifier**, with tests that show it firing on each way the
    invariant can break.
-6. **Give a verdict** against [the bar](#the-bar), including what
+6. **Give a verdict** against the bar, including what
    would falsify it and what we are *not* claiming.
 
 ### Standing rules
@@ -237,11 +238,11 @@ Every case follows it, and a new one should:
   by the question it answers, it has drifted.
 - **A case study is not a finding.** It is an answer to something asked. It may
   *produce* a finding — an adoption, or a defect discovered on the way — and
-  those go in [`issues.md`](../docs/README.md#the-register) with an id, as usual.
+  those go in the register (`docs/README.md`) with an id, as usual.
 - **The verifier is the deliverable, and it must have failed in a test.** A
   checker nobody has seen fail is a checker nobody should trust.
 - **We never open the PR.** Same as everything else:
-  [the bar](#the-bar).
+  the bar.
 - **Say what we did not check.** For #12899 we did not build a safe build and
   diff the binaries; the case says so.
 - **We are usually not asking for the decision to change.** The useful output is
@@ -256,7 +257,7 @@ newest first, one line each. An empty section is the honest state when a run
 turned up nothing.
 
 Salvaged from the retired `postmortem.md`, which asked a question no other file
-here asks and which the [reporting removal](../TODO.md#reporting) dropped
+here asks and which the reporting removal (`TODO.md`) dropped
 without a successor: *what did working this run teach us about how we work* —
 as against `Learned:`, which is about the check that produced the observation.
 A window turns up facts about our own tooling that belong to no pull request and
@@ -280,7 +281,7 @@ section is the honest state when a run turned up nothing.
   disappearances. *Absence closes nothing* is the rule that caught this; what it
   cost was re-deriving each claim by hand, because nothing in the record links
   an identity to its renamed successor.
-- **A retraction went stale in our favour.** [`findings.md`](../docs/experience.md#retractions)
+- **A retraction went stale in our favour.** the promises (`docs/experience.md`)
   records that our baselines named `SETS_RELS_TCLOSURE_DOWN`, and that **no such
   id has ever existed in cvc5**. That was true when written. As of #12901 the id
   exists, because cvc5 renamed `TCLOSURE_UP` to it. The retraction stays — it is

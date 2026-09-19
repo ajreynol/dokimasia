@@ -37,17 +37,17 @@ The first command shows the source scope and missing inputs. The second runs
 the nine analyses below and writes a dump with a matching evidence record.
 The third also appends observations to [the database](bug_db/bugs.json) through
 [Koine's writer](https://github.com/ajreynol/koine/tree/main/bug_db_manager) and regenerates
-[the Markdown view](bug_db/bugs.md).
+the Markdown view (`bug_db/bugs.md`).
 
 Database updates require a clean Koine checkout at `scripts/koine.lock`, found
 through `$KOINE`, a sibling `koine` directory, or `deps/koine`. No checkout is
 fetched or changed by the analyzer. Set `DOKIMASIA_CVC5` or add a cvc5 path to
 ignored `scripts/repos.local` to omit `--cvc5` on subsequent runs.
 The reporting launcher uses the same checkout configuration. See
-[dependency setup](docs/maintenance.md#local-dependencies) for pinned checkouts
+dependency setup (`docs/maintenance.md`) for pinned checkouts
 and Koine's shared updater.
 
-See [the analyzer guide](docs/maintenance.md#running-the-analyzer) for target selection, evidence,
+See the analyzer guide (`docs/maintenance.md`) for target selection, evidence,
 identity, database conflicts and comparison of independent producers.
 
 ## What the analyzer checks
@@ -67,9 +67,9 @@ The default run covers the nine analyses that emit documented observations:
 | `signature` | missing signature declarations, refused skolems, and rule-arity disagreements |
 
 Both producers use this scope by default. `--analysis` selects a subset;
-[the check catalogue](docs/README.md#structured-observations) explains the
+the check catalogue (`docs/README.md`) explains the
 claims and their limitations. Developer reports and regression checks are
-documented in [the command reference](docs/maintenance.md#the-command-reference).
+documented in the command reference (`docs/maintenance.md`).
 
 ## An independent reading
 
@@ -87,14 +87,14 @@ not establish correctness.
 
 ## Findings and reporting
 
-**[`bug_db/`](bug_db/README.md) is a data artifact of this repository:** the bugs
+**`bug_db/` is a data artifact of this repository:** the bugs
 and observations recorded from Dokimasia runs, with their archived evidence.
 Dokimasia owns that history and its interpretation; Koine provides the tooling.
-**[Browse all recorded observations in Markdown](bug_db/bugs.md).** Recording
+**Browse all recorded observations in Markdown (`bug_db/bugs.md`).** Recording
 commands refresh the view, and CI checks that it matches the JSON.
 
-The [issue register](docs/README.md#the-register) records candidates, requests and settled
-hypotheses. [Filed findings and retractions](dokimasia/README.md#what-a-finding-is) remain the
+The issue register (`docs/README.md`) records candidates, requests and settled
+hypotheses. Filed findings and retractions (`dokimasia/README.md`) remain the
 reviewed record. The database preserves observations across runs, including
 ones subsequently disputed or resolved. Disappearance does not close a finding.
 
@@ -115,9 +115,9 @@ one is to hand and has moved; it is an optimisation, not a requirement. The
 launcher makes no network call itself, so `--show-prompt` prints the same text
 anywhere. A closure names the commit and the pull
 request on the database entry, and is written up in
-[experience.md](docs/experience.md). Nothing is committed, nothing is pushed, and
+experience.md. Nothing is committed, nothing is pushed, and
 no program here touches a tracker. See
-[the closure assessment](docs/maintenance.md#assessing-closure).
+the closure assessment (`docs/maintenance.md`).
 
 ## A question this repository will not answer
 
@@ -126,7 +126,7 @@ switches off is worth making proof-supported, and **in what order**, is a
 judgement about where somebody else should spend their effort — unfalsifiable by
 any run, and so deliberately outside what the checks claim.
 
-[**ydoki**](tools/ydoki/README.md) is the research child that asks it anyway, on
+**ydoki** (`tools/ydoki/README.md`) is the research child that asks it anyway, on
 two axes that are mirror images and are not ranked against each other: the
 **theories** safe mode refuses, which shrink the input language, and the
 **options** it refuses, which are techniques withheld on inputs it already
@@ -144,13 +144,13 @@ the part to read first.
 
 | document | purpose |
 | --- | --- |
-| [The argument and the registers](docs/README.md) | the goal, the contract, [the checks](docs/README.md#the-checks), [the register](docs/README.md#the-register) of what we ask cvc5 to act on, and the asks argued |
-| [Maintenance](docs/maintenance.md) | [running the analyzer](docs/maintenance.md#running-the-analyzer), [the command reference](docs/maintenance.md#the-command-reference), pins, tests, the script catalogue and [what the corpus reaches](docs/maintenance.md#what-the-corpus-reaches) |
-| [Experience](docs/experience.md) | what a finding is and the bar it clears, the log and retractions, the case studies, and the cvc5 changes that closed an observation |
-| [Discussion](docs/discussion.md) | the standing channel to the rest of the ecosystem, and the gate on responding to it |
-| [Bug database](bug_db/README.md) | the data artifact: [every observation](bug_db/bugs.md) and [the supported fragment](bug_db/fragment.md), both generated |
-| [The plan](TODO.md) | what is measured today, what is queued, and what we have decided not to do |
-| [ydoki](tools/ydoki/README.md) | the research child: which theories and options are worth making proof-supported, and in what order |
+| The argument and the registers (`docs/README.md`) | the goal, the contract, the checks (`docs/README.md`), the register (`docs/README.md`) of what we ask cvc5 to act on, and the asks argued |
+| Maintenance (`docs/maintenance.md`) | running the analyzer (`docs/maintenance.md`), the command reference (`docs/maintenance.md`), pins, tests, the script catalogue and what the corpus reaches (`docs/maintenance.md`) |
+| Experience (`docs/experience.md`) | what a finding is and the bar it clears, the log and retractions, the case studies, and the cvc5 changes that closed an observation |
+| Discussion (`docs/discussion.md`) | the standing channel to the rest of the ecosystem, and the gate on responding to it |
+| Bug database (`bug_db/README.md`) | the data artifact: every observation (`bug_db/bugs.md`) and the supported fragment (`bug_db/fragment.md`), both generated |
+| The plan (`TODO.md`) | what is measured today, what is queued, and what we have decided not to do |
+| ydoki (`tools/ydoki/README.md`) | the research child: which theories and options are worth making proof-supported, and in what order |
 
 ## The name
 
@@ -168,8 +168,8 @@ kept by Kanon. Anoieu implements the checker; CI pins its revision in
 **Written by AI agents, under light human supervision.** A human maintainer
 directs the work, reviews it and decides what is reported upstream. Findings
 are filed by the human. What this repository holds itself to is stated in its
-own tree — [the promises](dokimasia/README.md#the-promises) and
-[the bar](dokimasia/README.md#the-bar). They began as a position shared with
+own tree — the promises (`dokimasia/README.md`) and
+the bar (`dokimasia/README.md`). They began as a position shared with
 anoieu, in a [reporting policy](https://github.com/ajreynol/anoieu/blob/06bd7872ea5ce24bf4d264bf5e6958ed8edee3c2/docs/reports/reporting-policy.md)
 anoieu deprecated and then removed; that link is pinned to the last commit the
 page existed at, because provenance a reader cannot fetch is not provenance.

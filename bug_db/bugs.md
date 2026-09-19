@@ -6,7 +6,7 @@ This is observation history, not a list of confirmed defects or open reports.
 Dokimasia owns this artifact; Koine supplies the writer. Dates record ingestion, not fresh confirmation.
 The first claim is preserved. Disappearance does not close a finding.
 [Archived run records](runs/) contain the source revisions, actual coverage and evidence keyed by id.
-See [the analyzer guide](../docs/maintenance.md) for evidence, limitations and the historical register.
+See `docs/maintenance.md` for evidence, limitations and the historical register.
 
 197 observation(s).
 

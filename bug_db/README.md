@@ -1,18 +1,18 @@
 # Dokimasia's bug database
 
-**[Browse the recorded bugs in Markdown](bugs.md).** The generated table is
+**Browse the recorded bugs in Markdown (`bug_db/bugs.md`).** The generated table is
 readable directly on GitHub, with no server or local setup.
 
 This directory is a **data artifact of Dokimasia**: the bugs and observations
 recorded from its runs, including candidates, disputed claims and observations
-[since closed](#closing-an-observation) by a cvc5 change. Dokimasia owns the
+since closed by a cvc5 change. Dokimasia owns the
 records, evidence, triage and closure decisions. [Koine's `bug_db_manager`](https://github.com/ajreynol/koine/tree/main/bug_db_manager)
 provides the shared writer; its tooling lives in Koine.
 
 | Artifact | Contents |
 | --- | --- |
 | [bugs.json](bugs.json) | persistent observation history, with stable identities and ingestion dates |
-| [bugs.md](bugs.md) | generated browsing view of every database entry |
+| bugs.md | generated browsing view of every database entry |
 | [runs/](runs/) | archived run records: observations, evidence, source revisions and actual coverage |
 
 Scratch dumps are disposable; these committed artifacts preserve the record.
@@ -33,7 +33,7 @@ command to succeed. Repeating a run adds no duplicate identities.
 
 Updates need a clean Koine checkout at [`scripts/koine.lock`](../scripts/koine.lock),
 resolved through `$KOINE`, a sibling `koine`, or `deps/koine`. See
-[dependency setup](../docs/maintenance.md#local-dependencies). Analysis and
+dependency setup (`docs/maintenance.md`). Analysis and
 recording never fetch or alter a dependency checkout.
 
 To inspect a run before recording it:
@@ -46,7 +46,7 @@ scripts/append_findings scratch/new-bugs.json
 
 The append preview validates the dump and its `.run.json` sidecar, then invokes
 Koine's dry run; it changes neither the database, archives nor Markdown.
-The [independent assistant producer](../docs/maintenance.md#an-independent-second-producer)
+The independent assistant producer (`docs/maintenance.md`)
 uses the same format and append command after its claims are reviewed. Both
 producers use the same identity space and artifact; the archive records which
 producer supplied the evidence.
@@ -72,7 +72,7 @@ overrides that view's location.
 The JSON has a top-level `bugs` array. Each observation carries an `id`, `bug`,
 `tool`, `owner`, `code`, `entity`, `description` and `kind`, plus Koine's
 `first_seen` and `last_seen` ingestion dates. The
-[analyzer guide](../docs/maintenance.md#identity-and-evidence) defines identities
+analyzer guide (`docs/maintenance.md`) defines identities
 and the evidence keyed by those identities in the run archives.
 
 Koine preserves the original claim and updates `last_seen` on re-ingestion,
@@ -94,10 +94,10 @@ commit names one, and a one-sentence `closed_why`. Everything else about it is
 untouched: the identity, the original claim and both dates. Nothing is ever
 removed, so an entry re-observed after its `closed_on` is a closure to
 re-assess, not a record to correct. What the change actually did is written up
-in [`docs/experience.md`](../docs/experience.md), one section per pull request.
+in `docs/experience.md`, one section per pull request.
 
 Reviewed verdicts, replies and retractions stay in the
-[issue register](../docs/README.md#the-register) and the
-[findings ledger](../dokimasia/README.md#what-a-finding-is); see
-[assessing closure](../docs/maintenance.md#assessing-closure) for the mechanics
+issue register (`docs/README.md`) and the
+findings ledger (`dokimasia/README.md`); see
+assessing closure (`docs/maintenance.md`) for the mechanics
 and what is still missing.

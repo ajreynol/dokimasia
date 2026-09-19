@@ -4,13 +4,13 @@
 wrong in cvc5, what happened to it, and what that says about the check that
 found it. A defect leaves this page only by being written up in it — nothing is
 edited away, and a claim that turned out false stays as
-[a retraction](#retractions).
+a retraction.
 
 This is not the record of an observation. That is
-[`bug_db/`](../bug_db/README.md): identities, dates, archived evidence and the
+`bug_db/`: identities, dates, archived evidence and the
 `closed_*` fields a closure adds. The database says *that* a change closed an
 observation; this page says what it meant. How the page is written and what each
-field has to carry is [at the foot](#how-this-page-is-maintained).
+field has to carry is at the foot.
 
 ## Where this stands
 
@@ -21,7 +21,7 @@ two questions that turned out to be no defect at all. A thin log is the honest
 reading of a thin window, not a backlog of write-ups nobody got to.
 
 The open hypotheses that have *not* reached this page — the ones still waiting
-for a verdict — are the register in [`docs/README.md`](README.md#the-register).
+for a verdict — are the register in `docs/README.md`.
 A row moves here when something happened to it.
 
 ## The log
@@ -402,14 +402,14 @@ would be the most ordinary failure mode available to a tool with a working
 analysis and spare attention: scope creep dressed as helpfulness.
 
 The register stays clean: #12905 gets no `i-` id, because
-[`issues.md`](README.md#the-register) is *things we are asking cvc5 to act on*, and we are
+the register (`docs/README.md`) is *things we are asking cvc5 to act on*, and we are
 asking nothing. cvc5 already has the report; a second opinion from us is not a
 contribution.
 
 **The one thing worth checking is whether the classification is right.** "Not a
 proof bug" is a claim, and the cheap version is: does the reproducer produce a
 proof hole? If it did, the issue would be partly ours after all. That check is
-[the corpus sweep](maintenance.md#what-the-corpus-reaches) pointed at one file, and it costs a
+the corpus sweep (`docs/maintenance.md`) pointed at one file, and it costs a
 minute.
 
 #### 2. Where does the *learning* live?
@@ -661,13 +661,13 @@ combination in the build matrix is cvc5's call, and depends on whether anyone
 has ever wanted it.
 
 **What we would ask for is the invariant, maintained.** Run `BUILD0001` as a
-[kind B](#what-a-finding-is) adoption: seconds, no build, no dependencies. Its value
+kind B adoption: seconds, no build, no dependencies. Its value
 is not the eight sites it finds today — it is that the ninth gets noticed, and
 that the configure simplification keeps being free.
 
 Better still if cvc5 owns it rather than us. The same property could be a
 build-time test or an assertion in their tree, at which point our check retires.
-That is the [kind D](#what-a-finding-is) outcome and we prefer it.
+That is the kind D outcome and we prefer it.
 
 #### Verdict
 
@@ -695,7 +695,7 @@ Kept visible, because the log of what we got wrong is the more useful half.
 | `i-3` / `R2` | `checkProofsComplete` should stop being an **expert** option, so the safe-mode tester can name the guarantee it is testing | **the ask was for cvc5 to weaken the thing we were auditing, and it was rejected.** An option's category governs *both* assignments: promoting it also permits `--no-check-proofs-complete` and `(set-option :check-proofs-complete false)`, and `setDefaultsPre` honours an explicit user assignment through `checkProofsCompleteWasSetByUser`. So the promotion converts a guarantee that safe mode turns on into one a user can switch off — **the expert refusal is the mechanism keeping it non-negotiable, not an obstacle to stating it.** cvc5 built the promotion at `a960d7d7210e731cf48ad7baa6ad42fc7345b297`, reproduced the opt-out, and reverted it at `215eed21a6c8380075c46513e69181a295b6e3b2`. We reasoned from *the positive flag is refused* to *the option should be settable* without asking what else becomes settable, and one `--no-` run would have shown it. The chain's fifth link, `explicit-completeness`, is withdrawn from `CiModel.completeness_chain` and its `CI0002` entity retired; links three and four carry the exposure that is real. The surviving ask is the assertion form alone, and cvc5 notes it must allow for the deliberate lower-granularity exception |
 | tcb-001 | six proof rule checkers include their theory solvers **to reach `static` helpers parked on solver classes** | **true of the strings edge, and asserted of five others without evidence.** cvc5 replied that the arithmetic checker uses nothing from `linear/constraint.h` and the datatypes checker nothing from `theory/rewriter.h`; both were dead includes, deleted in a line each, and the helper extraction the finding proposed for them was work nobody needed to do. The measurement could not have supported the claim: `cuts` weighed an include edge by how much closure it carried and never asked whether the file used what it included, so a dead include and a load-bearing one came out identical and the prose supplied a mechanism for both. `Closure.edge_use` now classifies every edge `used`, `unused` or `unknown` — `unknown` is never collapsed into `unused`, since calling a live include dead is the same error reflected — and `tests/test_tcb.py` pins the three edges cvc5 named. The closure figures were right throughout and are unchanged |
 | every published number | measured against cvc5 `16c4001e53`, quoted as though anyone could check it | **that commit is not on `cvc5/cvc5`.** It is on the `ajreynol/CVC4` fork, so no reader could fetch it, and the promise that *every claim is re-checkable without us* was void for the whole document set. The baselines happened to be valid — all eight ratchets are clean at upstream `40a4bb7e4` — so nothing measured was wrong, but nothing was checkable either. Now pinned in [`scripts/cvc5.lock`](../scripts/cvc5.lock), enforced by `tests/test_pin.py`, and fetched in CI by a job that fails if the pin is fork-only |
-| `infer`/`inferid` baselines | our baselines named `SETS_RELS_TCLOSURE_DOWN` as an `InferenceId` cvc5 emits | **no such id has ever existed in cvc5.** `git log --all -S` finds it in no commit; the enum at `40a4bb7e4` carries `SETS_RELS_TCLOSURE_FWD` and `_UP`. The baselines had been written rather than generated by running the tools, so two of the eight ratchets failed against the very commit they were recorded at. Both are regenerated and all eight are clean; found while writing [`why.md`](README.md#why-cvc5-should-care) |
+| `infer`/`inferid` baselines | our baselines named `SETS_RELS_TCLOSURE_DOWN` as an `InferenceId` cvc5 emits | **no such id has ever existed in cvc5.** `git log --all -S` finds it in no commit; the enum at `40a4bb7e4` carries `SETS_RELS_TCLOSURE_FWD` and `_UP`. The baselines had been written rather than generated by running the tools, so two of the eight ratchets failed against the very commit they were recorded at. Both are regenerated and all eight are clean; found while writing why cvc5 should care (`docs/README.md`) |
 | `dokimasia.infer baseline --check` | an id leaving the unhandled set was reported as *now reconstructed* | it leaves for two unrelated reasons — the theory now proves it, or it is no longer emitted. The tool could not distinguish them, so a rename in cvc5 would have been reported as an improvement in cvc5's proof coverage. The delta now marks the second case `?` and says *no longer emitted, NOT reconstructed* |
 | tcb-001 (draft) | the checker's TCB is **74% of `src/`** | an artifact of a mode that followed each header to its `.cpp`; the closure saturates at cvc5's whole link unit, and an unrelated seed (`printer/printer.cpp`) gave the identical figure. The compile-time surface is **8.0%**. The mode is no longer the default and warns; `tests/test_tcb.py` guards the result |
 
@@ -711,6 +711,7 @@ is written for a closure the database does not carry.
 database rows it touched — the unit is the thing that happened, not the row.
 
 ```text
+
 ### <date> — <the defect, in one line, in cvc5's terms>
 
 | | |
@@ -753,6 +754,6 @@ rules are in the launcher and are checked by `tests/test_experience.py`.
 
 **Where the rest lives.** What counts as a finding, the promises we publish
 under and the bar a claim clears before anybody carries it are the analyzer's
-design philosophy, in [`dokimasia/README.md`](../dokimasia/README.md). The
+design philosophy, in `dokimasia/README.md`. The
 register of open hypotheses and everything we are asking cvc5 to act on is in
-[`docs/README.md`](README.md#the-register).
+`docs/README.md`.

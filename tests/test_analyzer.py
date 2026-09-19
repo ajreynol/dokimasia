@@ -324,7 +324,12 @@ class AnalyzerTests(unittest.TestCase):
         body = render(db, page)
         self.assertIn("[bugs.json](../data%20set/observations.json)", body)
         self.assertIn("[Archived run records](../data%20set/runs/)", body)
-        self.assertIn("docs/maintenance.md)", body)
+        # The data links relocate with the artifact; the documentation is
+        # named and never linked. A generated page that links a hand-written
+        # document re-creates a stale cross-reference on every render.
+        self.assertIn("`docs/maintenance.md`", body)
+        self.assertNotIn("](docs/maintenance.md", body)
+        self.assertNotIn("../docs/", body)
         self.assertIn("a &#124; b &lt;tag&gt; &#96;code&#96; next line", body)
 
     def test_retired_koine_layouts_are_refused(self):
