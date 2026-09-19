@@ -174,7 +174,7 @@ class AnalyzerTests(unittest.TestCase):
         # pure resolution: an explicit but missing environment choice must not
         # fall back to the valid local map and accidentally analyze, or assess a
         # closure against, another tree.
-        commands.append([sys.executable, str(ROOT / "prompts/update_bug_db"),
+        commands.append([sys.executable, str(ROOT / "prompts/close_bug_db"),
                          "--use-local", "--dry-run"])
         env["DOKIMASIA_CVC5"] = str(self.base / "missing")
         for command in commands:

@@ -65,7 +65,7 @@ For cvc5, use an existing source checkout with `--cvc5`, `DOKIMASIA_CVC5`, or
 an ignored `scripts/repos.local` containing `cvc5 /path/to/cvc5`. Alternatively,
 put a dedicated checkout at `deps/cvc5`; the revision in `scripts/cvc5.lock` is
 the one for baseline checks. Ordinary analysis records the revision actually
-read. Both analysis producers, and `prompts/update_bug_db --use-local`, use the same
+read. Both analysis producers, and `prompts/close_bug_db --use-local`, use the same
 resolver, in which the environment takes precedence and a `cvc5` entry in
 `scripts/deps.local.json` is the last fallback. No path is guessed: a checkout
 this repository is not told about is not found.
@@ -138,13 +138,13 @@ database integration.
 | `scripts/audit_loc` | measure this repository's implementation and documentation |
 | `scripts/bump_anoieu` | validate and update the pinned policy-checker revision |
 | `prompts/dokimasia_analyzer_agent` | independent producer over the analyzer's targets |
-| `prompts/update_bug_db` | assess which observations recent cvc5 commits closed, and write up what they did |
+| `prompts/close_bug_db` | assess which observations recent cvc5 commits closed, and write up what they did |
 
 Commands that run live in `scripts/`; launchers that spend a turn on an
 assistant live in `prompts/`, so a reader can tell which is which without
 opening a directory. Neither prompt has a second copy to drift from: the
 analyzer's is read from `prompts/analyzer.txt`, and the closure prompt is built
-in `prompts/update_bug_db` from the window it resolved. What each writes is held
+in `prompts/close_bug_db` from the window it resolved. What each writes is held
 to a shape instead — `tests/test_experience.py` checks the post-mortem's, and
 `scripts/append_findings --render-only --check` checks the database view's.
 
@@ -221,11 +221,11 @@ commit change*, not *is this row still there*, so every closure arrives with a
 commit attached and most commits close nothing.
 
 ```bash
-prompts/update_bug_db --dry-run                  # the window, and nothing else
-prompts/update_bug_db                            # assess it with an assistant
-prompts/update_bug_db --use-local /path/to/cvc5  # from a checkout, if one has moved
-prompts/update_bug_db --since <rev>              # against a different baseline
-prompts/update_bug_db --show-prompt              # the text, running nothing
+prompts/close_bug_db --dry-run                  # the window, and nothing else
+prompts/close_bug_db                            # assess it with an assistant
+prompts/close_bug_db --use-local /path/to/cvc5  # from a checkout, if one has moved
+prompts/close_bug_db --since <rev>              # against a different baseline
+prompts/close_bug_db --show-prompt              # the text, running nothing
 ```
 
 The baseline is the cvc5 revision of the newest archived run — the revision the

@@ -36,7 +36,7 @@ The analyzer does not use [`scripts/cvc5.lock`](../scripts/cvc5.lock) to select
 or reject a checkout. That file fixes the regression-test reference; analyzing
 the latest cvc5 records the revision and source contents actually read.
 
-`prompts/update_bug_db` reads cvc5's published history and needs no checkout at
+`prompts/close_bug_db` reads cvc5's published history and needs no checkout at
 all; its `--use-local` option uses this same resolver when one is worth reading. Write new configurations in `scripts/repos.local`; the
 JSON entry is the last fallback. **No path is guessed**, including `~/cvc5`: a
 checkout this repository is not told about is not found, because a resolver that
@@ -216,7 +216,7 @@ defaults-only scanner's result; `s-4` records why interpreting it as a reachable
 defect was wrong. These are links between records, not new verdicts.
 
 [Closure](maintenance.md#assessing-closure) is assessed separately, from cvc5's
-own history rather than from a run: `prompts/update_bug_db` marks an entry only
+own history rather than from a run: `prompts/close_bug_db` marks an entry only
 where a named commit can be shown to have made its claim false, and
 [`experience.md`](experience.md) records what that change did. To carry a
 structured observation into the reviewed register instead, review its claim and

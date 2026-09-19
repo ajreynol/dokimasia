@@ -87,7 +87,7 @@ def test_experience():
 def test_launcher():
     """The preview runs anywhere, writes nothing, and keeps the load-bearing rules."""
     print("\nthe closure launcher:")
-    script = os.path.join(ROOT, "prompts", "update_bug_db")
+    script = os.path.join(ROOT, "prompts", "close_bug_db")
     # Read from outside the repository, to prove the launcher resolves its own
     # paths rather than the ones it happens to be standing in.
     watched = {name: read(os.path.join(ROOT, name))
@@ -131,7 +131,7 @@ def test_launcher():
 def test_local_mode():
     """`--use-local` swaps in a checkout, and refuses one that is not cvc5."""
     print("\nthe local optimisation:")
-    script = os.path.join(ROOT, "prompts", "update_bug_db")
+    script = os.path.join(ROOT, "prompts", "close_bug_db")
     p = subprocess.run([sys.executable, script, "--use-local", ROOT, "--dry-run"],
                        capture_output=True, text=True)
     check("a checkout that is not cvc5 is refused", p.returncode == 2, p.stdout[:120])

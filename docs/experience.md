@@ -27,7 +27,7 @@ change closed an observation and which change it was; this file says what it
 meant. An entry here without a closed identity behind it is a story, and the
 database is what keeps it honest.
 
-**Who writes it.** [`prompts/update_bug_db`](../prompts/update_bug_db), which
+**Who writes it.** [`prompts/close_bug_db`](../prompts/close_bug_db), which
 reads a window of cvc5 history against the revision the observations were taken
 at and leaves both files changed and uncommitted. A maintainer reads the diff.
 No entry is written by hand, and none is written for a closure the database does

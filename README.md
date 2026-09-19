@@ -102,9 +102,9 @@ ones subsequently disputed or resolved. Disappearance does not close a finding.
 never from a finding going quiet:
 
 ```bash
-prompts/update_bug_db --dry-run
-prompts/update_bug_db
-prompts/update_bug_db --use-local /path/to/cvc5
+prompts/close_bug_db --dry-run
+prompts/close_bug_db
+prompts/close_bug_db --use-local /path/to/cvc5
 ```
 
 **No cvc5 checkout is needed.** The launcher names the window — the commits

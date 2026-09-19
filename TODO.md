@@ -18,7 +18,7 @@ carried them, the retired `docs/reports/` path, and the last of the tree's
 dependence on the deprecated external policy. The data artifact is
 [`bug_db/`](bug_db/README.md), with a generated [Markdown view](bug_db/bugs.md);
 closure is [assessed against cvc5's history](docs/maintenance.md#assessing-closure)
-by `prompts/update_bug_db` and written up in
+by `prompts/close_bug_db` and written up in
 [`docs/experience.md`](docs/experience.md). What we hold ourselves to is stated
 in the tree: [the promises](docs/findings.md#the-promises), each with the tier
 and the test behind it, and [the bar](docs/findings.md#the-bar).

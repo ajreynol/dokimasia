@@ -83,7 +83,7 @@ absence alone does not establish that it was fixed.
 ## Closing an observation
 
 A closure is a decision about a **cvc5 change**, made by
-[`prompts/update_bug_db`](../prompts/update_bug_db): it reads the commits
+[`prompts/close_bug_db`](../prompts/close_bug_db): it reads the commits
 between the revision an observation was recorded against and the local cvc5
 checkout, and marks only what a commit can be shown to have fixed. Disappearance
 from a later dump closes nothing, and a database append neither closes nor

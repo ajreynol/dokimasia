@@ -228,7 +228,7 @@ def prompt(base, source, when, local):
     current = f"that checkout at {local[2][:10]}" if local else "cvc5's `main` today"
     total, by_code = observations()
     return f"""\
-You are updating the bug database of **dokimasia**, at {ROOT}. Dokimasia is a
+You are closing observations in the bug database of **dokimasia**, at {ROOT}. Dokimasia is a
 static analyzer for the proof-production code of cvc5: the C++ that builds
 proofs and the seam that prints them in Eunoia. `bug_db/bugs.json` holds {total}
 observations it has recorded -- each an identity, a check code, an entity and
@@ -343,7 +343,7 @@ def main():
             # for, and spending a turn on an empty window produces a report that
             # says nothing and a file that claims it was checked.
             root, via, head, _, behind = local
-            print(f"-- update_bug_db: no commit after {base[:10]} in {root}"
+            print(f"-- close_bug_db: no commit after {base[:10]} in {root}"
                   + (f"; that checkout is {behind} commit(s) behind it" if behind else ""),
                   file=sys.stderr)
             for line in elsewhere(root, head):
@@ -353,7 +353,7 @@ def main():
             raise ValueError(f"{EXPERIENCE.relative_to(ROOT)} is missing; it defines the shape "
                              "of what this run writes")
         where = f"{local[0]} at {local[2][:10]}" if local else f"{REPO} at main"
-        print(f"-- update_bug_db: what cvc5 did after {base[:10]} (from {source})",
+        print(f"-- close_bug_db: what cvc5 did after {base[:10]} (from {source})",
               file=sys.stderr)
         print(f"--   reading {where}; writing bug_db/bugs.json and docs/experience.md here",
               file=sys.stderr)
@@ -361,7 +361,7 @@ def main():
                    ["claude", "-p"] if args.noninteractive else ["claude"])
         return subprocess.run(command + [text], cwd=ROOT).returncode
     except (OSError, ValueError, KeyError) as e:
-        print(f"update_bug_db: {e}", file=sys.stderr)
+        print(f"close_bug_db: {e}", file=sys.stderr)
         return 2
 
 
