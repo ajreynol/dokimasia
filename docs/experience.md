@@ -65,8 +65,55 @@ records that something happened and nothing about what to do differently.
 
 ## Where this stands
 
-**Nothing has been closed yet.** No run of `prompts/update_bug_db` has recorded
-a closure, so the log below is empty because there is nothing in it — not
-because nobody wrote it up. The first closure writes the first entry.
+**One observation closed, out of 197.** The first window read — cvc5
+`40a4bb7e4..dbf176dfb`, 42 commits — closed a single row, and the log below has
+the one entry that window earned. A thin log is the honest reading of a thin
+window, not a backlog of write-ups nobody got to.
 
 ## The log
+
+## 2026-09-19 — cvc5 #12948 — `SUBS`'s documentation gains the argument its checker already read
+
+**Commit:** `6e62c7cf595273b7fdfdc0a607aa53a8555530ee` — Minor simplifications to trust ids and proof docs (#12948)
+
+**Closed:** `dokimasia:398b7ed5b492831606d98491` (`SIG0003`)
+
+**Summary:** cvc5's substitution proof rule takes a third argument that selects
+how the substitutions get applied, but its reference documentation described
+only two. A reader building or auditing such a proof would not have known the
+argument was there.
+
+**What the change did:** the `\inferrule` block above `EVALUE(SUBS)` in
+`include/cvc5/cvc5_proof_rule.h` read `\inferrule{F_1 \dots F_n \mid t, ids?}`,
+and its prose said the substitutions are "applied in reverse order" as though
+that were the only possibility. `BuiltinProofRuleChecker::checkInternal` has all
+along asserted `1 <= args.size() && args.size() <= 3` and read `args[2]` as a
+second `MethodId`, `ida`, defaulting to `SBA_SEQUENTIAL`. The commit rewrote the
+block to `\inferrule{F_1 \dots F_n \mid t, ids?, ida?}`, restated the
+conclusion as `\texttt{apply}_{ida}(t, \sigma_{ids}(F_1), \dots)`, and named
+the three modes — `SBA_SEQUENTIAL`, `SBA_SIMUL`, `SBA_FIXPOINT` — with the
+termination condition the fixpoint mode requires. The checker was not touched;
+the documentation was brought up to it. The same pull request also deleted four
+dead `TrustId`s and fourteen unproduced `InferenceId`s, which closed nothing
+here: none of those ids carried an observation.
+
+**Attribution:** cites us. The pull request body reads, in full, "Based on an
+initial pass from https://github.com/ajreynol/dokimasia". The observation had
+also been written up as `i-21` in the [issue register](issues.md).
+
+**Learned:** the check was pointing exactly where it claimed to. `SIG0003`
+compares two partial parsers — LaTeX on one side, `Assert`s and subscript reads
+on the other — and its recorded limitation says so; the worry was that a
+disagreement between two approximations is an artifact rather than a finding.
+Here it was not: the documented argument count was genuinely short of what the
+checker reads, and the fix landed on the documentation side, which is where the
+check said the error was. Worth noting what made this row actionable where
+others in the same facet are not — it named one rule, one file, and two concrete
+numbers to compare (`(2, 1)` documented against an `args[2]` read), so
+confirming it took reading a single comment and a single `else if`. The 24
+`SIG0002` rows in the same facet name a skolem and a file but no comparable
+discriminator, and none of them moved. That `i-20` had to be ground down through
+five rounds of parser fixes to leave this one residue is the other half of the
+lesson: a check whose output is mostly its own parsing noise buys its findings
+expensively, and cvc5 still states rule arity in LaTeX only, so the next such
+row costs the same.

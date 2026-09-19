@@ -2266,7 +2266,11 @@
       "code": "SIG0003",
       "entity": "SUBS",
       "kind": "static-observation",
-      "owner": "cvc5"
+      "owner": "cvc5",
+      "closed_on": "2026-09-19",
+      "closed_commit": "6e62c7cf595273b7fdfdc0a607aa53a8555530ee",
+      "closed_pr": "https://github.com/cvc5/cvc5/pull/12948",
+      "closed_why": "The commit rewrote SUBS's \\inferrule documentation in include/cvc5/cvc5_proof_rule.h to name the third argument ida alongside t and ids; re-reading that comment and BuiltinProofRuleChecker::checkInternal on main, the documented argument arity is now (3, 1) against the checker's Assert(1 <= args.size() && args.size() <= 3) and its args[2] read, so the recorded disagreement no longer holds."
     },
     {
       "id": "dokimasia:e4f73244df569300580f58d7",
