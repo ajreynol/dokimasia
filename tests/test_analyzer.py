@@ -169,11 +169,13 @@ class AnalyzerTests(unittest.TestCase):
             self.assertEqual(p.returncode, 0, p.stderr)
             self.assertIn(str(mapped), p.stdout)
             self.assertIn(str(mapping), p.stdout)
-        # The closure launcher shares this resolver but needs real cvc5 history,
-        # so it joins the half that is pure resolution: an explicit but missing
-        # environment choice must not fall back to the valid local map and
-        # accidentally analyze, or assess a closure against, another tree.
-        commands.append([sys.executable, str(ROOT / "prompts/update_bug_db"), "--dry-run"])
+        # The closure launcher reads github unless it is told otherwise, so only
+        # its --use-local path shares this resolver. It joins the half that is
+        # pure resolution: an explicit but missing environment choice must not
+        # fall back to the valid local map and accidentally analyze, or assess a
+        # closure against, another tree.
+        commands.append([sys.executable, str(ROOT / "prompts/update_bug_db"),
+                         "--use-local", "--dry-run"])
         env["DOKIMASIA_CVC5"] = str(self.base / "missing")
         for command in commands:
             p = subprocess.run(command, cwd=self.base, env=env, capture_output=True, text=True)

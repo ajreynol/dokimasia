@@ -36,8 +36,8 @@ The analyzer does not use [`scripts/cvc5.lock`](../scripts/cvc5.lock) to select
 or reject a checkout. That file fixes the regression-test reference; analyzing
 the latest cvc5 records the revision and source contents actually read.
 
-`prompts/update_bug_db` uses this same resolver, with its `--cvc5` option
-as the explicit override. Write new configurations in `scripts/repos.local`; the
+`prompts/update_bug_db` reads cvc5's published history and needs no checkout at
+all; its `--use-local` option uses this same resolver when one is worth reading. Write new configurations in `scripts/repos.local`; the
 JSON entry is the last fallback. **No path is guessed**, including `~/cvc5`: a
 checkout this repository is not told about is not found, because a resolver that
 guesses can measure a tree nobody named.

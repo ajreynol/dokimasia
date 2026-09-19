@@ -94,16 +94,18 @@ def test_launcher():
                for name in ("bug_db/bugs.json", "bug_db/bugs.md", "docs/experience.md")}
     p = subprocess.run([sys.executable, script, "--show-prompt"],
                        capture_output=True, text=True, cwd=os.path.dirname(ROOT))
+    # cvc5 is not a dependency of this launcher, so the preview owes no excuse
+    # on a machine with no checkout: it reads this repository and prints.
+    check("the prompt previews with no cvc5 anywhere", p.returncode == 0,
+          p.stderr.strip()[:200])
     if p.returncode != 0:
-        # No cvc5 checkout on this machine is not a failure of the launcher; it
-        # is the resolver refusing to guess one, which another test covers.
-        check("the prompt previews, or says why it cannot",
-              "update_bug_db:" in p.stderr, p.stderr.strip()[:120])
-        print("  ok   no resolvable cvc5 checkout here, so the prompt is not checked")
         return
     for phrase, why in (
             ("Absence closes nothing", "absence is the one thing that must not close a row"),
-            ("never write it", "the cvc5 checkout is read-only in this workflow"),
+            ("https://github.com/cvc5/cvc5/compare/",
+             "the default run reads the history where it is public"),
+            ("pages at 250 commits",
+             "a window read in pieces must be reported as one, not as complete"),
             ("Confirm the closure in the current source",
              "a commit message is not evidence that a claim is now false"),
             ("closed_commit", "a closure names the commit that made it"),
@@ -115,12 +117,26 @@ def test_launcher():
     check("the prompt names the revisions it resolved",
           len(set(re.findall(r"\b[0-9a-f]{40}\b", p.stdout))) >= 1,
           "no full revision in the prompt")
+    check("the prompt does not assume a checkout",
+          "--use-local" not in p.stdout and "git -C" not in p.stdout,
+          "the default prompt reads github, so it names no local tree")
     check("the prompt says how much is on the table",
           bool(re.search(r"holds \d+\s*\n?observations", p.stdout)),
           "the prompt does not say how many observations there are")
     changed = [name for name, before in watched.items()
                if read(os.path.join(ROOT, name)) != before]
     check("previewing changed no record", not changed, f"{changed}")
+
+
+def test_local_mode():
+    """`--use-local` swaps in a checkout, and refuses one that is not cvc5."""
+    print("\nthe local optimisation:")
+    script = os.path.join(ROOT, "prompts", "update_bug_db")
+    p = subprocess.run([sys.executable, script, "--use-local", ROOT, "--dry-run"],
+                       capture_output=True, text=True)
+    check("a checkout that is not cvc5 is refused", p.returncode == 2, p.stdout[:120])
+    check("and the refusal names the tree it was given",
+          ROOT in p.stderr and "cvc5 checkout" in p.stderr, p.stderr.strip()[:160])
 
 
 def test_facets():
@@ -152,6 +168,7 @@ def test_facets():
 if __name__ == "__main__":
     test_experience()
     test_launcher()
+    test_local_mode()
     test_facets()
     print()
     if FAILURES:

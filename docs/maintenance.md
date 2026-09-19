@@ -65,7 +65,7 @@ For cvc5, use an existing source checkout with `--cvc5`, `DOKIMASIA_CVC5`, or
 an ignored `scripts/repos.local` containing `cvc5 /path/to/cvc5`. Alternatively,
 put a dedicated checkout at `deps/cvc5`; the revision in `scripts/cvc5.lock` is
 the one for baseline checks. Ordinary analysis records the revision actually
-read. Both analysis producers and `prompts/update_bug_db` use the same
+read. Both analysis producers, and `prompts/update_bug_db --use-local`, use the same
 resolver, in which the environment takes precedence and a `cvc5` entry in
 `scripts/deps.local.json` is the last fallback. No path is guessed: a checkout
 this repository is not told about is not found.
@@ -221,19 +221,34 @@ commit change*, not *is this row still there*, so every closure arrives with a
 commit attached and most commits close nothing.
 
 ```bash
-prompts/update_bug_db --dry-run          # the window, and nothing else
-prompts/update_bug_db                    # assess it with an assistant
-prompts/update_bug_db --since <rev>      # against a different baseline
-prompts/update_bug_db --show-prompt      # the text, running nothing
+prompts/update_bug_db --dry-run                  # the window, and nothing else
+prompts/update_bug_db                            # assess it with an assistant
+prompts/update_bug_db --use-local /path/to/cvc5  # from a checkout, if one has moved
+prompts/update_bug_db --since <rev>              # against a different baseline
+prompts/update_bug_db --show-prompt              # the text, running nothing
 ```
 
 The baseline is the cvc5 revision of the newest archived run — the revision the
-recorded claims actually describe — and the window is `baseline..HEAD` in the
-resolved cvc5 checkout. `scripts/cvc5.lock` is the fallback rather than the
-default: it pins what the regression checks reproduce, which is a different
-question and is usually older. That checkout is read and never written, so a
-window with nothing in it is reported as empty; updating the tree is the
-operator's action, as it is for every dependency here.
+recorded claims actually describe — and the window runs from there to cvc5's
+`main`. `scripts/cvc5.lock` is the fallback baseline rather than the default: it
+pins what the regression checks reproduce, which is a different question and is
+usually older.
+
+**cvc5 is not a dependency of this command.** The prompt names
+`compare/<baseline>...main` and the assistant reads the history where it is
+public, so a run needs no checkout, no clone and no fetch. This is not only
+convenience: a dedicated `deps/cvc5` sits at the pinned revision, the pinned
+revision is normally the baseline itself, and a window computed against it is
+empty by construction. The launcher makes no network call of its own — the
+reading is the assistant's — so `--show-prompt` is reproducible anywhere.
+
+**`--use-local` is the optimisation.** Given a path it reads that tree; given no
+value it resolves one the way the analyzer does, through `$DOKIMASIA_CVC5` or
+`scripts/repos.local`. The window is then `baseline..HEAD` there, the prompt
+lists it, and the tree is read and never written. A local window with nothing in
+it starts no assistant and reports which refs in that checkout are already ahead
+of its `HEAD`, because history fetched and left on a remote-tracking ref is the
+usual reason for an empty one.
 
 A closure adds four fields to an entry in `bug_db/bugs.json` and changes nothing
 else about it:

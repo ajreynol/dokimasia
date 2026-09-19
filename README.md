@@ -104,11 +104,16 @@ never from a finding going quiet:
 ```bash
 prompts/update_bug_db --dry-run
 prompts/update_bug_db
+prompts/update_bug_db --use-local /path/to/cvc5
 ```
 
-The launcher reads the commits between the revision an observation was recorded
-against and whatever the local cvc5 checkout holds, and starts an assistant that
-decides which of them close something. A closure names the commit and the pull
+**No cvc5 checkout is needed.** The launcher names the window — the commits
+between the revision an observation was recorded against and cvc5's `main` — and
+the assistant reads it at [cvc5's repository](https://github.com/cvc5/cvc5),
+where the history is public. `--use-local` points it at a checkout instead, when
+one is to hand and has moved; it is an optimisation, not a requirement. The
+launcher makes no network call itself, so `--show-prompt` prints the same text
+anywhere. A closure names the commit and the pull
 request on the database entry, and is written up in
 [experience.md](docs/experience.md). Nothing is committed, nothing is pushed, and
 no program here touches a tracker. See

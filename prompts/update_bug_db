@@ -4,10 +4,10 @@
 The database records what an analysis saw; it has never recorded what became of
 it. This launcher starts an assistant on that question, in this repository,
 against a window of cvc5 history: from the revision the observations were taken
-at to whatever the local checkout holds now.
+at to cvc5's `main` today.
 
-**It is commit-first, and that is the point.** Asking "which of these 197 rows
-is fixed?" invites a re-analysis, and a re-analysis that finds nothing is not
+**It is commit-first, and that is the point.** Asking "which of these rows is
+fixed?" invites a re-analysis, and a re-analysis that finds nothing is not
 evidence of a fix -- `bug_db/README.md` says so in as many words. Asking "what
 did this commit change, and does it close anything we recorded?" starts from
 something that actually happened, names it, and leaves a cvc5 pull request
@@ -15,11 +15,18 @@ attached to every closure. That is also what makes the record worth publishing:
 `docs/experience.md` is the post-mortem of those changes, and a closure with no
 commit behind it cannot be written up there at all.
 
-**It never touches the cvc5 checkout.** Not a fetch, not a checkout, not a
-build: the analyzer's rule for a dependency tree (`docs/analyzer.md`) is the
-rule here. So a window that is empty is reported as empty rather than filled in
-by pulling somebody's tree out from under them -- updating that checkout is the
-operator's action, deliberately.
+**cvc5 is not a dependency of this command.** The history it asks about is
+public, so the prompt points at it -- `compare/<baseline>...main` -- and the
+assistant reads it there. Requiring a checkout would have made the question
+*what does the tree on this machine happen to hold*, which is a different
+question with a worse answer: a pinned `deps/cvc5` sits at the baseline by
+construction, so the honest window against it is always empty. `--use-local`
+takes a checkout when there is one worth using. It is an optimisation, and the
+run is the same run either way.
+
+**The launcher itself makes no network call**, so `--show-prompt` prints the
+same text anywhere and nothing here depends on what github says today. The
+reading is the assistant's, in a session a person is driving.
 
 **Everything it changes is left uncommitted**, in this repository: the
 `closed_*` fields on the entries in `bug_db/bugs.json`, and the sections in
@@ -39,11 +46,12 @@ sys.path[:0] = [str(ROOT), str(ROOT / "scripts")]
 import targets
 from bug_reports import DB
 
-#: How many commits the prompt lists before it stops and says how many it left
-#: out. A prompt is not a substitute for `git log`, and a silent cut would read
-#: as a complete window.
+#: How many commits a local window lists before the prompt stops and says how
+#: many it left out. A prompt is not a substitute for `git log`, and a silent
+#: cut would read as a complete window.
 LISTED = 40
 
+REPO = "https://github.com/cvc5/cvc5"
 EXPERIENCE = ROOT / "docs/experience.md"
 
 
@@ -55,10 +63,11 @@ def git(root, *args):
 
 
 def cvc5(explicit):
-    """The checkout, verified as cvc5 the way the reporting launchers verify it."""
-    root, via = targets.checkout(explicit)
+    """The checkout `--use-local` names, verified as cvc5 before anything reads it."""
+    root, via = targets.checkout(explicit or None)
+    via = "--use-local" if explicit else via
     if not root.is_dir():
-        raise ValueError(f"no cvc5 checkout at {root} (from {via}); pass --cvc5, "
+        raise ValueError(f"no cvc5 checkout at {root} (from {via}); give --use-local a path, "
                          "set DOKIMASIA_CVC5, or configure scripts/repos.local")
     if not all((root / p).exists() for p in
                ("configure.sh", "src/theory", "include/cvc5/cvc5_proof_rule.h")):
@@ -90,16 +99,29 @@ def baseline(explicit):
 
 
 def window(root, base):
-    """The commits to assess, newest first, and how the checkout sits."""
+    """The commits a local checkout can already answer for, newest first."""
     if subprocess.run(["git", "-C", str(root), "cat-file", "-e", base + "^{commit}"],
                       capture_output=True).returncode:
-        raise ValueError(f"{root} does not contain {base}. Update that checkout yourself; "
-                         "this command never fetches.")
+        raise ValueError(f"{root} does not contain {base}. Fetch it yourself, or drop "
+                         "--use-local and read the history on github; this never fetches.")
     head = git(root, "rev-parse", "HEAD")
     commits = [line.split("\t", 1) for line in
                git(root, "log", "--no-merges", "--format=%H\t%s", f"{base}..HEAD").splitlines()]
     behind = int(git(root, "rev-list", "--count", f"{head}..{base}") or 0)
     return head, commits, behind
+
+
+def ahead_of(root, head):
+    """Refs already in this checkout that carry commits after HEAD.
+
+    A pinned dependency tree sits at the baseline by construction, so the usual
+    reason a local window is empty is not that cvc5 has done nothing: it is that
+    the newer history is fetched and parked on a ref nobody checked out.
+    """
+    refs = git(root, "for-each-ref", "--format=%(refname:short)", "--contains", head,
+               "refs/remotes", "refs/heads").splitlines()
+    counted = [(int(git(root, "rev-list", "--count", f"{head}..{ref}")), ref) for ref in refs]
+    return sorted((n, ref) for n, ref in counted if n)[::-1][:3]
 
 
 def observations():
@@ -111,25 +133,99 @@ def observations():
     return len(bugs), ", ".join(f"{code} {n}" for code, n in sorted(counts.items()))
 
 
-def describe(root, via, base, source, head, commits, behind):
-    lines = [f"cvc5 checkout: {root} (from {via})",
-             f"  HEAD:     {head}",
-             f"  baseline: {base} (from {source})",
-             f"  window:   {len(commits)} commit(s) to assess"
-             + (f"; the checkout is {behind} commit(s) behind the baseline" if behind else "")]
-    lines += [f"  {sha[:10]} {subject}" for sha, subject in commits[:LISTED]]
+def local_scope(root, via, base, head, commits):
+    """How the prompt describes a window somebody has already got on disk."""
+    listed = "\n".join(f"  {sha} {subject}" for sha, subject in commits[:LISTED])
     if len(commits) > LISTED:
-        lines.append(f"  ... and {len(commits) - LISTED} more, not listed")
+        listed += (f"\n  ... and {len(commits) - LISTED} more. The list above is cut; "
+                   "the commands below are not, and the window is all of them.")
+    return f"""\
+A checkout of cvc5 is on this machine at {root} (from {via}), at {head}, and
+these {len(commits)} commit(s) landed between the baseline and it:
+
+{listed}
+
+  # the window, in full
+  git -C {root} log --no-merges --format='%h %s' {base}..HEAD
+  # what one commit touched
+  git -C {root} show --stat <commit>
+
+**Read that checkout; never write it.** No fetch, no pull, no checkout, no
+branch, no build inside it: it is somebody's working tree and it is on loan.
+Where it cannot answer something -- a commit it does not carry, a pull request
+and its discussion, anything newer than its HEAD -- fall back to {REPO} and say
+in your report which answers came from where."""
+
+
+def github_scope(base):
+    """How the prompt describes a window nobody has fetched. This is the default."""
+    return f"""\
+cvc5 is at {REPO}, and nothing of it is checked out here: read its history
+there. What landed after the baseline is
+
+  {REPO}/compare/{base}...main
+
+If `gh` is on your PATH it is the cheaper route, and the API answers every
+question this needs:
+
+  # how big the window is, and which revision of main you are about to read
+  gh api "repos/cvc5/cvc5/compare/{base}...main" \\
+     --jq '"\\(.total_commits) commits; main at \\(.commits[-1].sha)"'
+  # what landed
+  gh api "repos/cvc5/cvc5/compare/{base}...main" \\
+     --jq '.commits[] | "\\(.sha) \\(.commit.message | split("\\n")[0])"'
+  # what one commit touched
+  gh api repos/cvc5/cvc5/commits/<sha> --jq '.files[].filename'
+  # a file as it stands now
+  gh api "repos/cvc5/cvc5/contents/<path>?ref=main" --jq '.content' | base64 -d
+
+The web pages are the fallback and say the same things: a commit is
+`/commit/<sha>`, a file as it stands now is `/blob/main/<path>`. **That compare
+view pages at 250 commits.** If the window is larger, walk it in pieces and say
+in your report that you did and how far you got -- a silent truncation reads as
+a window you covered. Do not clone cvc5 into this repository.
+
+**Say which revision of `main` you read** -- the first command above names it.
+Every *still true today* below means true at that revision and at no later
+one."""
+
+
+def describe(base, source, local):
+    lines = [f"baseline: {base} (from {source})"]
+    if local:
+        root, via, head, commits, behind = local
+        lines += [f"local cvc5: {root} (from {via})",
+                  f"  HEAD:   {head}",
+                  f"  window: {len(commits)} commit(s) to assess"
+                  + (f"; that checkout is {behind} commit(s) behind the baseline"
+                     if behind else "")]
+        lines += [f"  {sha[:10]} {subject}" for sha, subject in commits[:LISTED]]
+        if len(commits) > LISTED:
+            lines.append(f"  ... and {len(commits) - LISTED} more, not listed")
+        if not commits:
+            lines += ["  " + line for line in elsewhere(root, head)]
+    else:
+        lines += [f"history: {REPO}/compare/{base}...main",
+                  "  read by the assistant; this command makes no network call"]
     total, by_code = observations()
     lines.append(f"database: {total} observation(s) in {DB.relative_to(ROOT)} -- {by_code}")
     return "\n".join(lines)
 
 
-def prompt(root, via, base, source, head, commits, when):
-    listed = "\n".join(f"  {sha} {subject}" for sha, subject in commits[:LISTED])
-    if len(commits) > LISTED:
-        listed += (f"\n  ... and {len(commits) - LISTED} more. The list above is cut; "
-                   "the command below is not, and the window is all of them.")
+def elsewhere(root, head):
+    """What to do about an empty local window, given what that checkout holds."""
+    lines = [f"{ref} in this checkout is {n} commit(s) ahead of HEAD"
+             for n, ref in ahead_of(root, head)]
+    lines += ["a dedicated deps/cvc5 stays at the pinned revision, which is the",
+              "baseline, so its window is empty by design: name a checkout whose HEAD",
+              "has moved, or drop --use-local and let the run read github instead."]
+    return lines
+
+
+def prompt(base, source, when, local):
+    scope = local_scope(local[0], local[1], base, local[2], local[3]) if local \
+        else github_scope(base)
+    current = f"that checkout at {local[2][:10]}" if local else "cvc5's `main` today"
     total, by_code = observations()
     return f"""\
 You are updating the bug database of **dokimasia**, at {ROOT}. Dokimasia is a
@@ -142,30 +238,21 @@ is and `docs/checks.md` for what each code claims.
   {by_code}
 
 **Your question is what cvc5 has since done about them.** The observations were
-taken against cvc5 {base} (from {source}). The checkout at {root} (from {via})
-is now at {head}, and these {len(commits)} commit(s) landed in between:
+taken against cvc5 {base} (from {source}).
 
-{listed}
-
-  # the window, in full
-  git -C {root} log --no-merges --format='%h %s' {base}..HEAD
-  # what one commit touched
-  git -C {root} show --stat <commit>
-
-**Read that checkout; never write it.** No fetch, no pull, no checkout, no
-branch, no build inside it. Everything you change is in {ROOT}.
+{scope}
 
 **Work commit-first, one commit at a time.**
 
 1. Read what the commit changed. Its files say which checks it could bear on
-   at all; most commits in this window bear on none, and saying so is a
-   complete result for that commit.
+   at all; most commits in any window bear on none, and saying so is a complete
+   result for that commit.
 2. Name the observations it could close, by identity. `bug_db/bugs.json` is the
    list; the archived run under `bug_db/runs/` carries the evidence and the
    recorded limitation for each identity, which is what tells you what the
    claim actually rested on.
 3. **Confirm the closure in the current source, not in the commit message.**
-   Re-read the code the observation names as it stands at {head[:10]} and
+   Re-read the code the observation names as it stands in {current} and
    establish that the claim is no longer true of it. A commit that looks
    related and a claim that is now false are two different findings, and only
    the second one closes anything.
@@ -185,7 +272,7 @@ branch, no build inside it. Everything you change is in {ROOT}.
 
       "closed_on":     "{when}",
       "closed_commit": "<the full cvc5 sha>",
-      "closed_pr":     "https://github.com/cvc5/cvc5/pull/<n>",
+      "closed_pr":     "{REPO}/pull/<n>",
       "closed_why":    "<one sentence: what the commit changed, and what you
                         re-read to confirm the claim is now false>"
 
@@ -212,9 +299,8 @@ branch, no build inside it. Everything you change is in {ROOT}.
     and is still evidence the check was pointing at something real.
 
 **Finish with a report to the terminal**: what you closed and under which pull
-request, what you assessed and left open with the reason, and which commits in
-the window bore on nothing. Say plainly if the window was too thin to conclude
-anything.
+request, what you assessed and left open with the reason, and how much of the
+window you actually read. Say plainly if it was too thin to conclude anything.
 
 **Commit nothing and push nothing.** Leave the changes in the working tree for
 a maintainer to read as a diff. Open no pull request, file no issue, post no
@@ -226,45 +312,51 @@ reaches a person who did not ask for it.
 def main():
     ap = argparse.ArgumentParser(description="Assess which recorded observations "
                                              "recent cvc5 commits have closed.")
-    ap.add_argument("--cvc5", help="explicit checkout; otherwise environment, repos.local, "
-                                   "deps.local.json, then deps/cvc5")
+    ap.add_argument("--use-local", nargs="?", const="", metavar="PATH",
+                    help="read a local cvc5 checkout instead of github: PATH, or with no "
+                         "value the checkout $DOKIMASIA_CVC5 or scripts/repos.local names")
     ap.add_argument("--since", help="baseline revision; default: the cvc5 revision of the "
                                     "newest archived run")
     ap.add_argument("--date", help="the closure date to record; default: today")
-    ap.add_argument("--dry-run", action="store_true", help="print the window and exit")
+    ap.add_argument("--dry-run", action="store_true", help="print the scope and exit")
     ap.add_argument("--show-prompt", action="store_true")
     ap.add_argument("--codex", action="store_true")
     ap.add_argument("--print", action="store_true", dest="noninteractive")
     args = ap.parse_args()
     try:
-        root, via = cvc5(args.cvc5)
         base, source = baseline(args.since)
-        head, commits, behind = window(root, base)
+        local = None
+        if args.use_local is not None:
+            root, via = cvc5(args.use_local)
+            local = (root, via, *window(root, base))
         if args.dry_run:
-            print(describe(root, via, base, source, head, commits, behind))
+            print(describe(base, source, local))
             return 0
         when = args.date or date.today().isoformat()
-        text = prompt(root, via, base, source, head, commits, when)
+        text = prompt(base, source, when, local)
         if args.show_prompt:
             print(text)
             return 0
-        if not commits:
-            # Nothing happened upstream that this run could read, which is not a
-            # failure and is not an assessment either. Spending a turn on an
-            # empty window produces a report that says nothing and a file that
-            # claims it was checked.
-            print(f"-- update_bug_db: no commit after {base} in {root}"
+        if local and not local[3]:
+            # A checkout was named and carries nothing new. Reading github would
+            # answer the question, but quietly doing that is not what was asked
+            # for, and spending a turn on an empty window produces a report that
+            # says nothing and a file that claims it was checked.
+            root, via, head, _, behind = local
+            print(f"-- update_bug_db: no commit after {base[:10]} in {root}"
                   + (f"; that checkout is {behind} commit(s) behind it" if behind else ""),
                   file=sys.stderr)
-            print("--   update that checkout yourself; this never fetches", file=sys.stderr)
+            for line in elsewhere(root, head):
+                print(f"--   {line}", file=sys.stderr)
             return 0
         if not EXPERIENCE.is_file():
             raise ValueError(f"{EXPERIENCE.relative_to(ROOT)} is missing; it defines the shape "
                              "of what this run writes")
-        print(f"-- update_bug_db: {len(commits)} cvc5 commit(s) after {base[:10]} "
-              f"(from {source})", file=sys.stderr)
-        print(f"--   reading {root} at {head[:10]}; writing bug_db/bugs.json and "
-              "docs/experience.md here", file=sys.stderr)
+        where = f"{local[0]} at {local[2][:10]}" if local else f"{REPO} at main"
+        print(f"-- update_bug_db: what cvc5 did after {base[:10]} (from {source})",
+              file=sys.stderr)
+        print(f"--   reading {where}; writing bug_db/bugs.json and docs/experience.md here",
+              file=sys.stderr)
         command = (["codex", "exec"] if args.noninteractive else ["codex"]) if args.codex else (
                    ["claude", "-p"] if args.noninteractive else ["claude"])
         return subprocess.run(command + [text], cwd=ROOT).returncode
