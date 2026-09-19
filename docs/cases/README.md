@@ -47,7 +47,7 @@ Every case follows it, and a new one should:
    safe-mode skip.
 5. **Ship the verifier**, with tests that show it firing on each way the
    invariant can break.
-6. **Give a verdict** against [the bar](../pr-policy.md#the-bar), including what
+6. **Give a verdict** against [the bar](../findings.md#the-bar), including what
    would falsify it and what we are *not* claiming.
 
 ## Why this suits us
@@ -72,7 +72,7 @@ question arrives already scoped.
 - **The verifier is the deliverable, and it must have failed in a test.** A
   checker nobody has seen fail is a checker nobody should trust.
 - **We never open the PR.** Same as everything else:
-  [`pr-policy.md`](../pr-policy.md).
+  [the bar](../findings.md#the-bar).
 - **Say what we did not check.** For #12899 we did not build a safe build and
   diff the binaries; the case says so.
 - **We are usually not asking for the decision to change.** The useful output is

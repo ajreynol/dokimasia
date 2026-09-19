@@ -25,7 +25,6 @@ belongs to [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/to
 | [`cases/safe-build-vs-safe-mode.md`](cases/safe-build-vs-safe-mode.md) | cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) — is deliberately forbidding safe mode with debug symbols actually a restriction? What it costs, and the invariant that keeps the cost that low |
 | [`next-report.md`](next-report.md) | **the next thing to report, and why it is that one** — the recommendation, the runner-up, and what is explicitly not ready |
 | [`reachability.md`](reachability.md) | **what the corpus actually reaches** — the static denominator against cvc5's own runtime counters, measured over `regress0` |
-| [`pr-policy.md`](pr-policy.md) | **DEPRECATED (2026-09-18)** — historical reporting policy; [replacement pending](maintenance.md#replace-the-deprecated-reporting-workflow) |
 
 ## The stance and the subject
 
@@ -49,10 +48,9 @@ belongs to [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/to
 
 | | |
 | --- | --- |
-| [`findings.md`](findings.md) | what a finding is, what we promise about it, and the log — including retractions |
+| [`findings.md`](findings.md) | what a finding is, the bar it clears to be carried to cvc5, and the log — including retractions |
 | [`findings/`](findings/) | one file per filed finding; today that is [`tcb-001.md`](findings/tcb-001.md) |
-| [`workflows.md`](workflows.md) | **DEPRECATED (2026-09-18)** — historical reporting workflow and retained launchers; [replacement pending](maintenance.md#replace-the-deprecated-reporting-workflow) |
-| [`postmortem.md`](postmortem.md) | what working a reply taught us about the workflow itself, as opposed to what it settled about cvc5 |
+| [`experience.md`](experience.md) | **what cvc5 did with what we found** — one section per pull request that closed an observation, and what it says about the check that found it |
 | [`discussion.md`](discussion.md) | the standing channel to the rest of the ecosystem, and the gate on responding to it |
 
 ## Generated, and the landscape

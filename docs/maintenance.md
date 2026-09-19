@@ -16,9 +16,9 @@ and is outside Dokimasia's scope.
 
 Keep commands and their helpers in `scripts/`, assistant launchers in `prompts/`,
 and analysis implementations in `dokimasia/`. Add documents to the
-[documentation index](README.md). The reporting workflow is
-[deprecated](workflows.md); existing records and launchers remain available
-while its [replacement](#replace-the-deprecated-reporting-workflow) is pending.
+[documentation index](README.md). Observations are recorded by the analyzer and
+closed by [an assessment of cvc5's history](#assessing-closure); what a closure
+meant is written up in [`experience.md`](experience.md).
 
 Regression baselines live in `tests/baselines/<analysis>.json`; the runtime
 census lives in `tests/corpus/reach-corpus.json`. Default paths resolve from the
@@ -65,7 +65,7 @@ For cvc5, use an existing source checkout with `--cvc5`, `DOKIMASIA_CVC5`, or
 an ignored `scripts/repos.local` containing `cvc5 /path/to/cvc5`. Alternatively,
 put a dedicated checkout at `deps/cvc5`; the revision in `scripts/cvc5.lock` is
 the one for baseline checks. Ordinary analysis records the revision actually
-read. Both analysis producers and `prompts/process_dokimasia` use the same
+read. Both analysis producers and `prompts/update_bug_db` use the same
 resolver, in which the environment takes precedence and a `cvc5` entry in
 `scripts/deps.local.json` is the last fallback. No path is guessed: a checkout
 this repository is not told about is not found.
@@ -138,16 +138,15 @@ database integration.
 | `scripts/audit_loc` | measure this repository's implementation and documentation |
 | `scripts/bump_anoieu` | validate and update the pinned policy-checker revision |
 | `prompts/dokimasia_analyzer_agent` | independent producer over the analyzer's targets |
-| `prompts/check_dokimasia` | legacy reporting: draft a response in the project owning a finding |
-| `prompts/process_dokimasia` | legacy reporting: process that reply here |
-| `prompts/check_cvc5_issue` | legacy reporting: examine a cvc5 issue and draft a response |
+| `prompts/update_bug_db` | assess which observations recent cvc5 commits closed, and write up what they did |
 
 Commands that run live in `scripts/`; launchers that spend a turn on an
 assistant live in `prompts/`, so a reader can tell which is which without
-opening a directory. The reporting prompts match their definitions in
-`docs/workflows.md`, and `tests/test_workflow.py` checks that agreement. The
-analyzer prompt is read directly from `prompts/analyzer.txt` and has no second
-copy, so there is nothing there to drift.
+opening a directory. Neither prompt has a second copy to drift from: the
+analyzer's is read from `prompts/analyzer.txt`, and the closure prompt is built
+in `prompts/update_bug_db` from the window it resolved. What each writes is held
+to a shape instead — `tests/test_experience.py` checks the post-mortem's, and
+`scripts/append_findings --render-only --check` checks the database view's.
 
 ## Pins and generated records
 
@@ -211,37 +210,65 @@ resolve a triage disagreement. Keep that decision in the existing findings
 register. See [the analyzer guide](analyzer.md) for identity, replay and conflict
 semantics.
 
-## Replace the deprecated reporting workflow
+## Assessing closure
 
-**Pending, recorded 2026-09-18.** Following Anoieu, the
-[reporting workflow](workflows.md) and [reporting policy](pr-policy.md) are
-deprecated. Replace them with a formal reporting lifecycle using
-[Koine's shared tooling](https://github.com/ajreynol/koine/tree/main/bug_db_manager).
-Koine supplies storage and update mechanics; Dokimasia owns its findings and
-the evidence required for decisions about them.
+An observation is closed by **a change in cvc5 that somebody can point at**,
+never by a later run failing to see it. The
+[bug database](../bug_db/README.md) and the
+[analyzer guide](analyzer.md#identity-and-evidence) both say so; the mechanics
+here are what make it hold. The question the assessment asks is *what did this
+commit change*, not *is this row still there*, so every closure arrives with a
+commit attached and most commits close nothing.
 
-The storage migration is complete: `bug_db/bugs.json`, `bug_db/bugs.md` and
-`bug_db/runs/` hold the data, generated browsing view and archived evidence.
-Existing records and dates are preserved, and both analysis producers use the
-same append path. This does not migrate reviewed verdicts or implement closure.
+```bash
+prompts/update_bug_db --dry-run          # the window, and nothing else
+prompts/update_bug_db                    # assess it with an assistant
+prompts/update_bug_db --since <rev>      # against a different baseline
+prompts/update_bug_db --show-prompt      # the text, running nothing
+```
 
-Remaining work:
+The baseline is the cvc5 revision of the newest archived run — the revision the
+recorded claims actually describe — and the window is `baseline..HEAD` in the
+resolved cvc5 checkout. `scripts/cvc5.lock` is the fallback rather than the
+default: it pins what the regression checks reproduce, which is a different
+question and is usually older. That checkout is read and never written, so a
+window with nothing in it is reported as empty; updating the tree is the
+operator's action, as it is for every dependency here.
 
-- Define the evidence and decision rules for triage, correction, reporting,
-  closure and reopening, including how static observations become confirmed
-  behavioral findings.
-- Specify the shared Koine capabilities needed to preserve original findings,
-  dates, claims, corrections and decision evidence. The append utility alone
-  cannot perform this lifecycle.
-- Assess closure only from successful, comparable runs that covered the relevant
-  input and check. Use recorded source and analyzer versions, enabled analyses,
-  actual coverage, skips and failures. An unmatched or changed identity needs
-  an explicit assessment; disappearance from a dump cannot close a finding.
-- Migrate the reviewed issue register, filed findings, replies and retractions
-  without losing their meaning or history, then replace the legacy launchers
-  and update their documentation and checks.
+A closure adds four fields to an entry in `bug_db/bugs.json` and changes nothing
+else about it:
 
-Until then, preserve decisions in [`issues.md`](issues.md) and
-[`findings.md`](findings.md). Existing launchers remain usable during the
-transition. Deprecation neither settles existing claims nor authorizes automatic
-publication; upstream reporting remains a maintainer action.
+| field | what it holds |
+| --- | --- |
+| `closed_on` | the date the assessment was made |
+| `closed_commit` | the cvc5 commit that closed it, in full |
+| `closed_pr` | the pull request the commit subject names, where it names one |
+| `closed_why` | what that commit changed, and what was re-read to confirm the claim is now false |
+
+Koine's writer keeps fields it does not know about and never removes an entry,
+so a marked observation survives later appends unchanged. It also keeps moving
+`last_seen`: an analyzer run that re-observes a closed identity puts a sighting
+after its `closed_on`, and that contradiction is exactly the signal that the
+closure was wrong. Re-assess it — do not tidy the record. The generated page
+renders the original claim and is unaffected either way, which
+`scripts/append_findings --render-only --check` confirms.
+
+Each pull request is then written up in [`experience.md`](experience.md), whose
+shape `tests/test_experience.py` holds. The run leaves both files uncommitted:
+reading that diff is the review. Deciding what is worth carrying upstream, and
+the rule that no program here sends anything to anybody, are unchanged and live
+with [the bar](findings.md#the-bar).
+
+### Remaining work
+
+- **A curated row still has no fingerprint anybody can recompute.** Rows in
+  [`issues.md`](issues.md) are written by hand, so a closure assessed against
+  the database cannot settle the register entry that quotes it. Settles when a
+  row carries the `dokimasia:*` identity the analyzer already emits.
+- **Corrections and reopening have no shared mechanics.** Koine's writer
+  appends; preserving a corrected claim, a retraction or a reopening is
+  specified nowhere. Until it is, those decisions stay in
+  [`issues.md`](issues.md) and [`findings.md`](findings.md), and a closure that
+  turns out to be wrong is re-assessed in place.
+- **A rejected claim changes nothing today.** Where cvc5 declines a row, no rule
+  says whether that touches the bar or only the row.

@@ -164,14 +164,16 @@ class AnalyzerTests(unittest.TestCase):
         commands = [
             [sys.executable, str(ROOT / script), "--dry-run", "--config", str(self.config)]
             for script in ("scripts/dokimasia_analyzer", "prompts/dokimasia_analyzer_agent")]
-        commands.append(["bash", str(ROOT / "prompts/process_dokimasia"), "--dry-run"])
         for command in commands:
             p = subprocess.run(command, cwd=self.base, env=env, capture_output=True, text=True)
             self.assertEqual(p.returncode, 0, p.stderr)
             self.assertIn(str(mapped), p.stdout)
             self.assertIn(str(mapping), p.stdout)
-        # An explicit but missing environment choice must not fall back to the
-        # valid local map and accidentally analyze or report on another tree.
+        # The closure launcher shares this resolver but needs real cvc5 history,
+        # so it joins the half that is pure resolution: an explicit but missing
+        # environment choice must not fall back to the valid local map and
+        # accidentally analyze, or assess a closure against, another tree.
+        commands.append([sys.executable, str(ROOT / "prompts/update_bug_db"), "--dry-run"])
         env["DOKIMASIA_CVC5"] = str(self.base / "missing")
         for command in commands:
             p = subprocess.run(command, cwd=self.base, env=env, capture_output=True, text=True)

@@ -98,12 +98,21 @@ hypotheses. [Filed findings and retractions](docs/findings.md) remain the
 reviewed record. The database preserves observations across runs, including
 ones subsequently disputed or resolved. Disappearance does not close a finding.
 
-> [!WARNING]
-> **The [reporting workflow](docs/workflows.md) and
-> [reporting policy](docs/pr-policy.md) are DEPRECATED (2026-09-18), following
-> Anoieu's deprecation.** A formal replacement using Koine's shared tooling is
-> pending. Existing launchers and reviewed records remain available during the
-> transition. See the [replacement work](docs/maintenance.md#replace-the-deprecated-reporting-workflow).
+**What cvc5 has since done about them** is assessed from cvc5's own history,
+never from a finding going quiet:
+
+```bash
+prompts/update_bug_db --dry-run
+prompts/update_bug_db
+```
+
+The launcher reads the commits between the revision an observation was recorded
+against and whatever the local cvc5 checkout holds, and starts an assistant that
+decides which of them close something. A closure names the commit and the pull
+request on the database entry, and is written up in
+[experience.md](docs/experience.md). Nothing is committed, nothing is pushed, and
+no program here touches a tracker. See
+[the closure assessment](docs/maintenance.md#assessing-closure).
 
 ## Documentation and development
 
@@ -113,7 +122,8 @@ ones subsequently disputed or resolved. Disappearance does not close a finding.
 | [Analyzer guide](docs/analyzer.md) | targets, observation records and producer comparison |
 | [Developer commands](docs/usage.md) | detailed reports and optional measurements |
 | [Checks](docs/checks.md) | emitted checks and their limits |
-| [Maintenance](docs/maintenance.md) | tests, pins and script catalogue |
+| [Experience](docs/experience.md) | the cvc5 changes that closed an observation, and what they say about the checks |
+| [Maintenance](docs/maintenance.md) | tests, pins, closure assessment and the script catalogue |
 | [The plan](TODO.md) | what is measured today, what is queued, and what we have decided not to do |
 | [Documentation index](docs/README.md) | findings, case studies and design notes |
 
@@ -134,5 +144,5 @@ kept by Kanon. Anoieu implements the checker; CI pins its revision in
 directs the work, reviews it and decides what is reported upstream. Findings
 are filed by the human. The
 [deprecated reporting policy](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)
-preserves the historical rationale; the
-[replacement](docs/maintenance.md#replace-the-deprecated-reporting-workflow) is pending.
+preserves the historical rationale; what this repository holds itself to now is
+[the bar](docs/findings.md#the-bar).

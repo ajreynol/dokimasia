@@ -10,13 +10,18 @@ named argument, not a task.
 
 *Numbers below are measured against cvc5 `40a4bb7e4` unless stated.*
 
-## Reporting transition
+## Reporting
 
-The former reporting policy and workflow are **deprecated (2026-09-18)**,
-following Anoieu. The data artifact is [`bug_db/`](bug_db/README.md), with a
-generated [Markdown view](bug_db/bugs.md). The formal lifecycle,
-reviewed-record migration and evidence-based closure support remain
-[pending](docs/maintenance.md#replace-the-deprecated-reporting-workflow).
+The former reporting policy and workflow were deprecated on 2026-09-18,
+following Anoieu, and **removed on 2026-09-19** with the three launchers that
+carried them. The data artifact is [`bug_db/`](bug_db/README.md), with a
+generated [Markdown view](bug_db/bugs.md); closure is
+[assessed against cvc5's history](docs/maintenance.md#assessing-closure) by
+`prompts/update_bug_db` and written up in
+[`docs/experience.md`](docs/experience.md). What the bar is, and the rule that
+we never send anything ourselves, are in
+[`docs/findings.md`](docs/findings.md#the-bar). Migrating the curated register
+into the same identity space is the work that remains.
 
 ## Implementation inventory
 
@@ -166,7 +171,7 @@ Everything above that is not on this list is context, not a queue.
 | **t-2** | **Re-run the corpus census on a clean upstream build.** | [The census](docs/reachability.md) was produced by a binary built from `ajreynol/CVC4` with local modifications, so it is the one set of numbers a reader cannot re-check by fetching the pin. Listed as a debt in `scripts/cvc5.lock`, and it needs a build we do not have |
 | **t-3** | **Work the latent set down.** | `dokimasia.latent` now names **182 holes no input has reached**. Each needs an input (it becomes a finding) or an unreachability argument (it leaves the inventory). Start with the 5 latent seam rules — `SAT_REFUTATION` is the one that is not arith |
 | **t-4** | **Answer cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) with `BUILD0001`.** | [The case study](docs/cases/safe-build-vs-safe-mode.md) is written and the check passes. We are **not** asking for the configure restriction to be lifted — it is a deliberate simplification. We are reporting what it costs (only safe-build diagnostics on a debug binary) and offering the invariant that keeps the cost that low, as a [kind B](docs/findings.md) adoption; better still if cvc5 owns it and ours retires |
-| **t-5** | **Carry `i-3`/`R2` and `i-2` to cvc5.** | The two rows that [clear the bar](docs/pr-policy.md#the-bar). `i-3`: the completeness flag cannot be set in the mode that promises it. `i-2`: safe mode refuses `--strings-lazy-pp` *because it lacks proof support*, then runs with it on. Both are one command to check and a one-line call to fix — see [the verdicts](docs/next-report.md) |
+| **t-5** | **Carry `i-3`/`R2` and `i-2` to cvc5.** | The two rows that [clear the bar](docs/findings.md#the-bar). `i-3`: the completeness flag cannot be set in the mode that promises it. `i-2`: safe mode refuses `--strings-lazy-pp` *because it lacks proof support*, then runs with it on. Both are one command to check and a one-line call to fix — see [the verdicts](docs/next-report.md) |
 
 Deferred until **R1** has been asked for, because R1 would retire most of what
 they are for: the AST tier (`API0001`–`0004`, `INFER0001`), `SEAM0002` (the
@@ -217,7 +222,7 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
   [`issues.md#settled`](docs/issues.md#settled) and
   [`findings.md#retractions`](docs/findings.md#retractions).
 - **We never open a pull request or an issue.**
-  [`docs/pr-policy.md`](docs/pr-policy.md).
+  [`docs/findings.md#the-bar`](docs/findings.md#the-bar).
 - **Prefer the claim a maintainer can refute in one command.** Of the recent
   things we got wrong, every one was a static argument that read correctly and
   was false, and every one was caught by running something.

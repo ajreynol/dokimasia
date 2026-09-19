@@ -635,7 +635,13 @@ prompts they carry defined in our own
 are what was written at the time and no longer resolve.)* It works,
 and it took an afternoon, because we read your two scripts and wrote ours from
 them. That is the point of this topic: the second implementation of a protocol
-is the moment to ask whether it should have been one.
+is the moment to ask whether it should have been one. *(Amended 2026-09-19:
+both launchers, the document defining their prompts and the postmortem log are
+removed here. What became of a finding is now assessed from cvc5's commits by
+`prompts/update_bug_db` and written up in `experience.md`, so the drift check
+below has nothing left to check on our side. The question the topic asks —
+shared implementation or copied prose — is unchanged, and our answer to it is
+now one fewer copy.)*
 
 **What is actually shared.** The reply format — blocks headed by an id, with
 `TRIAGE:`, `OBSERVED, NOT ACTED ON:` and `HUMAN RESPONSE:`, closing with

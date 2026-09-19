@@ -3,11 +3,11 @@
 **Question:** of everything this repository believes, which class is most worth
 a cvc5 maintainer's time — as a bug report, or as a patch a human carries?
 
-Nothing here is sent by a program. See [`pr-policy.md`](pr-policy.md).
+Nothing here is sent by a program. See [the bar](findings.md#the-bar).
 
 ## The verdicts
 
-Applying [the bar](pr-policy.md#the-bar). Two rows clear it; everything else
+Applying [the bar](findings.md#the-bar). Two rows clear it; everything else
 names the rule that blocks it.
 
 | verdict | row | |

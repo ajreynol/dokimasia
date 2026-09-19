@@ -1,10 +1,9 @@
 # Findings
 
-This reviewed ledger and its retractions remain in use during the
-[reporting transition](maintenance.md#replace-the-deprecated-reporting-workflow).
-The former policy and workflow are deprecated; their terminology below is
-retained to interpret existing records. Raw run observations live in
-[`bug_db/`](../bug_db/README.md).
+The reviewed ledger: what a finding is, what clears the bar to be carried to
+cvc5, and the log of what has been filed and what has been retracted. Raw run
+observations live in [`bug_db/`](../bug_db/README.md); what cvc5 has since done
+about them is [`experience.md`](experience.md).
 
 Four kinds, extending anoieu's three:
 
@@ -48,6 +47,66 @@ signature:
   `--assertions` and the regression suite passes with it in place. An assertion
   we have not run is a hypothesis, and hypotheses go in [`issues.md`](issues.md),
   not in a patch.
+
+## The bar
+
+**This repository never opens a pull request against cvc5. No program here
+pushes a branch, opens an issue, posts a comment, or touches a tracker. A human
+does that, or it does not happen.** A hard rule about the *act*, not about the
+judgement: deciding what deserves to go upstream is this repository's job, and
+handing back an unranked list for somebody to sort is the work left undone.
+
+Five rules, by name so they can be cited. A candidate is **worth carrying** only
+when all five hold.
+
+| rule | it means |
+| --- | --- |
+| **theirs-not-ours** | it is a defect in cvc5. A parser bug, a stale baseline or a bad assumption of ours is fixed here and logged, never reported |
+| **run-it** | every claim about behaviour is backed by a command and its actual output. Static reasoning alone is a hypothesis |
+| **cheap-to-refute** | the evidence is a command, a reproducer, or a named line — checkable in minutes, without us |
+| **falsifiable** | we have said what would show it is wrong. A claim with no stated falsifier is not finished being thought about |
+| **worth-the-attention** | it earns the time it costs. Cleanups are bundled and go *after* something substantive lands, never before |
+
+Every candidate carries exactly one verdict, and every one is recorded.
+
+| verdict | means | lives in |
+| --- | --- | --- |
+| **carry** | all five hold; a person can take it upstream today | [`next-report.md`](next-report.md), with the packet |
+| **not yet** | one or more fail — **name which** | [`issues.md`](issues.md), rank and blocking rule on the row |
+| **never** | it is ours, or it will never earn the attention | [`issues.md`](issues.md#settled) or the retraction log |
+
+*Not yet* is the verdict we issue most, and naming the failing rule is what makes
+it actionable: it says exactly what work would change the answer.
+
+**The carry packet** is what a person needs in order to act, and no more: the
+claim in one sentence and its rank; the command that reproduces it against a
+stated commit; the reproducer where the claim is about behaviour — a `.smt2`
+file, the option set, the quoted output; what would falsify it; and the patch as
+a diff in a file, never as a branch.
+
+### The bar is also a design constraint
+
+**Before building a check, ask what its output would be worth.** If everything a
+check can produce would come back *not yet — worth-the-attention*, the check is
+not worth building. That single question retires more work than any other test
+we have, and it is why [`TODO.md`](../TODO.md) declines a SARIF framework, a
+generated check registry, and a `holes/` corpus with no holes in it.
+
+**Design every check with its verification path.** A check that can only ever
+produce hypotheses fails **run-it** by construction, and will sit in the register
+forever. This is why `dokimasia.latent` ships with
+[`scripts/sweep_corpus`](../scripts/sweep_corpus): the static half alone could
+never clear the bar, so the runtime half is not an extra, it is what makes the
+analysis reportable at all.
+
+**Fix at the source, not in the report.** When a candidate dies because we were
+wrong, the deliverable is a corrected *analysis*, not a retraction. `SET_FILTER`
+did not just get struck from the register; `Fragment.requires_higher_order` now
+recovers the logic-level gate, so the whole class of mistake is gone. A
+retraction with no code change behind it means the analysis will make the same
+error again. Our own errors go through the same pipeline, inverted: a false
+positive is ours by promise, so it is filed against us, tested against the case
+that produced it, and logged in [the retractions](#retractions) below.
 
 ## The log
 

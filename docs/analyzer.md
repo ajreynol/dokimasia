@@ -36,7 +36,7 @@ The analyzer does not use [`scripts/cvc5.lock`](../scripts/cvc5.lock) to select
 or reject a checkout. That file fixes the regression-test reference; analyzing
 the latest cvc5 records the revision and source contents actually read.
 
-`prompts/process_dokimasia` uses this same resolver, with its positional `DIR`
+`prompts/update_bug_db` uses this same resolver, with its `--cvc5` option
 as the explicit override. Write new configurations in `scripts/repos.local`; the
 JSON entry is the last fallback. **No path is guessed**, including `~/cvc5`: a
 checkout this repository is not told about is not found, because a resolver that
@@ -206,7 +206,8 @@ means the implementation was still under review when the run was made.
 [`issues.md`](issues.md) remains the register for all `i-*` candidates, `R*`
 requests, process items, settled `s-*` hypotheses and filed `f-*` entries.
 [`findings.md`](findings.md) retains the reporting kinds, filed record and
-retractions. Nothing is closed, reopened or promoted by a database append.
+retractions. Nothing is closed, reopened or promoted by a database append;
+closure is [its own assessment](maintenance.md#assessing-closure).
 
 Useful correspondences are `SEAM0001` with `i-7`, `INFER0002` with `i-22`,
 `SIG0003` for `SUBS` with `i-21`, and `MODE0001` for `stringLazyPreproc` with
@@ -214,12 +215,13 @@ Useful correspondences are `SEAM0001` with `i-7`, `INFER0002` with `i-22`,
 defaults-only scanner's result; `s-4` records why interpreting it as a reachable
 defect was wrong. These are links between records, not new verdicts.
 
-The [former reporting workflow](workflows.md) is **deprecated**; its
-[replacement is pending](maintenance.md#replace-the-deprecated-reporting-workflow).
-The existing launchers remain usable for following up reviewed records during
-the transition. To carry a structured observation into that legacy workflow, review its claim
-and archived evidence first. In the corresponding `issues.md` row, record the
+[Closure](maintenance.md#assessing-closure) is assessed separately, from cvc5's
+own history rather than from a run: `prompts/update_bug_db` marks an entry only
+where a named commit can be shown to have made its claim false, and
+[`experience.md`](experience.md) records what that change did. To carry a
+structured observation into the reviewed register instead, review its claim and
+archived evidence first. In the corresponding `issues.md` row, record the
 `dokimasia:*` identity, link the archived run, and state what would settle the
-claim. Reuse an existing row for the same question. The reporting launchers
-continue to take that row's `i-*` id; a database id alone is not a reviewed
-report. Keep replies and resolutions in the register and findings ledger.
+claim. Reuse an existing row for the same question; a database id alone is not a
+reviewed report. Keep replies and resolutions in the register and findings
+ledger.

@@ -37,8 +37,9 @@ What we will and will not say about somebody else's code — silence is never
 evidence, a false positive is ours, an artifact settles a finding — is the
 historical position shared with anoieu in the now-deprecated
 [`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md).
-The [reporting replacement](maintenance.md#replace-the-deprecated-reporting-workflow)
-is pending.
+What we hold ourselves to now is [the bar](findings.md#the-bar), and what
+somebody else's code did about a claim of ours is recorded in
+[`experience.md`](experience.md).
 
 ## The operating constraint: agility
 

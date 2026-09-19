@@ -4,9 +4,9 @@
 readable directly on GitHub, with no server or local setup.
 
 This directory is a **data artifact of Dokimasia**: the bugs and observations
-recorded from its runs, including candidates, disputed claims and findings that
-have since been resolved. Dokimasia owns the records, evidence, triage and
-closure decisions. [Koine's `bug_db_manager`](https://github.com/ajreynol/koine/tree/main/bug_db_manager)
+recorded from its runs, including candidates, disputed claims and observations
+[since closed](#closing-an-observation) by a cvc5 change. Dokimasia owns the
+records, evidence, triage and closure decisions. [Koine's `bug_db_manager`](https://github.com/ajreynol/koine/tree/main/bug_db_manager)
 provides the shared writer; its tooling lives in Koine.
 
 | Artifact | Contents |
@@ -80,12 +80,24 @@ including when it reports a conflicting claim. Dates do not establish fresh
 reproduction or confirmation. An absent observation stays in the database;
 absence alone does not establish that it was fixed.
 
-## Reporting transition
+## Closing an observation
 
-The [former reporting workflow](../docs/workflows.md) and
-[reporting policy](../docs/pr-policy.md) are deprecated. Their replacement is
-[pending](../docs/maintenance.md#replace-the-deprecated-reporting-workflow).
-Database recording is implemented; automatic closure assessment is not.
-Preserve reviewed verdicts, replies and retractions in the existing
-[issue register](../docs/issues.md) and [findings ledger](../docs/findings.md)
-while that work proceeds. A database append neither closes nor promotes a claim.
+A closure is a decision about a **cvc5 change**, made by
+[`prompts/update_bug_db`](../prompts/update_bug_db): it reads the commits
+between the revision an observation was recorded against and the local cvc5
+checkout, and marks only what a commit can be shown to have fixed. Disappearance
+from a later dump closes nothing, and a database append neither closes nor
+promotes a claim.
+
+A closed entry carries `closed_on`, `closed_commit`, `closed_pr` where the
+commit names one, and a one-sentence `closed_why`. Everything else about it is
+untouched: the identity, the original claim and both dates. Nothing is ever
+removed, so an entry re-observed after its `closed_on` is a closure to
+re-assess, not a record to correct. What the change actually did is written up
+in [`docs/experience.md`](../docs/experience.md), one section per pull request.
+
+Reviewed verdicts, replies and retractions stay in the
+[issue register](../docs/issues.md) and the
+[findings ledger](../docs/findings.md); see
+[assessing closure](../docs/maintenance.md#assessing-closure) for the mechanics
+and what is still missing.

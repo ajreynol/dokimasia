@@ -1,0 +1,277 @@
+#!/usr/bin/env python3
+"""Assess which recorded observations recent cvc5 commits have closed.
+
+The database records what an analysis saw; it has never recorded what became of
+it. This launcher starts an assistant on that question, in this repository,
+against a window of cvc5 history: from the revision the observations were taken
+at to whatever the local checkout holds now.
+
+**It is commit-first, and that is the point.** Asking "which of these 197 rows
+is fixed?" invites a re-analysis, and a re-analysis that finds nothing is not
+evidence of a fix -- `bug_db/README.md` says so in as many words. Asking "what
+did this commit change, and does it close anything we recorded?" starts from
+something that actually happened, names it, and leaves a cvc5 pull request
+attached to every closure. That is also what makes the record worth publishing:
+`docs/experience.md` is the post-mortem of those changes, and a closure with no
+commit behind it cannot be written up there at all.
+
+**It never touches the cvc5 checkout.** Not a fetch, not a checkout, not a
+build: the analyzer's rule for a dependency tree (`docs/analyzer.md`) is the
+rule here. So a window that is empty is reported as empty rather than filled in
+by pulling somebody's tree out from under them -- updating that checkout is the
+operator's action, deliberately.
+
+**Everything it changes is left uncommitted**, in this repository: the
+`closed_*` fields on the entries in `bug_db/bugs.json`, and the sections in
+`docs/experience.md`. Nothing is pushed, nothing reaches a tracker, and no
+verdict here is final until somebody reads the diff.
+"""
+import argparse
+from datetime import date
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+sys.dont_write_bytecode = True
+ROOT = Path(__file__).resolve().parent.parent
+sys.path[:0] = [str(ROOT), str(ROOT / "scripts")]
+import targets
+from bug_reports import DB
+
+#: How many commits the prompt lists before it stops and says how many it left
+#: out. A prompt is not a substitute for `git log`, and a silent cut would read
+#: as a complete window.
+LISTED = 40
+
+EXPERIENCE = ROOT / "docs/experience.md"
+
+
+def git(root, *args):
+    p = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
+    if p.returncode:
+        raise ValueError(f"git {' '.join(args)} failed in {root}: {p.stderr.strip()}")
+    return p.stdout.strip()
+
+
+def cvc5(explicit):
+    """The checkout, verified as cvc5 the way the reporting launchers verify it."""
+    root, via = targets.checkout(explicit)
+    if not root.is_dir():
+        raise ValueError(f"no cvc5 checkout at {root} (from {via}); pass --cvc5, "
+                         "set DOKIMASIA_CVC5, or configure scripts/repos.local")
+    if not all((root / p).exists() for p in
+               ("configure.sh", "src/theory", "include/cvc5/cvc5_proof_rule.h")):
+        raise ValueError(f"{root} (from {via}) does not look like a cvc5 checkout")
+    return root, via
+
+
+def baseline(explicit):
+    """The revision the recorded observations were taken against.
+
+    The newest run archive, because that is the revision the claims in the
+    database describe. `scripts/cvc5.lock` is the fallback and not the default:
+    it pins the revision tests reproduce, which is a different question and is
+    routinely older than the last run.
+    """
+    if explicit:
+        return explicit, "--since"
+    runs = []
+    for path in sorted((DB.parent / "runs").glob("*.json")):
+        record = json.loads(path.read_text())
+        for target in record.get("targets", []):
+            if target.get("project") == "cvc5" and target.get("commit"):
+                runs.append((record.get("observed_on", ""), path.name, target["commit"]))
+    if runs:
+        observed, name, commit = max(runs)
+        return commit, f"bug_db/runs/{name}, observed {observed}"
+    lock = json.loads((ROOT / "scripts/cvc5.lock").read_text())["cvc5"]["commit"]
+    return lock, "scripts/cvc5.lock"
+
+
+def window(root, base):
+    """The commits to assess, newest first, and how the checkout sits."""
+    if subprocess.run(["git", "-C", str(root), "cat-file", "-e", base + "^{commit}"],
+                      capture_output=True).returncode:
+        raise ValueError(f"{root} does not contain {base}. Update that checkout yourself; "
+                         "this command never fetches.")
+    head = git(root, "rev-parse", "HEAD")
+    commits = [line.split("\t", 1) for line in
+               git(root, "log", "--no-merges", "--format=%H\t%s", f"{base}..HEAD").splitlines()]
+    behind = int(git(root, "rev-list", "--count", f"{head}..{base}") or 0)
+    return head, commits, behind
+
+
+def observations():
+    """What is on the table, by check code. The claims themselves are in the file."""
+    bugs = json.loads(DB.read_text())["bugs"]
+    counts = {}
+    for bug in bugs:
+        counts[bug.get("code", "?")] = counts.get(bug.get("code", "?"), 0) + 1
+    return len(bugs), ", ".join(f"{code} {n}" for code, n in sorted(counts.items()))
+
+
+def describe(root, via, base, source, head, commits, behind):
+    lines = [f"cvc5 checkout: {root} (from {via})",
+             f"  HEAD:     {head}",
+             f"  baseline: {base} (from {source})",
+             f"  window:   {len(commits)} commit(s) to assess"
+             + (f"; the checkout is {behind} commit(s) behind the baseline" if behind else "")]
+    lines += [f"  {sha[:10]} {subject}" for sha, subject in commits[:LISTED]]
+    if len(commits) > LISTED:
+        lines.append(f"  ... and {len(commits) - LISTED} more, not listed")
+    total, by_code = observations()
+    lines.append(f"database: {total} observation(s) in {DB.relative_to(ROOT)} -- {by_code}")
+    return "\n".join(lines)
+
+
+def prompt(root, via, base, source, head, commits, when):
+    listed = "\n".join(f"  {sha} {subject}" for sha, subject in commits[:LISTED])
+    if len(commits) > LISTED:
+        listed += (f"\n  ... and {len(commits) - LISTED} more. The list above is cut; "
+                   "the command below is not, and the window is all of them.")
+    total, by_code = observations()
+    return f"""\
+You are updating the bug database of **dokimasia**, at {ROOT}. Dokimasia is a
+static analyzer for the proof-production code of cvc5: the C++ that builds
+proofs and the seam that prints them in Eunoia. `bug_db/bugs.json` holds {total}
+observations it has recorded -- each an identity, a check code, an entity and
+the claim as it was first made. Read `bug_db/README.md` for what that artifact
+is and `docs/checks.md` for what each code claims.
+
+  {by_code}
+
+**Your question is what cvc5 has since done about them.** The observations were
+taken against cvc5 {base} (from {source}). The checkout at {root} (from {via})
+is now at {head}, and these {len(commits)} commit(s) landed in between:
+
+{listed}
+
+  # the window, in full
+  git -C {root} log --no-merges --format='%h %s' {base}..HEAD
+  # what one commit touched
+  git -C {root} show --stat <commit>
+
+**Read that checkout; never write it.** No fetch, no pull, no checkout, no
+branch, no build inside it. Everything you change is in {ROOT}.
+
+**Work commit-first, one commit at a time.**
+
+1. Read what the commit changed. Its files say which checks it could bear on
+   at all; most commits in this window bear on none, and saying so is a
+   complete result for that commit.
+2. Name the observations it could close, by identity. `bug_db/bugs.json` is the
+   list; the archived run under `bug_db/runs/` carries the evidence and the
+   recorded limitation for each identity, which is what tells you what the
+   claim actually rested on.
+3. **Confirm the closure in the current source, not in the commit message.**
+   Re-read the code the observation names as it stands at {head[:10]} and
+   establish that the claim is no longer true of it. A commit that looks
+   related and a claim that is now false are two different findings, and only
+   the second one closes anything.
+4. **Absence closes nothing.** Not finding an entity, not reproducing a claim,
+   and a check that would now report less are none of them evidence of a fix.
+   If an entity is gone -- a rule renamed, a file deleted, an id retired -- say
+   which of those happened and what it means for the claim; that is an explicit
+   assessment, and it is the only way such a row is closed.
+5. If you cannot tell, leave it open and say what would settle it. An open row
+   costs nothing; a wrong closure is a claim that cvc5 fixed something it did
+   not.
+
+**Then write two things, and nothing else.**
+
+(a) **`bug_db/bugs.json`** -- for each observation you closed, add these fields
+    to its entry and change nothing else about it:
+
+      "closed_on":     "{when}",
+      "closed_commit": "<the full cvc5 sha>",
+      "closed_pr":     "https://github.com/cvc5/cvc5/pull/<n>",
+      "closed_why":    "<one sentence: what the commit changed, and what you
+                        re-read to confirm the claim is now false>"
+
+    cvc5 squashes with the pull request number in the subject, as `(#12345)`;
+    take it from there. Omit `closed_pr` entirely if the subject names none --
+    do not guess a number.
+
+    Keep every existing field and value exactly as it is: `id`, `bug`,
+    `first_seen`, `last_seen`, the original `description`. Do not reorder,
+    rewrite or delete an entry, and do not touch `bug_db/runs/`. A later
+    analyzer run that re-observes a closed identity will move its `last_seen`
+    past `closed_on`, and that contradiction is how a wrong closure surfaces:
+    it is a feature, not something to tidy away. Then check the generated page
+    still matches the database:
+
+      scripts/append_findings --render-only --check
+
+(b) **`docs/experience.md`** -- one section per cvc5 pull request that closed
+    something, newest first, in the shape that file sets out. That is the
+    post-mortem: at a high level, what was actually wrong, what the change did
+    about it, and what that says about the check that found it. Record whether
+    the change cites us, and do not argue for it -- attribution is secondary
+    there, and a fix cvc5 found on its own still closed an observation of ours
+    and is still evidence the check was pointing at something real.
+
+**Finish with a report to the terminal**: what you closed and under which pull
+request, what you assessed and left open with the reason, and which commits in
+the window bore on nothing. Say plainly if the window was too thin to conclude
+anything.
+
+**Commit nothing and push nothing.** Leave the changes in the working tree for
+a maintainer to read as a diff. Open no pull request, file no issue, post no
+comment, and touch no tracker -- not cvc5's, not anybody's. Nothing here
+reaches a person who did not ask for it.
+"""
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Assess which recorded observations "
+                                             "recent cvc5 commits have closed.")
+    ap.add_argument("--cvc5", help="explicit checkout; otherwise environment, repos.local, "
+                                   "deps.local.json, then deps/cvc5")
+    ap.add_argument("--since", help="baseline revision; default: the cvc5 revision of the "
+                                    "newest archived run")
+    ap.add_argument("--date", help="the closure date to record; default: today")
+    ap.add_argument("--dry-run", action="store_true", help="print the window and exit")
+    ap.add_argument("--show-prompt", action="store_true")
+    ap.add_argument("--codex", action="store_true")
+    ap.add_argument("--print", action="store_true", dest="noninteractive")
+    args = ap.parse_args()
+    try:
+        root, via = cvc5(args.cvc5)
+        base, source = baseline(args.since)
+        head, commits, behind = window(root, base)
+        if args.dry_run:
+            print(describe(root, via, base, source, head, commits, behind))
+            return 0
+        when = args.date or date.today().isoformat()
+        text = prompt(root, via, base, source, head, commits, when)
+        if args.show_prompt:
+            print(text)
+            return 0
+        if not commits:
+            # Nothing happened upstream that this run could read, which is not a
+            # failure and is not an assessment either. Spending a turn on an
+            # empty window produces a report that says nothing and a file that
+            # claims it was checked.
+            print(f"-- update_bug_db: no commit after {base} in {root}"
+                  + (f"; that checkout is {behind} commit(s) behind it" if behind else ""),
+                  file=sys.stderr)
+            print("--   update that checkout yourself; this never fetches", file=sys.stderr)
+            return 0
+        if not EXPERIENCE.is_file():
+            raise ValueError(f"{EXPERIENCE.relative_to(ROOT)} is missing; it defines the shape "
+                             "of what this run writes")
+        print(f"-- update_bug_db: {len(commits)} cvc5 commit(s) after {base[:10]} "
+              f"(from {source})", file=sys.stderr)
+        print(f"--   reading {root} at {head[:10]}; writing bug_db/bugs.json and "
+              "docs/experience.md here", file=sys.stderr)
+        command = (["codex", "exec"] if args.noninteractive else ["codex"]) if args.codex else (
+                   ["claude", "-p"] if args.noninteractive else ["claude"])
+        return subprocess.run(command + [text], cwd=ROOT).returncode
+    except (OSError, ValueError, KeyError) as e:
+        print(f"update_bug_db: {e}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

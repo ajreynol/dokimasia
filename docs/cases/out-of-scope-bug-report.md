@@ -49,10 +49,10 @@ This is the question worth a case study, because the answer is not "nowhere".
 The maintainer will answer #12905 — reproduce it, locate it, fix it or explain
 why it is not a bug. **That answer is evidence about how cvc5 issues get
 addressed**, and it is evidence this repository is well placed to collect and
-badly placed to act on. We run assistants against cvc5 issues already
-([`prompts/check_cvc5_issue`](../../prompts/check_cvc5_issue));
-what we have
-never done is record what the human answer taught that the assistant missed.
+badly placed to act on. We ran assistants against cvc5 issues already, through a
+`prompts/check_cvc5_issue` launcher since retired with the rest of that
+workflow; what we have never done is record what the human answer taught that
+the assistant missed.
 
 **The current home is [Paideia](https://github.com/ajreynol/paideia).** The
 original decision was to start `empeiria` as a child project under Dokimasia's
@@ -71,12 +71,10 @@ and is outside this repository's scope.
 
 ## What the original decision sought to change
 
-The maintainer's side of the loop was already defined —
-[`prompts/check_cvc5_issue`](../../prompts/check_cvc5_issue)
-writes a `TRIAGE:`
-block and leaves `HUMAN RESPONSE:` empty for a person. What was missing is what
-happened **after** the response arrived: the answer was read and the file was
-forgotten.
+The maintainer's side of the loop was already defined — that launcher wrote a
+`TRIAGE:` block and left `HUMAN RESPONSE:` empty for a person. What was missing
+is what happened **after** the response arrived: the answer was read and the
+file was forgotten.
 
 The change is small and is the whole point: **the response is an artifact, and
 the delta between it and the triage is the thing worth keeping.** Not the
