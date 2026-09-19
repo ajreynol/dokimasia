@@ -44,67 +44,91 @@ def check(label, ok, detail=""):
 
 
 def test_experience():
-    """One entry per defect, in one shape, with a lesson in each.
+    """One numbered episode per interaction with cvc5, all in one shape.
 
-    The page is a log of concrete defects found in cvc5, so what is checked is
-    that every entry looks like every other one: the same field block, a summary
-    short enough to read, and a `Learned:` saying what the check got right or
-    wrong. The template is checked as well as the entries, because there may be
-    no new entry for a long time and the template is what the next run copies.
+    The page is a list of self-contained case studies, so what is checked is
+    that it stays a list: nothing but `E<n>:` headings and the maintenance
+    footnote, ids allocated upward and never reused, and every entry carrying
+    the same five-row block and the same two prose fields. The template is
+    checked as well as the entries, because it is what the next run copies.
     """
     print("the experience log:")
-    LIMIT, SENTENCES = 250, 2
-    ROWS = ("Status", "Identity", "Found by", "In cvc5", "Attribution")
-    PROSE = ("Summary:", "What was wrong:", "Learned:")
+    LIMIT = 4
+    ROWS = ("When", "Kind", "Ours", "cvc5", "Outcome")
+    PROSE = ("What happened.", "What we learned.")
+    FOOT = "## How this page is maintained"
     raw = read(EXPERIENCE)
     text = re.sub(r"```.*?```", "", raw, flags=re.S)  # not the template
-    check("it says where the log stands",
-          "## Where this stands" in text, "no such section")
-    check("it says how it is maintained, at the foot",
-          "## How this page is maintained" in text, "no such section")
-    # The template is the pattern. A reader should be able to see it without
-    # reverse-engineering it from the entries, and the next run copies it.
+
+    # The shape is the point: a reader should see one pattern repeated and
+    # nothing else competing with it.
+    heads = re.findall(r"^## (.+)$", text, re.M)
+    stray = [h for h in heads
+             if not re.match(r"E\d+: ", h) and h != FOOT[3:]]
+    check("the only headings are the episodes and the footnote", not stray, stray)
+    check("the footnote is last",
+          heads and heads[-1] == FOOT[3:], heads[-1] if heads else "none")
+    deep = re.findall(r"^#{3,6} .*$", text, re.M)
+    check("no heading below the episodes", not deep, deep[:3])
+
+    ids = [int(m) for m in re.findall(r"^## E(\d+): ", text, re.M)]
+    check("ids are unique", len(set(ids)) == len(ids), ids)
+    check("ids ascend, so the next one is one above the highest",
+          ids == sorted(ids), ids)
+
     template = re.search(r"```text\n(.*?)\n```", raw, re.S)
     body = template.group(1) if template else ""
-    check("the template carries every field block row",
+    check("the template carries every block row",
           bool(template) and all(f"**{r}**" in body for r in ROWS),
-          "the field block is what makes the pattern visible")
-    check("the template carries every prose field",
+          "the block is what makes the pattern visible")
+    check("the template carries both prose fields",
           bool(template) and all(f"**{f}**" in body for f in PROSE),
-          "a section with no Learned: records an event and not a lesson")
+          "an entry with no lesson records an event and not an episode")
 
-    entries = re.split(r"^### (?=\d{4}-\d{2}-\d{2} )", text, flags=re.M)[1:]
+    entries = re.split(r"^## (?=E\d+: )", text, flags=re.M)[1:]
+    entries = [e for e in entries if not e.startswith("How this page")]
     if not entries:
-        print("  ok   nothing found yet, so there is no entry to check")
+        print("  ok   nothing has happened yet, so there is no entry to check")
         return
-    print(f"  ok   {len(entries)} entries")
+    print(f"  ok   {len(entries)} episodes")
     for entry in entries:
-        title = entry.splitlines()[0].strip()
-        short = title[:60]
-        check(f"{short}: says what the defect was, not just a date",
-              len(title.split("—", 1)[-1].strip()) > 10, title)
+        eid = entry.split(":", 1)[0]
+        title = entry.splitlines()[0]
+        check(f"{eid}: the heading says what happened",
+              len(title.split(":", 1)[1].split()) >= 5, title)
         for row in ROWS:
             n = len(re.findall(rf"^\| \*\*{re.escape(row)}\*\* \|", entry, re.M))
-            check(f"{short}: one **{row}** row", n == 1, f"found {n}")
+            check(f"{eid}: one **{row}** row", n == 1, f"found {n}")
         for field in PROSE:
             n = len(re.findall(rf"^\*\*{re.escape(field)}\*\*", entry, re.M))
-            check(f"{short}: one **{field}**", n == 1, f"found {n}")
-        # An entry ties itself to something checkable: a database identity, a
-        # filed finding id, or an em dash opening an explicit statement that
-        # there is neither. "No observation, and here is why" is a better answer
-        # than a bare dash, so the dash only has to come first.
-        ident = re.search(r"^\| \*\*Identity\*\* \| (.+?) \|", entry, re.M)
-        check(f"{short}: the identity is a row, a finding id, or an explicit none",
-              bool(ident) and bool(re.search(r"dokimasia:[0-9a-f]{8,}|`[fi]-\d+`|^—",
-                                             ident.group(1).strip())),
-              ident.group(1) if ident else "no Identity row")
-        m = re.search(r"^\*\*Summary:\*\*(.*?)(?=\n\*\*|\n\|)", entry, re.M | re.S)
-        if m:
-            s = " ".join(m.group(1).split())
-            check(f"{short}: the summary is {LIMIT} characters at most",
-                  len(s) <= LIMIT, f"{len(s)}")
-            check(f"{short}: the summary is {SENTENCES} sentences at most",
-                  len(re.findall(r"[.!?](?:\s|$)", s)) <= SENTENCES, s[:80])
+            check(f"{eid}: one **{field}**", n == 1, f"found {n}")
+        # Positive or negative, never unlabelled: the ratio of the two is the
+        # most useful thing the page reports about itself.
+        kind = re.search(r"^\| \*\*Kind\*\* \| (.+?) \|", entry, re.M)
+        check(f"{eid}: the kind is positive, negative or neutral",
+              bool(kind) and kind.group(1).split()[0].strip("*") in
+              ("positive", "negative", "neutral"),
+              kind.group(1) if kind else "no Kind row")
+        # An episode is self-contained: it says what it was about without
+        # sending the reader to another document to find out.
+        learned = re.search(r"^\*\*What we learned\.\*\*(.*?)(?=\n\n\#\#|\Z)",
+                            entry, re.M | re.S)
+        check(f"{eid}: the lesson is at least a few sentences",
+              bool(learned) and len(learned.group(1).split()) >= 25,
+              len(learned.group(1).split()) if learned else 0)
+        words = len(entry.split())
+        check(f"{eid}: the entry stays readable in one sitting",
+              words <= 600, f"{words} words")
+    # The page opens with the ratio. A count in prose is a copy, and a copy
+    # nobody re-counts drifts -- this one was wrong within a minute of writing.
+    neg = sum(1 for e in entries if re.search(r"\| \*\*Kind\*\* \| negative", e))
+    stated = re.search(r"\*\*(\d+) of (\d+) are negative", text)
+    check("the page states its own ratio",
+          bool(stated), "no 'N of M are negative' claim in the opening")
+    if stated:
+        check(f"the stated ratio is the counted one ({neg} of {len(entries)})",
+              (int(stated.group(1)), int(stated.group(2))) == (neg, len(entries)),
+              f"page says {stated.group(1)} of {stated.group(2)}")
 
 
 def test_launcher():

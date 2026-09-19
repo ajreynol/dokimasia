@@ -193,7 +193,8 @@ that produced it, and logged in the retractions below.
 
 **A cvc5 developer asks a design question. We answer it with a check.** That is
 the highest-value thing this repository does per hour spent, and the
-case studies (`docs/experience.md`) are where the answers land.
+episodes in `docs/experience.md` are where the answers land — `E6` and `E7`
+are the two of this shape so far.
 
 A design question from a maintainer — *why can't safe mode have debug symbols?*,
 *is this restriction still needed?*, *does this flag still do anything?* — has
