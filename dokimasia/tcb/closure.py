@@ -6,7 +6,7 @@ This computes the transitive closure of ``#include "..."`` edges from a set of
 seed files. That is an **upper bound** on the trusted computing base, not the
 TCB itself: including a header does not mean the code behind it executes during
 proof checking. A precise TCB needs call-graph reachability, which needs a
-build; see ``docs/tooling.md``.
+build; see ``docs/maintenance.md``.
 
 The over-approximation is still the right thing to measure first. It is exact,
 it needs no build, it is what a reader of the code has to hold in their head,
@@ -30,7 +30,7 @@ Modes, and a negative result worth recording
     returns the same answer for every seed measures nothing.
 
     The lesson is that "what could execute" is a **call-graph** question, not an
-    include question, and belongs in the CodeQL tier -- see ``docs/tooling.md``.
+    include question, and belongs in the CodeQL tier -- see ``docs/maintenance.md``.
 
 A dead include and a load-bearing one weigh the same
 ---------------------------------------------------

@@ -3,7 +3,7 @@
 Run: python3 tests/test_tcb.py [<cvc5>]
 
 The synthetic tests need nothing. If a cvc5 checkout is given (or CVC5 is set),
-the tree tests also run and guard the numbers in docs/findings/tcb-001.md.
+the tree tests also run and guard the numbers in docs/experience.md.
 """
 
 import os

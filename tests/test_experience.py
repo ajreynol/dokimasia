@@ -24,7 +24,9 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXPERIENCE = os.path.join(ROOT, "docs", "experience.md")
-CHECKS = os.path.join(ROOT, "docs", "checks.md")
+# The catalogue and the index are one document now; the count is still
+# compared against the table rather than trusted, which is the point.
+CHECKS = os.path.join(ROOT, "docs", "README.md")
 INDEX = os.path.join(ROOT, "docs", "README.md")
 
 FAILURES = []
@@ -140,7 +142,7 @@ def test_local_mode():
 
 
 def test_facets():
-    """`docs/checks.md` is the register of facets; the index quotes its size.
+    """`docs/README.md` is the register of facets; the index quotes its size.
 
     Two copies of one fact, and the smaller one is the one nobody re-counts: the
     index said sixteen while the catalogue carried seventeen rows and an

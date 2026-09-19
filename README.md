@@ -47,7 +47,7 @@ The reporting launcher uses the same checkout configuration. See
 [dependency setup](docs/maintenance.md#local-dependencies) for pinned checkouts
 and Koine's shared updater.
 
-See [the analyzer guide](docs/analyzer.md) for target selection, evidence,
+See [the analyzer guide](docs/maintenance.md#running-the-analyzer) for target selection, evidence,
 identity, database conflicts and comparison of independent producers.
 
 ## What the analyzer checks
@@ -67,9 +67,9 @@ The default run covers the nine analyses that emit documented observations:
 | `signature` | missing signature declarations, refused skolems, and rule-arity disagreements |
 
 Both producers use this scope by default. `--analysis` selects a subset;
-[the check catalogue](docs/checks.md#structured-observations) explains the
+[the check catalogue](docs/README.md#structured-observations) explains the
 claims and their limitations. Developer reports and regression checks are
-documented in [the command reference](docs/usage.md).
+documented in [the command reference](docs/maintenance.md#the-command-reference).
 
 ## An independent reading
 
@@ -93,8 +93,8 @@ Dokimasia owns that history and its interpretation; Koine provides the tooling.
 **[Browse all recorded observations in Markdown](bug_db/bugs.md).** Recording
 commands refresh the view, and CI checks that it matches the JSON.
 
-The [issue register](docs/issues.md) records candidates, requests and settled
-hypotheses. [Filed findings and retractions](docs/findings.md) remain the
+The [issue register](docs/README.md#the-register) records candidates, requests and settled
+hypotheses. [Filed findings and retractions](docs/experience.md#what-a-finding-is) remain the
 reviewed record. The database preserves observations across runs, including
 ones subsequently disputed or resolved. Disappearance does not close a finding.
 
@@ -140,16 +140,16 @@ the part to read first.
 
 ## Documentation and development
 
+**`docs/` holds four documents and nothing else.**
+
 | document | purpose |
 | --- | --- |
-| [Bug database](bug_db/README.md) | the data artifact, recording commands and Markdown browsing |
-| [Analyzer guide](docs/analyzer.md) | targets, observation records and producer comparison |
-| [Developer commands](docs/usage.md) | detailed reports and optional measurements |
-| [Checks](docs/checks.md) | emitted checks and their limits |
-| [Experience](docs/experience.md) | the cvc5 changes that closed an observation, and what they say about the checks |
-| [Maintenance](docs/maintenance.md) | tests, pins, closure assessment and the script catalogue |
+| [The argument and the registers](docs/README.md) | the goal, the contract, [the checks](docs/README.md#the-checks), [the register](docs/README.md#the-register) of what we ask cvc5 to act on, and the asks argued |
+| [Maintenance](docs/maintenance.md) | [running the analyzer](docs/maintenance.md#running-the-analyzer), [the command reference](docs/maintenance.md#the-command-reference), pins, tests, the script catalogue and [what the corpus reaches](docs/maintenance.md#what-the-corpus-reaches) |
+| [Experience](docs/experience.md) | what a finding is and the bar it clears, the log and retractions, the case studies, and the cvc5 changes that closed an observation |
+| [Discussion](docs/discussion.md) | the standing channel to the rest of the ecosystem, and the gate on responding to it |
+| [Bug database](bug_db/README.md) | the data artifact: [every observation](bug_db/bugs.md) and [the supported fragment](bug_db/fragment.md), both generated |
 | [The plan](TODO.md) | what is measured today, what is queued, and what we have decided not to do |
-| [Documentation index](docs/README.md) | findings, case studies and design notes |
 | [ydoki](tools/ydoki/README.md) | the research child: which theories and options are worth making proof-supported, and in what order |
 
 ## The name
@@ -168,8 +168,8 @@ kept by Kanon. Anoieu implements the checker; CI pins its revision in
 **Written by AI agents, under light human supervision.** A human maintainer
 directs the work, reviews it and decides what is reported upstream. Findings
 are filed by the human. What this repository holds itself to is stated in its
-own tree — [the promises](docs/findings.md#the-promises) and
-[the bar](docs/findings.md#the-bar). They began as a position shared with
+own tree — [the promises](docs/experience.md#the-promises) and
+[the bar](docs/experience.md#the-bar). They began as a position shared with
 anoieu, in a [reporting policy](https://github.com/ajreynol/anoieu/blob/06bd7872ea5ce24bf4d264bf5e6958ed8edee3c2/docs/reports/reporting-policy.md)
 anoieu deprecated and then removed; that link is pinned to the last commit the
 page existed at, because provenance a reader cannot fetch is not provenance.

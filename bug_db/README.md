@@ -46,7 +46,7 @@ scripts/append_findings scratch/new-bugs.json
 
 The append preview validates the dump and its `.run.json` sidecar, then invokes
 Koine's dry run; it changes neither the database, archives nor Markdown.
-The [independent assistant producer](../docs/analyzer.md#an-independent-second-producer)
+The [independent assistant producer](../docs/maintenance.md#an-independent-second-producer)
 uses the same format and append command after its claims are reviewed. Both
 producers use the same identity space and artifact; the archive records which
 producer supplied the evidence.
@@ -72,7 +72,7 @@ overrides that view's location.
 The JSON has a top-level `bugs` array. Each observation carries an `id`, `bug`,
 `tool`, `owner`, `code`, `entity`, `description` and `kind`, plus Koine's
 `first_seen` and `last_seen` ingestion dates. The
-[analyzer guide](../docs/analyzer.md#identity-and-evidence) defines identities
+[analyzer guide](../docs/maintenance.md#identity-and-evidence) defines identities
 and the evidence keyed by those identities in the run archives.
 
 Koine preserves the original claim and updates `last_seen` on re-ingestion,
@@ -97,7 +97,7 @@ re-assess, not a record to correct. What the change actually did is written up
 in [`docs/experience.md`](../docs/experience.md), one section per pull request.
 
 Reviewed verdicts, replies and retractions stay in the
-[issue register](../docs/issues.md) and the
-[findings ledger](../docs/findings.md); see
+[issue register](../docs/README.md#the-register) and the
+[findings ledger](../docs/experience.md#what-a-finding-is); see
 [assessing closure](../docs/maintenance.md#assessing-closure) for the mechanics
 and what is still missing.

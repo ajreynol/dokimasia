@@ -1,11 +1,11 @@
 # The plan
 
-The goal is [**complete proofs, always**](docs/goals.md).
+The goal is [**complete proofs, always**](docs/README.md#the-stance).
 
 **This file holds work *we* do**, and it is meant to stay short. Anything we ask
-cvc5 to act on is in [`docs/issues.md`](docs/issues.md); the reasoning behind any
+cvc5 to act on is in [`docs/README.md`](docs/README.md#the-register); the reasoning behind any
 of it is in `docs/`; the catalogue of checks is
-[`docs/checks.md`](docs/checks.md). A numbered section in a design note is a
+[`docs/README.md`](docs/README.md#the-checks). A numbered section in a design note is a
 named argument, not a task.
 
 *Numbers below are measured against cvc5 `40a4bb7e4` unless stated.*
@@ -20,8 +20,8 @@ dependence on the deprecated external policy. The data artifact is
 closure is [assessed against cvc5's history](docs/maintenance.md#assessing-closure)
 by `prompts/close_bug_db` and written up in
 [`docs/experience.md`](docs/experience.md). What we hold ourselves to is stated
-in the tree: [the promises](docs/findings.md#the-promises), each with the tier
-and the test behind it, and [the bar](docs/findings.md#the-bar).
+in the tree: [the promises](docs/experience.md#the-promises), each with the tier
+and the test behind it, and [the bar](docs/experience.md#the-bar).
 
 **What is left, and it is not ours.** Anoieu's replacement policy on Koine's
 shared tooling is pending; the four remaining links to its deprecated page are
@@ -74,7 +74,7 @@ Five groups. Each carries metrics and a short list of what is left.
 | rewrites the seam takes **only** outside safe mode | **3** — one (`LAMBDA_ELIM`) not otherwise blocked | 0 |
 | `TrustId`s constructible | **70 of 75 live** | ranked by safe-mode reachability |
 | inferences falling through to a trust step by construction | **79** | ranked by reachability |
-| **of that inventory, what any input has reached** | **[0 in safe mode, 21 of 203 unrestricted](docs/reachability.md)** | the latent set, named |
+| **of that inventory, what any input has reached** | **[0 in safe mode, 21 of 203 unrestricted](docs/maintenance.md#what-the-corpus-reaches)** | the latent set, named |
 | **the latent count** — declared, never reached | **182 of 203** (`latent census`) | shrinking, either way it goes |
 
 **Left to do:** work the 182 down (`t-3`). The count is the headline number and
@@ -91,10 +91,10 @@ refusals are intentional (**R1**, **R6**).
 | metric | today | target |
 | --- | --- | --- |
 | the internal checker's compile-time surface | **179 files, 41,446 lines, 8.0% of `src/`** | smaller, and not growing |
-| rule checkers over-scoped by a solver include | **6** ([`tcb-001`](docs/findings/tcb-001.md)) | 0 |
+| rule checkers over-scoped by a solver include | **6** ([`tcb-001`](docs/experience.md#tcb-001--proof-rule-checkers-compile-against-the-theory-solvers-they-check)) | 0 |
 
 **Left to do:** nothing queued. The kernel obligations
-([`docs/kernel.md`](docs/kernel.md)) stay parked behind `i-4` — reconstruction
+([`docs/README.md`](docs/README.md#the-two-wishues)) stay parked behind `i-4` — reconstruction
 runs under a search budget with no termination argument, which bounds what any
 kernel contract can claim.
 
@@ -122,8 +122,8 @@ rest of G3's precision need the call site, which is the AST tier — deferred
 until **R1** has been asked for.
 
 **What cvc5 can do:** **R4** (one id, one site), **R7** (derivable names),
-**R10** (rule on [the hygiene standard](docs/hygiene.md)). **R7b** is
-[withdrawn](docs/issues.md#withdrawn) — it would have published cvc5's internal
+**R10** (rule on [the hygiene standard](docs/README.md#proof-hygiene)). **R7b** is
+[withdrawn](docs/README.md#withdrawn) — it would have published cvc5's internal
 RARE file layout in a public API header to save us a directory scan.
 
 ---
@@ -135,18 +135,18 @@ to.*
 
 | metric | today | target |
 | --- | --- | --- |
-| options declaring no proof support that safe mode leaves on | **1** (`stringLazyPreproc`; `macrosQuantMode` is [spurious](docs/issues.md#settled)) | 0 |
-| completeness chain links that hold | **4 of 5** — and the fifth [cannot be stated](docs/issues.md) in safe mode at all | 5, asserted |
+| options declaring no proof support that safe mode leaves on | **1** (`stringLazyPreproc`; `macrosQuantMode` is [spurious](docs/README.md#settled)) | 0 |
+| completeness chain links that hold | **4 of 5** — and the fifth [cannot be stated](docs/README.md#the-register) in safe mode at all | 5, asserted |
 | build-matrix jobs running a proof tester | **4 of 22** | — |
 | term kinds carrying an option gate | **59** | — |
 | the supported fragment | **341 kinds over 14 theories**; 216 available, 125 blocked | stated somewhere |
 | expert options gating no term kind | **2** (`ufHoExp`, `fpExp`) — the axis a kind list cannot express | — |
-| **holes reached in safe mode over `regress0`** | **[0, over 1,061 proofs](docs/reachability.md)** | stays 0 |
+| **holes reached in safe mode over `regress0`** | **[0, over 1,061 proofs](docs/maintenance.md#what-the-corpus-reaches)** | stays 0 |
 
 **Left to do:** `t-1` (an input for `i-1`) and `t-5` (per-logic breakdown).
 
 **What cvc5 can do:** **R2** (assert the completeness implication — [the next
-thing we would report](docs/next-report.md)), **R5** (`no_support` covers
+thing we would report](docs/experience.md#what-to-report-next)), **R5** (`no_support` covers
 defaults), **R8** (safe mode prunes at build time).
 
 ---
@@ -173,11 +173,11 @@ Everything above that is not on this list is context, not a queue.
 
 | | | why |
 | --- | --- | --- |
-| **t-1** | **Get an input for `i-1` (`LAMBDA_ELIM`).** | The only candidate that could become a rank-1 finding, and static work cannot settle it. **One attempt has failed** — a plain `define-fun` runs clean in safe mode; the macro is expanded before the rewriter. Needs a benchmark that keeps a lambda alive. Treat [`s-6`](docs/issues.md#settled) as the cautionary case |
-| **t-2** | **Re-run the corpus census on a clean upstream build.** | [The census](docs/reachability.md) was produced by a binary built from `ajreynol/CVC4` with local modifications, so it is the one set of numbers a reader cannot re-check by fetching the pin. Listed as a debt in `scripts/cvc5.lock`, and it needs a build we do not have |
+| **t-1** | **Get an input for `i-1` (`LAMBDA_ELIM`).** | The only candidate that could become a rank-1 finding, and static work cannot settle it. **One attempt has failed** — a plain `define-fun` runs clean in safe mode; the macro is expanded before the rewriter. Needs a benchmark that keeps a lambda alive. Treat [`s-6`](docs/README.md#settled) as the cautionary case |
+| **t-2** | **Re-run the corpus census on a clean upstream build.** | [The census](docs/maintenance.md#what-the-corpus-reaches) was produced by a binary built from `ajreynol/CVC4` with local modifications, so it is the one set of numbers a reader cannot re-check by fetching the pin. Listed as a debt in `scripts/cvc5.lock`, and it needs a build we do not have |
 | **t-3** | **Work the latent set down.** | `dokimasia.latent` now names **182 holes no input has reached**. Each needs an input (it becomes a finding) or an unreachability argument (it leaves the inventory). Start with the 5 latent seam rules — `SAT_REFUTATION` is the one that is not arith |
-| **t-4** | **Answer cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) with `BUILD0001`.** | [The case study](docs/cases/safe-build-vs-safe-mode.md) is written and the check passes. We are **not** asking for the configure restriction to be lifted — it is a deliberate simplification. We are reporting what it costs (only safe-build diagnostics on a debug binary) and offering the invariant that keeps the cost that low, as a [kind B](docs/findings.md) adoption; better still if cvc5 owns it and ours retires |
-| **t-5** | **Carry `i-3`/`R2` and `i-2` to cvc5.** | The two rows that [clear the bar](docs/findings.md#the-bar). `i-3`: the completeness flag cannot be set in the mode that promises it. `i-2`: safe mode refuses `--strings-lazy-pp` *because it lacks proof support*, then runs with it on. Both are one command to check and a one-line call to fix — see [the verdicts](docs/next-report.md) |
+| **t-4** | **Answer cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) with `BUILD0001`.** | [The case study](docs/experience.md#cvc5-12899--is-forbidding-safe-mode-with-debug-symbols-actually-a-restriction) is written and the check passes. We are **not** asking for the configure restriction to be lifted — it is a deliberate simplification. We are reporting what it costs (only safe-build diagnostics on a debug binary) and offering the invariant that keeps the cost that low, as a [kind B](docs/experience.md#what-a-finding-is) adoption; better still if cvc5 owns it and ours retires |
+| **t-5** | **Carry `i-3`/`R2` and `i-2` to cvc5.** | The two rows that [clear the bar](docs/experience.md#the-bar). `i-3`: the completeness flag cannot be set in the mode that promises it. `i-2`: safe mode refuses `--strings-lazy-pp` *because it lacks proof support*, then runs with it on. Both are one command to check and a one-line call to fix — see [the verdicts](docs/experience.md#what-to-report-next) |
 
 Deferred until **R1** has been asked for, because R1 would retire most of what
 they are for: the AST tier (`API0001`–`0004`, `INFER0001`), `SEAM0002` (the
@@ -189,7 +189,7 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
 - **A design question is answered with a check.** When a cvc5 developer asks
   *why is this the way it is*, the deliverable is an invariant, a verifier, and
   a test showing the verifier fire — not an opinion and not a reading. The
-  standing decision and the register are [`docs/cases/`](docs/cases/).
+  standing decision and the register are [`docs/experience.md`](docs/experience.md#case-studies).
 - **One command.** `python3 -m dokimasia check <cvc5>` runs every ratchet in a
   single process, reading `src/` once instead of once per tool: **2.4s, down
   from 7.4s**. `report` prints the advertised analyses by default;
@@ -222,13 +222,13 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
   from our own CI — the way we already fetch the policy checker and
   `koine_append_db` — and keep the failure here.
 - **A finding is confirmed before it is filed**, and for a defect that means an
-  input ([`docs/findings.md`](docs/findings.md)).
+  input ([`docs/experience.md`](docs/experience.md#what-a-finding-is)).
 - **A false positive is our bug**, including a retracted number and a fabricated
   baseline entry — the logs are
-  [`issues.md#settled`](docs/issues.md#settled) and
-  [`findings.md#retractions`](docs/findings.md#retractions).
+  [`issues.md#settled`](docs/README.md#settled) and
+  [`findings.md#retractions`](docs/experience.md#retractions).
 - **We never open a pull request or an issue.**
-  [`docs/findings.md#the-bar`](docs/findings.md#the-bar).
+  [`docs/experience.md#the-bar`](docs/experience.md#the-bar).
 - **Prefer the claim a maintainer can refute in one command.** Of the recent
   things we got wrong, every one was a static argument that read correctly and
   was false, and every one was caught by running something.
@@ -239,13 +239,13 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
   [Paideia](https://github.com/ajreynol/paideia), which is authoritative for it.
 - **Performance work**, including proof-production overhead. That belongs to
   [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
-- **Fuzzing.** [murxla's job](docs/tooling.md#posture-toward-murxla). What we can
+- **Fuzzing.** [murxla's job](docs/maintenance.md#posture-toward-murxla). What we can
   contribute is a fragment description — *a hole here needs a formula with these
   features* — not a fuzzer.
 - **Alethe.** Not on the critical path and not available in safe mode, so it
   cannot bear on the contract.
 - **A diagnostic/SARIF framework and a generated check registry.** Modelled on
-  anoieu and never needed: `docs/checks.md` is written by hand and is accurate,
+  anoieu and never needed: `docs/README.md` is written by hand and is accurate,
   and the check-code namespace is not currently carrying weight — most tools
   answer their question without printing a code. Revisit if we ever ask cvc5 to
   run our checks in their CI (**R11**), which is when a machine format matters.

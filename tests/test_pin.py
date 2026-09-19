@@ -125,12 +125,15 @@ if __name__ == "__main__":
         check(f"exception {c} states a reason", bool(why and len(why) > 20), True)
     for c, only in scoped.items():
         check(f"historical {c} is scoped to one document", bool(only), True)
-    # The scan below is only worth its green if it reached the documents most
-    # likely to quote a commit: the filed findings and the case studies.
+    # The scan is only worth its green if it reached the documents most likely
+    # to quote a commit. The filed findings and the case studies used to be
+    # files of their own under docs/; they are sections of experience.md now,
+    # so the anchor moved with them rather than being dropped.
     docs = documents()
-    check("the scan reaches documents below docs/",
-          all(any(p.startswith(sub) for p in docs)
-              for sub in ("docs/findings/", "docs/cases/")), True)
+    check("the scan reaches the documents that quote commits",
+          all(any(p == name for p in docs)
+              for name in ("docs/experience.md", "docs/README.md",
+                           "docs/maintenance.md")), True)
     test_docs_agree(d, set(allowed), scoped)
     test_printed_claims(d)
     root = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("CVC5")

@@ -82,7 +82,7 @@ class AnalyzerTests(unittest.TestCase):
                 finding_id(code, bad)
 
     def test_catalogue_covers_exact_emitted_code_set(self):
-        text = (ROOT / "docs/checks.md").read_text().split("## Structured observations", 1)[1]
+        text = (ROOT / "docs/README.md").read_text().split("## Structured observations", 1)[1]
         import re
         self.assertEqual(set(re.findall(r"^\| `([A-Z]+\d{4})`", text, re.M)), set(CHECKS))
 
@@ -324,7 +324,7 @@ class AnalyzerTests(unittest.TestCase):
         body = render(db, page)
         self.assertIn("[bugs.json](../data%20set/observations.json)", body)
         self.assertIn("[Archived run records](../data%20set/runs/)", body)
-        self.assertIn("docs/analyzer.md)", body)
+        self.assertIn("docs/maintenance.md)", body)
         self.assertIn("a &#124; b &lt;tag&gt; &#96;code&#96; next line", body)
 
     def test_retired_koine_layouts_are_refused(self):

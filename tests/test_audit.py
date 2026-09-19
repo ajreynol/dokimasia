@@ -53,7 +53,7 @@ def test_attribution():
           audit._attribute("tests/test_ledger.py"), ("ledger", "tests"))
     check("a baseline", audit._attribute("tests/baselines/ledger.json"), ("ledger", "baseline"))
     check("a census", audit._attribute("tests/corpus/reach-corpus.json"), ("latent", "data"))
-    check("a doc", audit._attribute("docs/issues.md"), ("(docs)", "docs"))
+    check("a doc", audit._attribute("docs/README.md"), ("(docs)", "docs"))
 
 
 def test_totals():

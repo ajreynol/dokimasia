@@ -105,7 +105,7 @@ def render(db=DB, page=None):
         "Dokimasia owns this artifact; Koine supplies the writer. Dates record ingestion, not fresh confirmation.",
         "The first claim is preserved. Disappearance does not close a finding.",
         f"[Archived run records]({link(db.parent / 'runs')}/) contain the source revisions, actual coverage and evidence keyed by id.",
-        f"See [the analyzer guide]({link(ROOT / 'docs/analyzer.md')}) for evidence, limitations and the historical register.", "",
+        f"See [the analyzer guide]({link(ROOT / 'docs/maintenance.md')}) for evidence, limitations and the historical register.", "",
         f"{len(bugs)} observation(s).", "",
         "| id | check | entity | first seen | last seen | original claim |",
         "| --- | --- | --- | --- | --- | --- |"]

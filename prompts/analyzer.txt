@@ -1,5 +1,5 @@
 Work in {ROOT}. Independently examine the selected cvc5 source scope for the
-observations specified in docs/checks.md and docs/analyzer.md. Read those two
+observations specified in docs/README.md and docs/maintenance.md. Read those two
 documents first. This is a comparison of two producers, not a request to fix cvc5.
 
 {TARGETS}
@@ -10,12 +10,12 @@ generated static-analysis page, issue register, or filed findings. Do not read
 dokimasia/findings.py; the allowed identity helper below may import it. Your
 answer must be independent of the program's answer.
 
-Use only emitted codes in docs/checks.md. For each independently established
+Use only emitted codes in docs/README.md. For each independently established
 observation, obtain its stable record with:
 
   python3 scripts/finding_id.py CODE ENTITY --record
 
-Use the entity convention in docs/analyzer.md. The helper only formats a claim
+Use the entity convention in docs/maintenance.md. The helper only formats a claim
 and mints its identity; it does not check whether the claim is true. Include
 the record only after reading evidence. Aggregate sites sharing one identity;
 never emit duplicate ids. Put actual source locations, quoted evidence and

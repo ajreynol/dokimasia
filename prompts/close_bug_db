@@ -233,7 +233,7 @@ static analyzer for the proof-production code of cvc5: the C++ that builds
 proofs and the seam that prints them in Eunoia. `bug_db/bugs.json` holds {total}
 observations it has recorded -- each an identity, a check code, an entity and
 the claim as it was first made. Read `bug_db/README.md` for what that artifact
-is and `docs/checks.md` for what each code claims.
+is and `docs/README.md` for what each code claims.
 
   {by_code}
 

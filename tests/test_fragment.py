@@ -12,7 +12,7 @@ sys.path.insert(0, ROOT)
 from dokimasia.fragment.__main__ import document  # noqa: E402
 from dokimasia.fragment.fragment import EXPERT_OPTIONS, scan  # noqa: E402
 
-PAGE = os.path.join(ROOT, "docs", "fragment.md")
+PAGE = os.path.join(ROOT, "bug_db", "fragment.md")
 LOCK = os.path.join(ROOT, "scripts", "cvc5.lock")
 
 FAILURES = []
@@ -78,7 +78,7 @@ def test_cvc5(root):
 
 
 def test_generated_page(root):
-    """`docs/fragment.md` is generated, so it is regenerated and diffed.
+    """`bug_db/fragment.md` is generated, so it is regenerated and diffed.
 
     Only at the pinned commit: the page records the fragment at one revision,
     so a diff taken against any other checkout says nothing about drift. The
@@ -93,11 +93,11 @@ def test_generated_page(root):
         return
     with open(PAGE, encoding="utf-8") as fh:
         committed = fh.read()
-    check("docs/fragment.md is what the generator writes at the pin",
+    check("bug_db/fragment.md is what the generator writes at the pin",
           document(scan(root)) == committed, True)
     if document(scan(root)) != committed:
         print("        regenerate it: "
-              "python3 -m dokimasia.fragment doc <cvc5> --out docs/fragment.md")
+              "python3 -m dokimasia.fragment doc <cvc5> --out bug_db/fragment.md")
 
 
 if __name__ == "__main__":

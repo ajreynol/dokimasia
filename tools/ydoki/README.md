@@ -209,8 +209,8 @@ adds no instrument:
 - **`dokimasia.signature`** — the skolems the solver constructs and the seam
   refuses, and which rules the signature declares.
 
-**The parent's registers remain the authority.** `docs/checks.md`,
-`docs/issues.md` and `TODO.md` govern what has been measured and what is being
+**The parent's registers remain the authority.** `docs/README.md`,
+`docs/README.md` and `TODO.md` govern what has been measured and what is being
 asked of cvc5. Where this project disagrees with them, they win and the
 disagreement is the interesting part; a version of this project that never
 disagreed would be a paraphrase.
@@ -218,7 +218,7 @@ disagreed would be a paraphrase.
 ## How it ends
 
 Three endings, and a person picks: it **graduates** into its own repository, it
-is **folded** into the parent — most likely as a section of `docs/issues.md` if
+is **folded** into the parent — most likely as a section of `docs/README.md` if
 the ranking turns into something we would ask cvc5 for — or it is **retired in
 place** with a line saying what was learned. Going quiet is not one of them.
 
