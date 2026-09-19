@@ -2,7 +2,7 @@
 
 Dokimasia owns analysis of cvc5's proof-production source and its
 `bug_db/` data artifact: records, evidence, triage and
-closure decisions. Koine maintains the shared database writer.
+closure decisions. Koine maintains the shared append, closure and history-window scripts.
 Kanon owns ecosystem policy; Anoieu implements the optional policy checker.
 
 General cvc5 development belongs to
@@ -132,7 +132,8 @@ database integration.
 | `scripts/compare_findings` | compare producers on an identical source snapshot |
 | `scripts/finding_id.py` | format a stable record or compute its identity without analysis |
 | `scripts/targets.py`, `scripts/targets.json` | shared checkout resolution and declared input scope |
-| `scripts/koine.py`, `scripts/koine.lock` | locate and verify the pinned database utility |
+| `scripts/koine.py`, `scripts/koine.lock` | locate and verify the pinned Koine scripts |
+| `scripts/closure.json`, `scripts/closure_baseline.py` | closure configuration and archived cvc5 baseline |
 | `scripts/bug_reports.py` | local validation, archived evidence and Markdown rendering |
 | `scripts/sweep_corpus` | run cvc5 over a corpus and record runtime counters |
 | `scripts/audit_loc` | measure this repository's implementation and documentation |
@@ -143,19 +144,19 @@ database integration.
 Commands that run live in `scripts/`; launchers that spend a turn on an
 assistant live in `prompts/`, so a reader can tell which is which without
 opening a directory. Neither prompt has a second copy to drift from: the
-analyzer's is read from `prompts/analyzer.txt`, and the closure prompt is built
-in `prompts/close_bug_db` from the window it resolved. What each writes is held
-to a shape instead — `tests/test_experience.py` checks the post-mortem's, and
+analyzer's is read from `prompts/analyzer.txt`; Koine assembles the closure
+prompt from its shared discipline and the owner sections in `prompts/closure/`.
+`tests/test_experience.py` checks the post-mortem's shape, and
 `scripts/append_findings --render-only --check` checks the database view's.
 
 ## Pins and generated records
 
-The Koine pin is `8efe59ca20b5d684d8d00fce330b6a6968444493`; its upstream
-[`tests` check](https://github.com/ajreynol/koine/actions/runs/35383263886/job/105724207417)
-completed successfully on 2026-09-18. This revision uses
-`bug_db_manager/koine_append_db` and locks the database itself. Dokimasia already
-holds that same lock while archiving, appending and rendering, so it invokes
-Koine with `--no-lock` inside the locked section.
+The Koine pin is `e4e4e2e760197429ff182826ed9b7a90fea11633`; its upstream
+[`tests` check](https://github.com/ajreynol/koine/actions/runs/35463151942/job/105950505607)
+completed successfully, verified on 2026-09-19. It supplies `koine_append_db`,
+`koine_close_db`, `koine_window` and `koine_check_db` from `bug_db_manager/`.
+Dokimasia holds the database lock across archiving, appending and rendering,
+and invokes the append script with `--no-lock` inside that section.
 
 To update `scripts/koine.lock`, choose a full Koine commit SHA and inspect the
 `tests` check on that exact commit in GitHub. Only replace the lock's SHA after
@@ -212,6 +213,13 @@ semantics.
 
 ## Assessing closure
 
+`prompts/close_bug_db` delegates to the pinned `koine_close_db`, configured by
+`scripts/closure.json`. Koine supplies the history window, closure discipline,
+assistant invocation and `koine_check_db` command in the prompt. Dokimasia keeps
+baseline selection, local cvc5 validation, the empty-window guard, and its
+owner sections in `prompts/closure/`. All closure modes, including previews,
+require the pinned Koine checkout; cvc5 remains optional.
+
 An observation is closed by **a change in cvc5 that somebody can point at**,
 never by a later run failing to see it. The
 bug database (`bug_db/README.md`) and the
@@ -232,7 +240,8 @@ The baseline is the cvc5 revision of the newest archived run — the revision th
 recorded claims actually describe — and the window runs from there to cvc5's
 `main`. `scripts/cvc5.lock` is the fallback baseline rather than the default: it
 pins what the regression checks reproduce, which is a different question and is
-usually older.
+usually older. `scripts/closure_baseline.py` supplies that selection to Koine;
+`--since` overrides it. Koine considers only observations without `closed_*` fields.
 
 **cvc5 is not a dependency of this command.** The prompt names
 `compare/<baseline>...main` and the assistant reads the history where it is
@@ -248,7 +257,8 @@ value it resolves one the way the analyzer does, through `$DOKIMASIA_CVC5` or
 lists it, and the tree is read and never written. A local window with nothing in
 it starts no assistant and reports which refs in that checkout are already ahead
 of its `HEAD`, because history fetched and left on a remote-tracking ref is the
-usual reason for an empty one.
+usual reason for an empty one. Koine refuses shallow checkouts and warns when
+the baseline is not an ancestor of the local HEAD.
 
 A closure adds four fields to an entry in `bug_db/bugs.json` and changes nothing
 else about it:
@@ -264,9 +274,14 @@ Koine's writer keeps fields it does not know about and never removes an entry,
 so a marked observation survives later appends unchanged. It also keeps moving
 `last_seen`: an analyzer run that re-observes a closed identity puts a sighting
 after its `closed_on`, and that contradiction is exactly the signal that the
-closure was wrong. Re-assess it — do not tidy the record. The generated page
+closure may be wrong. Koine reports it as a reopen candidate. Re-assess it —
+do not tidy the record. The generated page
 renders the original claim and is unaffected either way, which
-`scripts/append_findings --render-only --check` confirms.
+`scripts/append_findings --render-only --check` confirms. The closure prompt also
+requires `koine_check_db`: against the committed database, it rejects changed
+claims, missing or reordered entries, and edits to existing closures. Start a
+closure assessment from a committed database so that comparison isolates the
+closure edits.
 
 Each pull request is then written up in `experience.md`, whose
 shape `tests/test_experience.py` holds. The run leaves both files uncommitted:

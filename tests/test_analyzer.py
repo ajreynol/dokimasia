@@ -51,7 +51,7 @@ class AnalyzerTests(unittest.TestCase):
 
     def need_koine(self):
         try:
-            return koine.append_db()
+            return koine.script()
         except ValueError as e:
             self.skipTest(str(e))
 
@@ -342,7 +342,7 @@ class AnalyzerTests(unittest.TestCase):
             with patch.object(koine, "ROOT", self.base), \
                     patch.dict(os.environ, {"KOINE": str(self.base / "old-koine")}):
                 with self.assertRaisesRegex(ValueError, "no bug_db_manager/koine_append_db.*retired layout"):
-                    koine.append_db()
+                    koine.script()
             path.unlink()
 
     def test_wrong_koine_pin_refused(self):
@@ -352,7 +352,7 @@ class AnalyzerTests(unittest.TestCase):
             (self.base / "scripts/koine.lock").write_text("0" * 40)
             with patch.dict(os.environ, {"KOINE": str(path)}):
                 with self.assertRaisesRegex(ValueError, "pinned commit"):
-                    koine.append_db()
+                    koine.script()
 
     def test_same_run_comparison_and_snapshot_mismatch(self):
         self.assertEqual(self.run_analyzer("--no-update"), 0)

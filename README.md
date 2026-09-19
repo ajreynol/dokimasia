@@ -107,8 +107,10 @@ prompts/close_bug_db
 prompts/close_bug_db --use-local /path/to/cvc5
 ```
 
-**No cvc5 checkout is needed.** The launcher names the window — the commits
-between the revision an observation was recorded against and cvc5's `main` — and
+**No cvc5 checkout is needed.** The pinned Koine checkout is required, including
+for previews. The launcher delegates to Koine with `scripts/closure.json` and
+Dokimasia's prompt sections in `prompts/closure/`. Koine names the window — the
+commits between the revision an observation was recorded against and cvc5's `main` — and
 the assistant reads it at [cvc5's repository](https://github.com/cvc5/cvc5),
 where the history is public. `--use-local` points it at a checkout instead, when
 one is to hand and has moved; it is an optimisation, not a requirement. The

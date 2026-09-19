@@ -10,17 +10,18 @@ ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = Path("bug_db_manager/koine_append_db")
 
 
-def append_db():
+def script(name="koine_append_db"):
+    relative = SCRIPT.with_name(name)
     pin = (ROOT / "scripts/koine.lock").read_text().strip()
     explicit = os.environ.get("KOINE")
     candidates = [Path(explicit).expanduser()] if explicit else [ROOT.parent / "koine", ROOT / "deps/koine"]
     problems = []
     for path in candidates:
-        script = path / SCRIPT
+        script = path / relative
         if not script.is_file():
             stale = " (retired layout; update the checkout)" if any(
                 (path / old).is_file() for old in (SCRIPT.name, "bug_db/koine_append_db")) else ""
-            problems.append(f"{path}: no {SCRIPT}{stale}")
+            problems.append(f"{path}: no {relative}{stale}")
             continue
         rev = subprocess.run(["git", "-C", str(path), "rev-parse", "HEAD"], capture_output=True, text=True)
         dirty = subprocess.run(["git", "-C", str(path), "status", "--porcelain", "--untracked-files=no"],

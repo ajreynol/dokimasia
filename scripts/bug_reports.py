@@ -139,7 +139,7 @@ def append(dump, db=DB, page=PAGE, dry_run=False, date=None):
         raise ValueError("dump, evidence, database and page must be different files")
     bugs = read_dump(dump)
     run = read_run(dump, bugs)
-    script = koine.append_db()
+    script = koine.script()
     argv = [sys.executable, str(script), str(dump), str(db)]
     if dry_run:
         argv.append("--dry-run")

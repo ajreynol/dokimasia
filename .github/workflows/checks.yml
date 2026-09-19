@@ -20,7 +20,13 @@ jobs:
       - name: the test suite, without a cvc5 checkout
         run: |
           # A missing/mismatched Koine may skip tests locally, but must fail CI.
-          python3 -c "import sys; sys.path.insert(0, 'scripts'); import koine; print(koine.append_db())"
+          python3 - <<'PY'
+          import sys
+          sys.path.insert(0, 'scripts')
+          import koine
+          for name in ('koine_append_db', 'koine_close_db', 'koine_window', 'koine_check_db'):
+              print(koine.script(name))
+          PY
           fail=0
           for t in tests/*.py; do
             echo "--- $t"

@@ -1,0 +1,4 @@
+The archived run under `bug_db/runs/` carries the evidence and the recorded
+limitation for each identity; read it to establish what the claim rested on.
+For a local window, confirm against that checkout at the HEAD named above;
+for a remote window, name the revision of cvc5's `main` you actually read.

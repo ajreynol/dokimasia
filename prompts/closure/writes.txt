@@ -1,0 +1,25 @@
+Write two things:
+
+(a) **`bug_db/bugs.json`** -- for each observation you closed, add these fields
+    to its entry and change nothing else about it:
+
+      "closed_on":     "{when}",
+      "closed_commit": "<the full cvc5 sha>",
+      "closed_pr":     "https://github.com/cvc5/cvc5/pull/<n>",
+      "closed_why":    "<what the commit changed, and what you re-read to
+                        confirm the claim is now false>"
+
+    cvc5 squashes with the pull request number in the subject, as `(#12345)`;
+    take it from there. Omit `closed_pr` entirely if the subject names none --
+    do not guess a number. Keep every existing field and value exactly as it
+    is; do not reorder, rewrite or delete entries, or touch `bug_db/runs/`.
+    A later analyzer run that re-observes a closed identity moves `last_seen`
+    past `closed_on`, and Koine reports a reopen candidate. That contradiction
+    is how a wrong closure surfaces; do not tidy it away.
+
+(b) **`docs/experience.md`** -- one section per cvc5 pull request that closed
+    something, in the order and shape that file sets out. At a high level,
+    explain what was wrong, what the change did about it, and what that says
+    about the check that found it. Record whether the change cites us, without
+    arguing for attribution: a fix cvc5 found independently still closed an
+    observation of ours and is evidence the check pointed at something real.

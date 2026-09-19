@@ -23,6 +23,8 @@ import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, "scripts"))
+import koine
 EXPERIENCE = os.path.join(ROOT, "docs", "experience.md")
 # The catalogue and the index are one document now; the count is still
 # compared against the table rather than trusted, which is the point.
@@ -136,6 +138,11 @@ def test_experience():
 def test_launcher():
     """The preview runs anywhere, writes nothing, and keeps the load-bearing rules."""
     print("\nthe closure launcher:")
+    try:
+        koine.script("koine_close_db")
+    except ValueError as e:
+        print(f"  SKIP {e}")
+        return
     script = os.path.join(ROOT, "prompts", "close_bug_db")
     # Read from outside the repository, to prove the launcher resolves its own
     # paths rather than the ones it happens to be standing in.
@@ -158,6 +165,7 @@ def test_launcher():
             ("Confirm the closure in the current source",
              "a commit message is not evidence that a claim is now false"),
             ("closed_commit", "a closure names the commit that made it"),
+            ("koine_check_db", "Koine checks that only closure fields changed"),
             ("docs/experience.md", "the write-up is half of what a run produces"),
             ("Commit nothing and push nothing", "the run leaves a diff, not history")):
         check(f"the prompt says: {phrase}", phrase in p.stdout, why)
@@ -170,7 +178,7 @@ def test_launcher():
           "--use-local" not in p.stdout and "git -C" not in p.stdout,
           "the default prompt reads github, so it names no local tree")
     check("the prompt says how much is on the table",
-          bool(re.search(r"holds \d+\s*\n?observations", p.stdout)),
+          bool(re.search(r"holds\s+\d+\s+open\s+observations", p.stdout)),
           "the prompt does not say how many observations there are")
     changed = [name for name, before in watched.items()
                if read(os.path.join(ROOT, name)) != before]

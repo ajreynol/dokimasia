@@ -1,0 +1,18 @@
+{
+  "root": "..",
+  "tool": "dokimasia",
+  "database": "bug_db/bugs.json",
+  "records": {"one": "observation", "many": "observations", "collective": "bug database"},
+  "group": "code",
+  "listed": 40,
+  "projects": {
+    "cvc5": {"url": "https://github.com/cvc5/cvc5", "ref": "main"}
+  },
+  "baseline": {"command": ["python3", "scripts/closure_baseline.py"]},
+  "prompt": {
+    "about": "prompts/closure/about.txt",
+    "evidence": "prompts/closure/evidence.txt",
+    "writes": "prompts/closure/writes.txt"
+  },
+  "checks": ["scripts/append_findings --render-only --check", "python3 tests/test_experience.py"]
+}

@@ -1,0 +1,5 @@
+Dokimasia is a static analyzer for the proof-production code of cvc5: the C++
+that builds proofs and the seam that prints them in Eunoia. Each observation
+records an identity, a check code, an entity and the claim as it was first made.
+Read `bug_db/README.md` for what that artifact is and `docs/README.md` for what
+each code claims.

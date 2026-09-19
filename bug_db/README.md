@@ -7,7 +7,7 @@ This directory is a **data artifact of Dokimasia**: the bugs and observations
 recorded from its runs, including candidates, disputed claims and observations
 since closed by a cvc5 change. Dokimasia owns the
 records, evidence, triage and closure decisions. [Koine's `bug_db_manager`](https://github.com/ajreynol/koine/tree/main/bug_db_manager)
-provides the shared writer; its tooling lives in Koine.
+provides the shared append, history-window, closure and closure-check scripts.
 
 | Artifact | Contents |
 | --- | --- |
@@ -84,16 +84,18 @@ absence alone does not establish that it was fixed.
 
 A closure is a decision about a **cvc5 change**, made by
 [`prompts/close_bug_db`](../prompts/close_bug_db): it reads the commits
-between the revision an observation was recorded against and the local cvc5
-checkout, and marks only what a commit can be shown to have fixed. Disappearance
+between the revision an observation was recorded against and cvc5's `main`
+(or a checkout with `--use-local`), using the pinned Koine closure scripts.
+It marks only what a commit can be shown to have fixed. Disappearance
 from a later dump closes nothing, and a database append neither closes nor
 promotes a claim.
 
 A closed entry carries `closed_on`, `closed_commit`, `closed_pr` where the
 commit names one, and a one-sentence `closed_why`. Everything else about it is
 untouched: the identity, the original claim and both dates. Nothing is ever
-removed, so an entry re-observed after its `closed_on` is a closure to
-re-assess, not a record to correct. What the change actually did is written up
+removed; Koine reports a reopen candidate when an entry is re-observed after
+its `closed_on`. Re-assess that closure rather than correcting the record.
+What the change actually did is written up
 in `docs/experience.md`, one section per pull request.
 
 Reviewed verdicts, replies and retractions stay in the
