@@ -38,10 +38,11 @@ evidence*, *a false positive is ours*, *an artifact settles a finding* — is
 stated in this tree as [the promises](findings.md#the-promises), each with the
 tier and the mechanism behind it, and enforced at the edge by
 [the bar](findings.md#the-bar). The positions began as
-[a page shared with anoieu](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)
-that anoieu has since deprecated; that link is where they came from and no
-longer where they live. What somebody else's code did about a claim of ours is
-recorded in [`experience.md`](experience.md).
+[a page shared with anoieu](https://github.com/ajreynol/anoieu/blob/06bd7872ea5ce24bf4d264bf5e6958ed8edee3c2/docs/reports/reporting-policy.md)
+that anoieu deprecated and, on 2026-09-19, removed; the link is pinned to the
+last commit it existed at. It is where they came from and not where they live.
+What somebody else's code did about a claim of ours is recorded in
+[`experience.md`](experience.md).
 
 ## The operating constraint: agility
 

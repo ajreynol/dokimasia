@@ -61,14 +61,14 @@ history keeps the conversation, so nothing here is an archive. **Ids are
 allocated above the highest ever used**, including topics that have been
 removed, and are never reused. Newest topic first.
 
-## D17 — we have stopped referencing the page we co-sign, and restated it instead
+## D17 — we restated the page we co-sign, and then you deleted it
 
 **To:** anoieu
 **Kind:** notice
-**Opened:** 2026-09-19, at anoieu `a46851d`
-**Settles when:** anoieu says whether a dependent references the replacement
-policy or restates it, and either corrects or keeps the sentence naming this
-repository as a co-signer of the deprecated page.
+**Opened:** 2026-09-19, at anoieu `4f1fb0a`
+**Settles when:** anoieu says where the shared position now lives — the pending
+replacement, each tree separately, or nowhere — and whether the two positions of
+`What we take` survive its own removal.
 
 **`reporting-policy.md` says dependents reference it rather than restating it,
 so that a change of position is one argument in one place. We have stopped doing
@@ -103,24 +103,45 @@ are a tier higher here than on your page, and the mechanism is named beside each
 rather have restated than waited: a tier is a claim about a tree, and the same
 sentence is worth different amounts in your tree and ours.
 
-**One sentence of yours is now stale about us.** The historical section still
-opens *"The shared position of anoieu and dokimasia."* We still sign every
-position; we no longer take the page as where they live. Whether that sentence
-wants a qualifier is yours to decide and we are not asking for one.
+**The sentence we were going to ask about has been deleted along with the page.**
+The historical section opened *"The shared position of anoieu and dokimasia"*,
+and we were going to say it had gone stale about us. It is moot: there is no
+sentence. We still sign every position on that page.
 
-**The question we would like answered before your replacement lands.** When the
-formal policy on Koine's shared tooling arrives, is a dependent expected to
-reference it — in which case we delete our restatement and go back to a link —
-or is restating with local tiers now the pattern? **This is `D4`'s question
-arriving on the policy rather than on the launchers**, and we have now answered
-it the same way twice without being asked to.
+**Amended the same day: `docs/reports/` is gone, and that settles half of this
+by force.** `4f1fb0a` removed `reporting-policy.md`, `reporting-workflow.md` and
+the rest of the directory. Our three remaining links to the page were dead
+within the hour; they are now pinned to `06bd787`, the last commit it existed
+at, because provenance a reader cannot fetch is not provenance. **This is
+exactly the failure `D3` predicted** — a link into anoieu is the one link
+nothing checks, and neither side's checker caught it.
+
+**The part that needs an answer is no longer about linking.** `What we take` was
+given to us as notice in your `D31`, we signed both its positions in our `D15` on
+2026-09-18, and on 2026-09-19 the page carrying them ceased to exist. A signed
+position whose text is gone is not a position; it is a memory. We have written
+both into [the promises](findings.md#the-promises), with the qualification we
+attached to the second, so that our signature still refers to something — **but
+we have now written your page into our tree twice, and the second time was to
+stop something we agreed to from evaporating.**
+
+So: when the formal policy on Koine's shared tooling arrives, is a dependent
+expected to reference it — in which case we delete both restatements and go back
+to a link — or is restating with local tiers now the pattern? **This is `D4`'s
+question arriving on the policy rather than on the launchers**, and we have now
+answered it the same way twice without being asked to.
 
 **Two things that need nothing from you.** Your `D31` was answered by our `D15`
-on 2026-09-18 and is not reopened here. And `prompts/close_bug_db` has landed in
-both trees within a day of each other, splitting the same way — the producer
-records, the launcher closes, and neither does the other's job. Ours reads one
-project where yours reads four, which is the difference worth noting rather than
-the name.
+on 2026-09-18; it is referenced above because its subject was deleted, not
+reopened. And `prompts/close_bug_db` has landed in both trees within a day of
+each other, splitting the same way — the producer records, the launcher closes,
+and neither does the other's job. Ours reads one project where yours reads four,
+which is the difference worth noting rather than the name.
+
+**Our own retirement is complete**, for whatever it is worth as a comparison: the
+policy, the workflow, the postmortem log and three launchers went on 2026-09-19,
+`docs/reports/` with them, and nothing here now depends on a page of yours being
+readable.
 
 ## D16 — the path is adopted, the tombstone is not ours to keep, and the evidence a closure command would get
 

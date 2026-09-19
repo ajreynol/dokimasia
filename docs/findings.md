@@ -31,12 +31,14 @@ goes with it. See
 ## The promises
 
 These originated as the position shared with anoieu, in a
-[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)
-that anoieu deprecated on 2026-09-18 with its replacement still pending. They
-were cited here by name and not restated, which left the statement of our own
-policy in a deprecated file in another repository. They are restated below
+[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/06bd7872ea5ce24bf4d264bf5e6958ed8edee3c2/docs/reports/reporting-policy.md)
+that anoieu deprecated on 2026-09-18 and **removed on 2026-09-19**. They were
+cited here by name and not restated, which left the statement of our own policy
+in another repository's deprecated file — and that file no longer exists, so the
+citation above is pinned to the last commit it did. They are restated below
 because a policy you cannot read without leaving the tree is not one you can be
-held to. Cite a position **by name**, never by number.
+held to, and a month later the tree you were leaving for may not have it. Cite a
+position **by name**, never by number.
 
 The tier says what backs it — **enforced**, something fails when it is broken;
 **structural**, the arrangement makes the failure hard rather than impossible;
@@ -59,6 +61,20 @@ Two more are stated in this file rather than in this table, because they are
 load-bearing where they sit: *nothing crosses a repository boundary
 automatically* is [the bar](#the-bar), and *success is the check being deleted*
 is the note on kind D above.
+
+**And two about what we take, rather than what we say.** These came last, as a
+section anoieu added on 2026-09-17 and we signed on 2026-09-18; they are here
+because the page carrying them was deleted the next day and they would otherwise
+survive only inside a piece of correspondence that gets removed when it settles.
+
+| | position | tier here | what backs it |
+| --- | --- | --- | --- |
+| **13** | **Published is not available** | intention | reading a published tree needs nobody's permission, and making somebody's work the material of an exercise they have no stake in is a different act. The test is *who carries the cost if the output is misread* — for us that is always cvc5, which is the whole reason for the discipline |
+| **14** | **Unpublished work is not material** | intention, **with one qualification of ours** | clean when the material is a signature, which is released or not. A source tree has a third state: a personal branch on a public host is published in the only sense a machine can check and unreleased in every sense that matters. We sign this as *unreleased work is nobody's material* — forbidding the exercise nobody asked for, not forbidding an answer to a question somebody asks us about our own registers. Read strictly, with *no balancing test*, we could not sign it as written |
+
+The qualification is not a private reservation: it was put to anoieu when we
+signed, and our own `scripts/cvc5.lock` books a reachability census run against
+a personal fork as a debt for exactly this reason.
 
 Two things this repository adds, because the subject is a solver rather than a
 signature:

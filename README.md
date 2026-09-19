@@ -169,6 +169,7 @@ kept by Kanon. Anoieu implements the checker; CI pins its revision in
 directs the work, reviews it and decides what is reported upstream. Findings
 are filed by the human. What this repository holds itself to is stated in its
 own tree — [the promises](docs/findings.md#the-promises) and
-[the bar](docs/findings.md#the-bar); the
-[deprecated reporting policy](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)
-preserves where they came from and the rationale at the time.
+[the bar](docs/findings.md#the-bar). They began as a position shared with
+anoieu, in a [reporting policy](https://github.com/ajreynol/anoieu/blob/06bd7872ea5ce24bf4d264bf5e6958ed8edee3c2/docs/reports/reporting-policy.md)
+anoieu deprecated and then removed; that link is pinned to the last commit the
+page existed at, because provenance a reader cannot fetch is not provenance.
