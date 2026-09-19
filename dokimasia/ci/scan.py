@@ -77,6 +77,26 @@ class CiModel:
         build, `setDefaultsPre` turns it on when `--check-proofs` is set and no
         granularity was requested -- so completeness is tested only as a side
         effect, through a chain nothing asserts.
+
+        **A fifth link was withdrawn on 2026-09-19, and its absence is the
+        point.** It read *"completeness is named explicitly"*, and reported the
+        flag's absence from the tester as a gap to close. cvc5 answered it by
+        building the change and reverting it: an option's category governs both
+        assignments, so making `checkProofsComplete` settable in safe mode also
+        permits `--no-check-proofs-complete` and
+        `(set-option :check-proofs-complete false)`, and `setDefaultsPre`
+        respects an explicit user assignment through
+        `checkProofsCompleteWasSetByUser`. **Naming the guarantee and being able
+        to switch it off are the same change**, so the expert refusal is what
+        keeps it non-negotiable in the mode that promises it, and the link asked
+        cvc5 to weaken the thing it was auditing.
+
+        What remains true is links three and four: completeness is obtained by
+        configuration, and a `--proof-granularity` flag added to the tester would
+        switch it off with no test failing. That exposure is real and is what
+        `CI0003`/`CI0004` and the fourth link below are for. The remedy is an
+        assertion in cvc5's tree, not a flag in ours -- and per cvc5 it would
+        have to allow for the deliberate lower-granularity exception.
         """
         safe = [j for j in self.jobs if j.mode == "safe"]
         with_proof = [j for j in safe if CHECKING_TESTER in j.testers]
@@ -84,7 +104,6 @@ class CiModel:
         flags = pt.flags if pt else []
         has_check = any("--check-proofs" == f for f in flags)
         no_gran = not any(f.startswith("--proof-granularity") for f in flags)
-        explicit = any("--check-proofs-complete" in f for f in flags)
         return [
             ("a build job runs in safe mode", bool(safe),
              ", ".join(j.name for j in safe) or "none"),
@@ -94,8 +113,6 @@ class CiModel:
              " ".join(flags) or "none"),
             ("the tester requests no --proof-granularity", no_gran,
              "none requested" if no_gran else "a granularity is set"),
-            ("completeness is named explicitly", explicit,
-             "--check-proofs-complete appears nowhere" if not explicit else "yes"),
         ]
 
 

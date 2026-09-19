@@ -101,14 +101,18 @@ def cmd_cuts(args) -> int:
     graph, clo = _closure(args)
     subs = clo.subsystem_cuts(depth=args.depth)
     edges = clo.cuts(limit=args.limit)
+    dead = clo.dead_includes()
     if args.json:
         print(json.dumps({
             "subsystem_cuts": [
                 {"subsystem": a, "files": b, "lines": c} for a, b, c in subs
             ],
             "edge_cuts": [
-                {"from": a, "include": b, "files": c, "lines": d}
-                for a, b, c, d in edges
+                {"from": a, "include": b, "files": c, "lines": d, "use": e}
+                for a, b, c, d, e in edges
+            ],
+            "dead_includes": [
+                {"from": a, "include": b, "lines": c} for a, b, c in dead
             ],
         }, indent=2))
         return 0
@@ -125,10 +129,33 @@ def cmd_cuts(args) -> int:
     heaviest = edges[0][3] if edges else 0
     print("SINGLE-EDGE CUTS -- what one #include is uniquely worth:")
     print()
-    for frm, inc, nf, nl in edges[:5]:
-        print(f"  -{nl:>8,} lines  {nf:>5} files   {frm}")
+    for frm, inc, nf, nl, use in edges[:5]:
+        print(f"  -{nl:>8,} lines  {nf:>5} files   [{use}]  {frm}")
         print(f"  {'':>10}        {'':>5}    -> #include \"{inc}\"")
     print()
+    print("  [used]    the file references something the header declares:")
+    print("            the line cannot go until the shared declaration moves.")
+    print("  [unused]  it references nothing the header declares: deleting the")
+    print("            line is the whole fix, and no refactoring is implied.")
+    print("  [unknown] the header declares nothing this can see. Not a claim")
+    print("            that the include is dead -- it is a question unanswered.")
+    print()
+    if dead:
+        nz = [r for r in dead if r[2] > 0]
+        print(f"DEAD INCLUDES -- {len(dead)} seed include(s) reference nothing their")
+        print("header declares. These need a deletion, not a refactoring:")
+        print()
+        for frm, inc, nl in dead[:10]:
+            weight = f"-{nl:,} lines" if nl else "no closure change"
+            print(f"  {weight:>18}   {frm}")
+            print(f"  {'':>18}   -> #include \"{inc}\"")
+        if len(dead) > 10:
+            print(f"  ... and {len(dead) - 10} more")
+        print()
+        print(f"  {len(nz)} of them shrink the closure; the rest are reachable by")
+        print("  another path and still dead. Weight and deadness are different")
+        print("  questions, and a cut list answers only the first.")
+        print()
     if heaviest < 0.02 * clo.loc:
         print(f"  The heaviest single edge is worth {heaviest:,} lines, under 2% of")
         print("  the TCB. That is the real finding: the include graph is dense,")

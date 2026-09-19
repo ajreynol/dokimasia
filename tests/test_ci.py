@@ -83,8 +83,17 @@ PARSER.add_argument("--not-a-tester-flag")
           "--not-a-tester-flag" not in m.testers["proof"].flags, True)
 
     chain = m.completeness_chain()
-    check("four links hold", sum(1 for _, ok, _ in chain if ok), 4)
-    check("the last link -- naming completeness -- does not", chain[-1][1], False)
+    check("the chain is four links", len(chain), 4)
+    check("all four hold", sum(1 for _, ok, _ in chain if ok), 4)
+    # The fifth link asked that `--check-proofs-complete` be passed by the proof
+    # tester. cvc5 rejected it: an option's category governs both assignments,
+    # so making it settable in safe mode equally permits
+    # `--no-check-proofs-complete`, and the ask was for cvc5 to make its own
+    # guarantee optional. It was built and reverted upstream. If it ever comes
+    # back, it comes back as a request that completeness be switchable off.
+    check("no link asks for the flag to be named",
+          any("named" in claim or "explicit" in claim for claim, _o, _d in chain),
+          False)
 
     sanity.set_enabled(True)
 
@@ -110,8 +119,9 @@ def test_cvc5(root):
     names = {j.name for j in m.jobs_with_proofs()}
     check("the safe-mode job tests proofs", "ubuntu:safe-mode" in names, True)
     chain = m.completeness_chain()
-    check("completeness is not named anywhere", chain[-1][1], False)
-    check("every other link holds", all(ok for _, ok, _ in chain[:-1]), True)
+    check("every link of the chain holds at the pin",
+          all(ok for _, ok, _ in chain), True)
+    check("and the withdrawn fifth link has not returned", len(chain), 4)
     print(f"       {len(m.jobs)} jobs, {len(names)} run a proof tester")
 
 

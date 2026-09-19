@@ -41,9 +41,10 @@ def cmd_proofs(args) -> int:
             print(f"    {j.name} ({j.mode})")
 
     print("\nCI0002 — the completeness chain\n")
-    print("  Completeness is not requested anywhere. In a safe build,")
-    print("  setDefaultsPre turns on checkProofsComplete when --check-proofs is")
-    print("  set and no granularity was asked for. So it is tested only as a")
+    print("  Completeness cannot be requested here -- checkProofsComplete is")
+    print("  category = expert, and safe and stable mode refuse expert options.")
+    print("  In a safe build setDefaultsPre turns it on when --check-proofs is")
+    print("  set and no granularity was asked for, so it is obtained only as a")
     print("  side effect, through these links:\n")
     broken = 0
     for i, (desc, ok, ev) in enumerate(chain, 1):
@@ -53,9 +54,21 @@ def cmd_proofs(args) -> int:
         if not ok:
             broken += 1
     if broken:
-        print("\n  Every link holds today except the last: nothing names the")
-        print("  guarantee. Adding --check-proofs-complete to the proof tester")
-        print("  would make it explicit and cost one line.")
+        print("\n  A link above does not hold, so completeness is not being")
+        print("  tested in the mode that promises it. The chain is the whole")
+        print("  mechanism: nothing else turns the option on.")
+    else:
+        print("\n  Every link holds, and that is the exposure rather than the")
+        print("  reassurance: completeness is obtained by configuration, and a")
+        print("  --proof-granularity flag added to the proof tester would switch")
+        print("  it off with no test failing.")
+        print()
+        print("  We do not ask for --check-proofs-complete to be passed here.")
+        print("  An option's category governs both assignments, so making it")
+        print("  settable in safe mode would also permit --no-check-proofs-complete;")
+        print("  cvc5 built that change and reverted it. The remedy is an")
+        print("  assertion in cvc5's tree, allowing for the deliberate")
+        print("  lower-granularity exception.")
 
     pt = m.testers.get(CHECKING_TESTER)
     if pt and any("--proof-check=lazy" in f for f in pt.flags):

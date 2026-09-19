@@ -58,6 +58,15 @@ def test_docs_agree(d, allowed, scoped=None):
     few numbers are necessarily taken elsewhere. Those commits must be listed
     in the lock's `unpinned_measurements` **with a reason** -- the point is that
     an unreproducible number is visible, not that it is forbidden.
+
+    **Only abbreviations are checked, and that is the convention rather than an
+    oversight.** A 9-12 character sha is how this repository quotes the revision
+    one of *its own* numbers was taken at, and such a number has to be
+    re-measurable against the pin. A cvc5 commit cited as something cvc5 did --
+    a closure in `experience.md`, a `closed_commit` in the database, a revert
+    quoted in a retraction -- is written in full, because it is evidence about
+    their tree rather than a measurement of ours, and a reader fetches it from
+    cvc5 rather than from the pin.
     """
     short = d["commit"][:9]
     stale = []

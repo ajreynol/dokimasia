@@ -58,17 +58,35 @@ unrestricted job, where the guarantee is not the one being promised. The
 implication is not merely unasserted; it is currently *the only way the
 guarantee can be obtained where it matters.*
 
-That makes the ask sharper rather than weaker. Two forms, either acceptable:
+That made the ask sharper, and we then asked for the wrong thing.
 
-- **exempt `checkProofsComplete` from the expert refusal** (or drop the expert
-  category), so the safe-mode tester can name what it is testing; or
-- **assert the implication where it is created** — in `setDefaultsPre`, where a
-  safe build turns the option on, state that a safe build with `--check-proofs`
-  has `checkProofsComplete` set. That is the [kind D](findings.md) form: the
-  invariant moves into cvc5's tree and our `CI0002` check retires.
+**Withdrawn 2026-09-19: do not ask for the expert category to be dropped.** This
+section proposed two forms, the first being *exempt `checkProofsComplete` from
+the expert refusal, so the safe-mode tester can name what it is testing.* cvc5
+rejected it, having built it and reverted it:
 
-The second is smaller and needs no option-semantics decision, so it is the one
-we would propose first.
+> Making this Boolean option available also permits `--no-check-proofs-complete`
+> and `(set-option :check-proofs-complete false)`. Those assignments let a user
+> disable completeness checking in safe mode.
+
+An option's category governs **both** assignments, and `setDefaultsPre` respects
+an explicit user assignment through `checkProofsCompleteWasSetByUser`. So the
+promotion turns a guarantee safe mode switches on into one a user can switch
+off. **The expert refusal is what makes completeness non-negotiable in the mode
+that promises it** — the very property this ask exists to protect. Reproduced at
+cvc5 `a960d7d7210e731cf48ad7baa6ad42fc7345b297`, reverted at `215eed21a6c8380075c46513e69181a295b6e3b2`. The error was ours: we reasoned
+from *the positive flag is refused* to *the option should be settable*, without
+asking what else becomes settable, and it is recorded in
+[the retractions](findings.md#retractions).
+
+**The one surviving form: assert the implication where it is created** — in
+`setDefaultsPre`, where a safe build turns the option on, state that a safe build
+with `--check-proofs` has `checkProofsComplete` set. That is the
+[kind D](findings.md) form: the invariant moves into cvc5's tree and our
+`CI0002` check retires. cvc5 adds the condition we had missed — **an
+unconditional assertion would also have to account for the intentional
+lower-granularity exception**, since the implication holds only at the default
+and DSL-rewrite granularities.
 
 ### R3 — get the theory solvers out of the proof checker's includes
 

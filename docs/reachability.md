@@ -144,6 +144,7 @@ cvc5 --safe-mode=safe --produce-proofs --check-proofs --stats-internal b.smt2 \
 ```
 
 Note that `--check-proofs-complete` **cannot** be added in safe or stable mode:
-it is `category = "expert"` and both modes refuse expert options. See
+it is `category = "expert"` and both modes refuse expert options — and it should
+not be, since the same change would permit `--no-check-proofs-complete`. See
 [`R2`](issues.md#open--asks). `--stats-internal` sets the same internal flag, so
 the counters are available where the option is not.

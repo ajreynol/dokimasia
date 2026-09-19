@@ -119,8 +119,11 @@ def collect_ci(root, out):
         if not j.proof_testers:
             out.add("CI0001", f"{j.workflow}#{j.name}", location=".github/workflows/" + j.workflow,
                     mode=j.mode, config=j.config)
+    # `explicit-completeness` was the fifth entity and is retired, not renamed:
+    # asking for the flag to be named asked cvc5 to make it unsettable-off, and
+    # cvc5 built that change and reverted it. See `CiModel.completeness_chain`.
     for entity, (claim, holds, detail) in zip(
-            ("safe-job", "safe-job-proof-tester", "check-proofs", "no-granularity", "explicit-completeness"), chain):
+            ("safe-job", "safe-job-proof-tester", "check-proofs", "no-granularity"), chain):
         if not holds:
             out.add("CI0002", entity, claim=claim, detail=detail,
                     location="test/regress/cli/run_regression.py",

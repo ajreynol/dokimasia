@@ -72,24 +72,30 @@ holding.
 
 ### The completeness chain is an implication, not a flag
 
-`--check-proofs-complete` **appears nowhere in cvc5's CI**. Completeness is
-tested as a side effect: in a safe build `setDefaultsPre` turns it on when
-`--check-proofs` is set and no granularity was requested. Five links, and
-`dokimasia.ci proofs` prints the state of each:
+`--check-proofs-complete` **appears nowhere in cvc5's CI**, and cannot: it is
+`category = "expert"` and safe and stable mode refuse expert options.
+Completeness is obtained as a side effect instead — in a safe build
+`setDefaultsPre` turns it on when `--check-proofs` is set and no granularity was
+requested. Four links, and `dokimasia.ci proofs` prints the state of each:
 
 ```
 1. [ok ] a build job runs in safe mode              ubuntu:safe-mode
 2. [ok ] that job runs --tester proof               ubuntu:safe-mode
 3. [ok ] the tester passes --check-proofs           --check-proofs --proof-check=lazy
 4. [ok ] the tester requests no --proof-granularity none requested
-5. [NO ] completeness is named explicitly           --check-proofs-complete appears nowhere
 ```
 
 Four of 22 build-matrix jobs run a proof tester at all. Adding a
 `--proof-granularity` flag to the proof tester — an ordinary thing to want —
-breaks link 4, and completeness testing stops. **No test fails.** Naming the
-flag costs one line and converts the implication into an assertion
-([`i-3`](issues.md), [`R2`](issues.md#open--asks)).
+breaks link 4, and completeness testing stops. **No test fails.**
+
+A fifth link once read *completeness is named explicitly*, and asked for the
+flag to be passed here. **That was withdrawn**: making the option settable in
+safe mode would equally permit `--no-check-proofs-complete`, so the ask was for
+cvc5 to make its own guarantee optional. cvc5 built it and reverted it, and the
+[retraction](findings.md#retractions) has the detail. What converts the
+implication into an assertion is an assertion — in `setDefaultsPre`, at the
+granularities where it holds ([`i-3`](issues.md), [`R2`](issues.md#open--asks)).
 
 ### Safe mode's disable list is hand-maintained and unchecked
 

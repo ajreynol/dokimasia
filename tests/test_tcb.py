@@ -68,6 +68,61 @@ def test_synthetic():
               sorted(sub.files), ["a/checker.cpp", "a/checker.h"])
 
 
+def test_edge_use():
+    """Used, unused and unknown -- and every false verdict this once gave.
+
+    Each case below is a bug that shipped or nearly shipped while building
+    this. `tcb-001` told cvc5 that six checkers included their solvers to reach
+    static helpers; for two of the edges the include was simply dead, and the
+    refactoring we proposed was unnecessary. The classifier that fixes that is
+    only worth having if it does not make the mirror mistake, so the mirror
+    mistakes are the tests.
+    """
+    print("\nedge use:")
+    with tempfile.TemporaryDirectory() as tmp:
+        src = os.path.join(tmp, "src")
+        write_tree(src, {
+            # A solver header whose helper the checker really calls.
+            "b/solver.h": "#ifndef CVC5__B__SOLVER_H\n#define CVC5__B__SOLVER_H\n"
+                          "class CoreSolver {\n static Node getConclusion();\n};\n#endif\n",
+            "a/uses.cpp": '#include "b/solver.h"\nNode f() { return CoreSolver::getConclusion(); }\n',
+            # The tcb-001 case: included, and nothing from it referenced.
+            "a/dead.cpp": '#include "b/solver.h"\nint f() { return 1; }\n',
+            # A comment naming the header is not a use.
+            "a/comment.cpp": '#include "b/solver.h"\n// CoreSolver used to be called here\nint f() { return 1; }\n',
+            # Only an include guard: nothing is declared, so nothing is known.
+            "b/guard_only.h": "#ifndef CVC5__B__GUARD_ONLY_H\n#define CVC5__B__GUARD_ONLY_H\n#endif\n",
+            "a/guard.cpp": '#include "b/guard_only.h"\nint f() { return 1; }\n',
+            # Free functions in a namespace, reached as utils::mkConcat.
+            "b/utils.h": "#ifndef CVC5__B__UTILS_H\n#define CVC5__B__UTILS_H\n"
+                         "namespace utils {\nNode mkConcat(Node a);\n}\n#endif\n",
+            "a/ns.cpp": '#include "b/utils.h"\nNode f() { return utils::mkConcat(x); }\n',
+            # A forward declaration is a name the header does not supply.
+            "b/fwd.h": "#ifndef CVC5__B__FWD_H\n#define CVC5__B__FWD_H\n"
+                       "class Rewriter;\nclass ExtendedRewriter {\n int x;\n};\n#endif\n",
+            "a/fwd_user.cpp": '#include "b/fwd.h"\nvoid f(Rewriter* r) {}\n',
+        })
+        g = IncludeGraph.build(src)
+        check("a called helper is used", g.edge_use("a/uses.cpp", "b/solver.h"), "used")
+        check("an include referencing nothing is unused",
+              g.edge_use("a/dead.cpp", "b/solver.h"), "unused")
+        check("a mention in a comment is not a use",
+              g.edge_use("a/comment.cpp", "b/solver.h"), "unused")
+        # The include guard is a #define, and counting it as a declaration
+        # turned "we cannot tell" into a confident "dead" for every guarded
+        # header -- which is three false positives on cvc5 alone.
+        check("a header declaring only its guard is unknown, never unused",
+              g.edge_use("a/guard.cpp", "b/guard_only.h"), "unknown")
+        # A utility header is often nothing but free functions in a namespace.
+        # Matching classes alone called every one of them dead.
+        check("free functions behind a namespace count as declarations",
+              g.edge_use("a/ns.cpp", "b/utils.h"), "used")
+        # `class Rewriter;` announces a name this header does not define, so a
+        # file that says `Rewriter` is not thereby using this header.
+        check("a forward declaration does not make the edge used",
+              g.edge_use("a/fwd_user.cpp", "b/fwd.h"), "unused")
+
+
 def test_cvc5(root):
     print(f"cvc5 tree at {root}:")
     from dokimasia.tcb.closure import SEED_SETS, resolve_src
@@ -88,6 +143,24 @@ def test_cvc5(root):
     check("the solver engine is NOT reachable at compile time",
           "smt/solver_engine.h" in clo.files, False)
 
+    # The edges cvc5 replied about, pinned by name. `tcb-001` claimed all six
+    # checker->solver edges existed to reach static helpers; cvc5 answered that
+    # two were dead includes and removed them in one line each. Whichever way
+    # the classifier drifts, one of these fails.
+    check("the strings edge is a real dependency, as cvc5 agreed",
+          g.edge_use("theory/strings/proof_checker.cpp",
+                     "theory/strings/core_solver.h"), "used")
+    check("the arith edge was a dead include, as cvc5 reported",
+          g.edge_use("theory/arith/proof_checker.cpp",
+                     "theory/arith/linear/constraint.h"), "unused")
+    check("the datatypes rewriter edge was a dead include too",
+          g.edge_use("theory/datatypes/proof_checker.cpp",
+                     "theory/rewriter.h"), "unused")
+    # A checker plainly uses the node it is checking; a classifier that calls
+    # this dead has inverted the error rather than fixed it.
+    check("a header the file obviously uses is never called dead",
+          g.edge_use("proof/proof_checker.h", "expr/node.h"), "used")
+
     env = Closure.compute(g, ["smt/env.h"], "headers")
     core = Closure.compute(g, ["theory/strings/core_solver.h"], "headers")
     check("Env is lighter than one theory solver header", env.loc < core.loc, True)
@@ -101,6 +174,7 @@ def test_cvc5(root):
 
 if __name__ == "__main__":
     test_synthetic()
+    test_edge_use()
     root = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("CVC5")
     if root and os.path.isdir(root):
         print()

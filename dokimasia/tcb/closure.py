@@ -32,6 +32,26 @@ Modes, and a negative result worth recording
     The lesson is that "what could execute" is a **call-graph** question, not an
     include question, and belongs in the CodeQL tier -- see ``docs/tooling.md``.
 
+A dead include and a load-bearing one weigh the same
+---------------------------------------------------
+An ``#include`` edge is textual. It says the header is in the closure; it does
+**not** say the including file uses anything the header declares. Those are
+different facts with different fixes: a used edge needs a refactor to remove, a
+dead one needs a deletion.
+
+The closure figures are right either way -- the compiler reads both -- but a
+*cut* reported without that distinction invites the reader to supply a mechanism
+the measurement never established. It did: `tcb-001` said six checkers include
+their solvers "to reach ``static`` helpers parked on solver classes", and for
+two of the edges cvc5 replied that the include was simply unused. The helper
+extraction those rows proposed was unnecessary work; deleting the line was the
+whole fix.
+
+So every edge now carries :func:`IncludeGraph.edge_use`, and it is three-valued.
+``unknown`` is a real answer and is never collapsed into ``unused``: reporting a
+live include as dead would be the same error with the sign flipped, and the
+cheap direction to be wrong in is the one that asks for more scrutiny, not less.
+
 Known under-approximation
 -------------------------
 Generated headers are invisible here: ``options/options.h`` is produced at build
@@ -47,6 +67,61 @@ import re
 from dataclasses import dataclass, field
 
 _INCLUDE = re.compile(r'^[ \t]*#[ \t]*include[ \t]+"([^"]+)"', re.M)
+
+#: Names a header introduces that a dependent could plausibly write down.
+#:
+#: Free functions and namespaces are in here deliberately. A utility header is
+#: often nothing but free functions inside one namespace, reached as
+#: ``utils::mkConcat(...)``; a rule that saw only classes called every such
+#: header dead, which is the error this whole distinction exists to prevent.
+_DECLARES = (
+    # A definition, not a forward declaration: `class Foo;` announces a name
+    # this header does not supply, and counting it made `extended_rewrite.h`
+    # look used by every file that says `Rewriter`.
+    re.compile(r"\b(?:class|struct|union)\s+([A-Z][A-Za-z0-9_]*)\s*(?=[:{])"),
+    re.compile(r"\benum\s+(?:class\s+|struct\s+)?([A-Za-z_][A-Za-z0-9_]*)"),
+    re.compile(r"\busing\s+([A-Za-z_][A-Za-z0-9_]*)\s*="),
+    re.compile(r"\btypedef\s+.*?\b([A-Za-z_][A-Za-z0-9_]*)\s*;"),
+    re.compile(r"\bnamespace\s+([A-Za-z_][A-Za-z0-9_]*)\s*\{"),
+    # A namespace-scope function declaration: a return type at column 0,
+    # then the name, then its parameter list.
+    re.compile(r"^[A-Za-z_][A-Za-z0-9_:<>,& \t\*]*?\b([A-Za-z_][A-Za-z0-9_]*)\s*\(",
+               re.M),
+    re.compile(r"^[ \t]*#[ \t]*define[ \t]+([A-Za-z_][A-Za-z0-9_]*)", re.M),
+)
+
+#: Not declarations: the namespaces every cvc5 header opens, and the control
+#: keywords the function-declaration pattern above cannot help matching.
+#: Keeping them would make every edge `used` on contact and the verdict
+#: worthless.
+#:
+#: **Ubiquitous type names are deliberately *not* here.** `Node` and `Rewriter`
+#: carry little evidence, and an earlier version dropped them for that reason --
+#: which left `expr/node.h` looking like it declared only obscure things and
+#: produced a confident `unused` for a header the file plainly uses. The bias
+#: has to run one way: a name that might be evidence of use is kept, because
+#: over-reporting `used` costs a reader one check and over-reporting `unused`
+#: puts a wrong claim in a report to somebody else.
+_NOT_DECLARATIONS = frozenset({
+    "cvc5", "internal", "theory", "std", "detail",
+    "if", "for", "while", "switch", "return", "sizeof", "static_assert",
+})
+
+#: An include guard is a `#define` no dependent ever writes, so counting it as a
+#: declaration makes every guarded header look like it declares something and
+#: turns `unknown` into a confident `unused`. It did, for three real edges.
+_GUARD = re.compile(r"^[A-Z0-9_]+(?:_H|_H_|__H)$")
+
+_COMMENT = re.compile(r"//[^\n]*|/\*.*?\*/", re.S)
+
+
+def _strip(text: str) -> str:
+    """Source with comments and its own include block removed.
+
+    Both are places a header's name appears without being used: a comment
+    explaining why the include is there reads exactly like a use.
+    """
+    return _INCLUDE.sub("", _COMMENT.sub(" ", text))
 
 #: Named seed sets, so other kernels can be measured with the same machinery.
 SEED_SETS: dict[str, tuple[str, ...]] = {
@@ -92,6 +167,7 @@ class IncludeGraph:
     src: str
     edges: dict[str, list[str]] = field(default_factory=dict)
     lines: dict[str, int] = field(default_factory=dict)
+    _declares: dict[str, set[str]] = field(default_factory=dict, repr=False)
 
     @classmethod
     def build(cls, src: str) -> "IncludeGraph":
@@ -115,6 +191,44 @@ class IncludeGraph:
 
     def loc(self, files) -> int:
         return sum(self.lines.get(f, 0) for f in files)
+
+    def declares(self, header: str) -> set[str]:
+        """Top-level names *header* introduces, excluding uninformative ones."""
+        if header in self._declares:
+            return self._declares[header]
+        names: set[str] = set()
+        try:
+            body = _strip(source.read(os.path.join(self.src, header)))
+        except OSError:
+            body = ""
+        for pat in _DECLARES:
+            names.update(pat.findall(body))
+        names -= _NOT_DECLARATIONS
+        names = {n for n in names if not _GUARD.match(n) and "__" not in n}
+        self._declares[header] = names
+        return names
+
+    def edge_use(self, includer: str, header: str) -> str:
+        """Does *includer* write down anything *header* declares?
+
+        ``used`` -- at least one of the header's own declarations appears.
+        ``unused`` -- none does, and the header declared enough to make that
+        mean something: the include is dead and deleting it is the whole fix.
+        ``unknown`` -- the header declares nothing this can see, so the question
+        was not answered. **Never report that as ``unused``.** A header of free
+        functions, templates or macros-by-token-paste lands here, and so does one
+        this parser simply failed on; calling either dead would trade the error
+        this distinction exists to prevent for its mirror image.
+        """
+        names = self.declares(header)
+        if not names:
+            return "unknown"
+        try:
+            body = _strip(source.read(os.path.join(self.src, includer)))
+        except OSError:
+            return "unknown"
+        words = set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", body))
+        return "used" if names & words else "unused"
 
     @property
     def all_files(self) -> list[str]:
@@ -176,16 +290,23 @@ class Closure:
             ((k, v[0], v[1]) for k, v in agg.items()), key=lambda r: -r[2]
         )
 
-    def cuts(self, limit: int = 15) -> list[tuple[str, str, int, int]]:
+    def cuts(self, limit: int = 15) -> list[tuple[str, str, int, int, str]]:
         """Weigh each seed include edge by what leaves the closure without it.
 
-        Returns ``(from, include, files_dropped, lines_dropped)`` heaviest
-        first. These are the edges to argue about: the ones whose removal buys
-        the most.
+        Returns ``(from, include, files_dropped, lines_dropped, use)`` heaviest
+        first, where ``use`` is :meth:`IncludeGraph.edge_use` -- ``used``,
+        ``unused`` or ``unknown``.
+
+        **The weight and the use are independent, and reporting one without the
+        other is what produced a wrong finding.** A heavy edge that is `unused`
+        is a deletion; a heavy edge that is `used` needs the shared declaration
+        moved somewhere lighter before the line can go. Sorting by weight alone
+        puts both in one list and leaves the reader to guess which they are
+        looking at.
         """
         base_files = len(self.files)
         base_loc = self.loc
-        out: list[tuple[str, str, int, int]] = []
+        out: list[tuple[str, str, int, int, str]] = []
         seen_edges: set[tuple[str, str]] = set()
         for seed in self.seeds:
             for inc in self.graph.edges.get(seed, ()):
@@ -199,8 +320,38 @@ class Closure:
                 d_files = base_files - len(trimmed.files)
                 d_loc = base_loc - trimmed.loc
                 if d_files > 0:
-                    out.append((seed, inc, d_files, d_loc))
+                    out.append((seed, inc, d_files, d_loc,
+                                self.graph.edge_use(seed, inc)))
         return sorted(out, key=lambda r: -r[3])[:limit]
+
+    def dead_includes(self) -> list[tuple[str, str, int]]:
+        """Seed includes that reference nothing the header declares.
+
+        ``(from, include, lines_dropped)``, heaviest first. Every row here is
+        removable by deleting one line, with no refactoring and no behaviour
+        change -- which makes this the cheapest thing the measurement has to
+        say, and the part `tcb-001` reported as something more expensive.
+
+        **Weight is not the filter.** A dead include whose header is reachable
+        by another path drops zero lines from the closure and is still dead;
+        `cuts` never sees it, because `cuts` answers a different question. Two
+        of the three cvc5 deleted were of exactly this kind.
+        """
+        out: list[tuple[str, str, int]] = []
+        seen: set[tuple[str, str]] = set()
+        base_loc = self.loc
+        for seed in self.seeds:
+            for inc in self.graph.edges.get(seed, ()):
+                if (seed, inc) in seen:
+                    continue
+                seen.add((seed, inc))
+                if self.graph.edge_use(seed, inc) != "unused":
+                    continue
+                trimmed = Closure.compute(
+                    self.graph, self.seeds, self.mode, skip_edge=(seed, inc)
+                )
+                out.append((seed, inc, base_loc - trimmed.loc))
+        return sorted(out, key=lambda r: (-r[2], r[0], r[1]))
 
     def subsystem_cuts(self, depth: int = 2) -> list[tuple[str, int, int]]:
         """Weigh each subsystem as a *cut set*.

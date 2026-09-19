@@ -50,7 +50,7 @@ The register row for each is in [`issues.md`](issues.md).
 | `INFER` | `dokimasia.infer` | 79 inferences fall through to a trust step by construction; 10 theories have no `InferProofCons` at all | `i-22`, `i-6` |
 | `RW` | `dokimasia.rewrites` | 533-rule vocabulary; 40 applied and unprintable; 3 taken only outside safe mode | `i-17`, `i-18` |
 | `INFERID` | `dokimasia.inferid` | 51 ids produced at more than one site, 14 produced nowhere, 21 emitted with a sentinel | `i-8` |
-| `CI` | `dokimasia.ci` | 4 of 22 jobs run a proof tester; 4 of 5 completeness links hold, the fifth is never named | `i-3`, `i-13`, `i-14` |
+| `CI` | `dokimasia.ci` | 4 of 22 jobs run a proof tester; all 4 completeness links hold, and the guarantee still rests on configuration | `i-3`, `i-13`, `i-14` |
 | `GATE` | `dokimasia.gates` | 59 term kinds carry an option gate; verdicts blocked / partial / open per rule | `i-1`, `s-1`–`s-5` |
 | `FRAG` | `dokimasia.fragment` | 341 kinds over 14 theories (216 available, 125 blocked); two safe-mode options gate no kind at all | `i-15` |
 | `BUILD` | `dokimasia.buildmode` | **8 conditionals on the safe-build macro, all benign**; 0 excluded sources; 0 behavioural readers of `isSafeBuild()` | [`cases/safe-build-vs-safe-mode.md`](cases/safe-build-vs-safe-mode.md) |
@@ -95,7 +95,7 @@ program and the independent agent use this catalogue. The
 | `ELAB0001` | a produced `MACRO_*` rule has no detected postprocessor expansion | only the scanned postprocessor files are considered |
 | `SEAM0001` | a produced rule is never handled by the Eunoia printer, excluding macros, expanded rules and intentional format/trust refusals | production alone does not establish safe-mode reachability |
 | `CI0001` | a safe/stable matrix job has no proof tester | CI YAML parsing is limited to the existing matrix shape |
-| `CI0002` | a link in the five-part completeness chain is absent | absence of an explicit flag is an instrumentation gap; the guarantee may hold implicitly |
+| `CI0002` | a link in the four-part completeness chain is absent | the chain was five links until 2026-09-19; the fifth asked for `--check-proofs-complete` to be passed in safe mode, which cvc5 rejected because the same change permits `--no-check-proofs-complete`. The `explicit-completeness` entity is retired, not renamed |
 | `CI0003` | the proof tester passes `--proof-check=lazy` | a configuration fact, not a demonstrated incomplete proof |
 | `CI0004` | a proof-testing matrix job excludes regression levels | the exclusion may be deliberate |
 | `BUILD0001` | an unclassified safe/stable macro conditional, a behavioral `isSafeBuild()` reader, or an inferred safe-build source exclusion is found | unfamiliar benign blocks and nearby CMake text require review |

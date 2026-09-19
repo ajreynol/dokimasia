@@ -12,7 +12,7 @@ names the rule that blocks it.
 
 | verdict | row | |
 | --- | --- | --- |
-| **carry** | `i-3` / `R2` | the completeness flag cannot be set in the mode that promises it |
+| **carry** | `i-3` / `R2` | completeness in safe mode is obtained by configuration and nothing asserts it *(the category half of this ask was rejected — see below)* |
 | **carry** | `i-2` | `stringLazyPreproc` — safe mode refuses to let you set it *because it lacks proof support*, and leaves it on |
 | not yet — **run-it** | `i-1`, `i-22`, `i-6` | a static argument with no input. `i-1` has had one attempt fail |
 | not yet — **run-it** | the 182 [latent holes](reachability.md) | declared, and nothing has reached them |
@@ -21,8 +21,16 @@ names the rule that blocks it.
 
 ## The recommendation
 
-**Report the completeness flag first: `--check-proofs-complete` cannot be set in
-either mode whose contract it enforces.** ([`i-3`](issues.md), [`R2`](issues.md#open--asks))
+**Report the completeness flag first: in safe mode the guarantee is obtained only
+as a side effect, and nothing asserts it.** ([`i-3`](issues.md),
+[`R2`](issues.md#open--asks))
+
+> **Amended 2026-09-19.** This read *"`--check-proofs-complete` cannot be set in
+> either mode whose contract it enforces"*, which is true and was the wrong
+> emphasis: cvc5 has since established that it *should not* be settable there,
+> because the same change would permit switching completeness off. The
+> unsettability is the guarantee working, not the defect. The defect is below
+> it — the implication is unasserted.
 
 One command is the whole report:
 
@@ -45,24 +53,38 @@ completeness testing off, and no test would fail.
 | criterion | |
 | --- | --- |
 | **it is about the guarantee itself** | not a hole, but the mechanism that detects holes. Everything else this repository reports depends on it working |
-| **it takes one command to verify** | no build, no corpus, no argument about reachability. A maintainer can refute or confirm it in thirty seconds |
+| **it takes one command to verify** | no build, no corpus, no argument about reachability. A maintainer can refute or confirm it in thirty seconds — and did, refuting one of the two remedies below |
 | **it is not a matter of taste** | the option's own help text says *"enabled by default in safe builds"*, and safe builds are exactly where it cannot be named |
 | **the fix is small and has a natural home** | an assertion in `setDefaultsPre` — a [kind D](findings.md), so the invariant lands in cvc5's tree and our `CI0002` check retires |
 | **we found it by running, not reading** | the static analysis got this ask *wrong* (see below), which is itself worth telling them |
 
-**The proposed fix**, in preference order:
+**The proposed fix.** This listed two forms; **the second was rejected by cvc5
+on 2026-09-19 and is withdrawn.**
 
 1. **Assert the implication where it is created.** In `setDefaultsPre`, after a
-   safe build enables `checkProofsComplete`, assert it is set. Smallest change,
-   no option-semantics decision, and it makes the four-link chain a one-line
-   fact in cvc5's own tree.
-2. **Exempt `checkProofsComplete` from the expert refusal**, so the safe-mode
-   regression tester can name what it is testing. Larger, and a maintainer's
-   call about what "expert" means.
+   safe build enables `checkProofsComplete`, assert it is set — **at the default
+   and DSL-rewrite granularities only.** cvc5 supplied that condition: an
+   unconditional assertion would fire on the deliberate lower-granularity
+   exception. Still the smallest change and still a [kind D](findings.md).
+2. ~~**Exempt `checkProofsComplete` from the expert refusal**, so the safe-mode
+   regression tester can name what it is testing.~~ **Withdrawn — this asked
+   cvc5 to weaken the guarantee we are auditing.** An option's category governs
+   both assignments, so making it settable in safe mode equally permits
+   `--no-check-proofs-complete` and `(set-option :check-proofs-complete false)`,
+   and `setDefaultsPre` honours an explicit user assignment through
+   `checkProofsCompleteWasSetByUser`. cvc5 built the promotion at `a960d7d7210e731cf48ad7baa6ad42fc7345b297`,
+   reproduced the opt-out, and reverted it at `215eed21a6c8380075c46513e69181a295b6e3b2`. **The expert refusal
+   is the mechanism that makes completeness non-negotiable in safe mode**, and we
+   read it as an obstacle to naming the guarantee. Recorded in
+   [the retractions](findings.md#retractions).
 
-**What would sink it:** a maintainer saying the side effect is deliberate and
-documented, and that naming the flag was never intended. That is a fine answer,
-and it still leaves the `--proof-granularity` interaction worth an assertion.
+**What sank half of it, and what that leaves.** The report's own criterion was
+that a maintainer could refute it in thirty seconds, and one did: the refutation
+is `cvc5 --check-proofs --no-check-proofs-complete f.smt2` printing `false`. The
+remaining claim is untouched and is the one to carry — **completeness in safe
+mode is obtained by configuration, and adding a `--proof-granularity` flag to the
+proof tester would switch it off with no test failing.** That wants an assertion,
+not a category change.
 
 ## The second carry: `i-2`
 
