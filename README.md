@@ -146,7 +146,7 @@ the part to read first.
 | --- | --- |
 | The argument and the registers (`docs/README.md`) | the goal, the contract, the checks (`docs/README.md`), the register (`docs/README.md`) of what we ask cvc5 to act on, and the asks argued |
 | Maintenance (`docs/maintenance.md`) | running the analyzer (`docs/maintenance.md`), the command reference (`docs/maintenance.md`), pins, tests, the script catalogue and what the corpus reaches (`docs/maintenance.md`) |
-| Experience (`docs/experience.md`) | every interaction we have had with cvc5, `E1` upward — what cvc5 did, what we got wrong, and what each taught us |
+| Experience (`docs/experience.md`) | every interaction we have had with cvc5, numbered `E1` upward. Our own corrections are not episodes; they are the retractions in `dokimasia/README.md` |
 | Discussion (`docs/discussion.md`) | the standing channel to the rest of the ecosystem, and the gate on responding to it |
 | Bug database (`bug_db/README.md`) | the data artifact: every observation (`bug_db/bugs.md`) and the supported fragment (`bug_db/fragment.md`), both generated |
 | The plan (`TODO.md`) | what is measured today, what is queued, and what we have decided not to do |

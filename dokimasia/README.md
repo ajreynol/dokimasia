@@ -90,8 +90,8 @@ word.
 | **1** | **Silence is never evidence** | structural | where a check reports nothing, the most that may be said is that *those checks reported nothing*. Every code in the check catalogue carries a limitation column, and every archived observation a `limitation` field |
 | **4** | **Publish a candidate; carry a finding** | structural | candidates live in `bug_db/` under their own header; findings live in the log below. Promoting one takes a deliberate act in a different file, not a slip |
 | **5** | **Presence is not reachability** | structural | *"this rule has no checker"* and *"and an ordinary run emits it"* are different claims, and only the second is worth somebody's time. what the corpus reaches (`docs/maintenance.md`) is the measurement that separates them; the 182 latent holes are what it found |
-| **6** | **A false positive is ours — and so is anything we asked cvc5 to run** | enforced, for the half that can be | a check that fired wrongly is narrowed until it stops, and the narrowing is recorded in the retractions in cvc5's terms rather than kinder ones. Eight `baseline --check` ratchets under `tests/baselines/` fail the build on a change that invents one |
-| **7** | **Every claim is re-checkable without us** | enforced | a number carries whatever regenerates it and the revision it was measured at. [`scripts/cvc5.lock`](../scripts/cvc5.lock) pins that revision, `tests/test_pin.py` enforces it, and CI fails if the pin names a commit reachable only on a fork — which is the retraction directly below that bought this rule |
+| **6** | **A false positive is ours — and so is anything we asked cvc5 to run** | enforced, for the half that can be | a check that fired wrongly is narrowed until it stops, and **the correction lands in the tool rather than in a note** — `Fragment.requires_higher_order`, `Closure.edge_use` and the `?` marker in the infer delta each exist because a check of ours was wrong. Eight `baseline --check` ratchets under `tests/baselines/` fail the build on a change that invents a false positive |
+| **7** | **Every claim is re-checkable without us** | enforced | a number carries whatever regenerates it and the revision it was measured at. [`scripts/cvc5.lock`](../scripts/cvc5.lock) pins that revision, `tests/test_pin.py` enforces it, and CI fails if the pin names a commit reachable only on a fork — a rule bought by once having pinned every published number to a commit nobody could fetch |
 | **8** | **Closing is a verdict, not an absence** | enforced, for the launcher | no row leaves without one recorded, and *"won't fix, because —"* is worth as much as a fix. Koine's writer is additive and cannot delete a row; `tests/test_experience.py` fails if [`prompts/close_bug_db`](../prompts/close_bug_db) stops carrying **Absence closes nothing** and **Confirm the closure in the current source** |
 | **9** | **A reply is triage; an artifact settles it** | intention | what comes back from cvc5 is somebody's reading, made quickly and on our word. Here the settling artifact is a **cvc5 commit whose effect is re-read in current source** — not the commit message, and not the row going quiet. Failing to find one settles nothing |
 
@@ -154,7 +154,7 @@ Every candidate carries exactly one verdict, and every one is recorded.
 | --- | --- | --- |
 | **carry** | all five hold; a person can take it upstream today | what to carry next (`docs/README.md`), with the packet |
 | **not yet** | one or more fail — **name which** | the register, rank and blocking rule on the row |
-| **never** | it is ours, or it will never earn the attention | the register or the retraction log |
+| **never** | it is ours, or it will never earn the attention | the register, or a correction to the analysis |
 
 *Not yet* is the verdict we issue most, and naming the failing rule is what makes
 it actionable: it says exactly what work would change the answer.
@@ -187,14 +187,16 @@ recovers the logic-level gate, so the whole class of mistake is gone. A
 retraction with no code change behind it means the analysis will make the same
 error again. Our own errors go through the same pipeline, inverted: a false
 positive is ours by promise, so it is filed against us, tested against the case
-that produced it, and logged in the retractions below.
+that produced it. Where cvc5 was the one to catch it, that is an episode in
+`docs/experience.md`; where we caught it ourselves, the corrected tool is the
+whole record.
 
 ## Why a check and not an answer
 
 **A cvc5 developer asks a design question. We answer it with a check.** That is
 the highest-value thing this repository does per hour spent, and the
-episodes in `docs/experience.md` are where the answers land — `E6` and `E7`
-are the two of this shape so far.
+episodes in `docs/experience.md` are where the answers land, once cvc5 has
+actually engaged with one.
 
 A design question from a maintainer — *why can't safe mode have debug symbols?*,
 *is this restriction still needed?*, *does this flag still do anything?* — has
@@ -252,20 +254,17 @@ Every case follows it, and a new one should:
 
 ## What a run learned about itself
 
-A window of cvc5 history turns up facts about *our own* tooling that belong to
-no pull request and so fit in no entry of the experience log. They go here,
-newest first, one line each. An empty section is the honest state when a run
-turned up nothing.
+A window of cvc5 history turns up facts about *our own* tooling that no cvc5
+maintainer was party to, so they belong in no entry of the experience log. They
+go here, newest first. An empty section is the honest state when a run turned up
+nothing.
 
-Salvaged from the retired `postmortem.md`, which asked a question no other file
-here asks and which the reporting removal (`TODO.md`) dropped
-without a successor: *what did working this run teach us about how we work* —
-as against `Learned:`, which is about the check that produced the observation.
-A window turns up facts about our own tooling that belong to no pull request and
-so fit in no entry below. They go here, newest first, one line each, and an empty
-section is the honest state when a run turned up nothing.
+The question is the one the retired `postmortem.md` asked and the reporting
+removal dropped without a successor: *what did working this run teach us about
+how we work* — as against the experience log, which is about what cvc5 did.
 
 **2026-09-19, window `40a4bb7e4..dbf176dfb`.**
+
 
 - **The `ci` check's mode heuristic broke silently on a cvc5 rename.**
   `Job.mode` in `dokimasia/ci/scan.py` keys on the literal substrings
@@ -282,9 +281,8 @@ section is the honest state when a run turned up nothing.
   disappearances. *Absence closes nothing* is the rule that caught this; what it
   cost was re-deriving each claim by hand, because nothing in the record links
   an identity to its renamed successor.
-- **A retraction went stale in our favour.** the promises (`docs/experience.md`)
-  records that our baselines named `SETS_RELS_TCLOSURE_DOWN`, and that **no such
-  id has ever existed in cvc5**. That was true when written. As of #12901 the id
-  exists, because cvc5 renamed `TCLOSURE_UP` to it. The retraction stays — it is
-  the record of an error we made — but it now needs the date qualifier it did
-  not need before.
+- **A claim about cvc5's history stopped being true.** Our baselines once
+  named `SETS_RELS_TCLOSURE_DOWN`, and the correction said **no such id has ever
+  existed in cvc5**. True when written; as of cvc5 #12901 the id exists, because
+  cvc5 renamed `TCLOSURE_UP` to it. A statement of the form *cvc5 has never had
+  X* is a claim about a moving tree and needs the date it was checked at.

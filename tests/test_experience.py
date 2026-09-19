@@ -85,8 +85,10 @@ def test_experience():
           bool(template) and all(f"**{f}**" in body for f in PROSE),
           "an entry with no lesson records an event and not an episode")
 
-    entries = re.split(r"^## (?=E\d+: )", text, flags=re.M)[1:]
-    entries = [e for e in entries if not e.startswith("How this page")]
+    # Cut at the next top-level heading, or the last entry swallows the
+    # footnote and every length check on it measures the wrong thing.
+    entries = [re.split(r"^## ", e, maxsplit=1, flags=re.M)[0]
+               for e in re.split(r"^## (?=E\d+: )", text, flags=re.M)[1:]]
     if not entries:
         print("  ok   nothing has happened yet, so there is no entry to check")
         return
@@ -122,7 +124,7 @@ def test_experience():
     # The page opens with the ratio. A count in prose is a copy, and a copy
     # nobody re-counts drifts -- this one was wrong within a minute of writing.
     neg = sum(1 for e in entries if re.search(r"\| \*\*Kind\*\* \| negative", e))
-    stated = re.search(r"\*\*(\d+) of (\d+) are negative", text)
+    stated = re.search(r"(\d+) of (\d+) are negative", text)
     check("the page states its own ratio",
           bool(stated), "no 'N of M are negative' claim in the opening")
     if stated:
