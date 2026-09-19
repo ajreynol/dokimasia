@@ -48,7 +48,7 @@ belongs to [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/to
 
 | | |
 | --- | --- |
-| [`findings.md`](findings.md) | what a finding is, the bar it clears to be carried to cvc5, and the log — including retractions |
+| [`findings.md`](findings.md) | what a finding is, [the promises](findings.md#the-promises) and the bar it clears to be carried to cvc5, and the log — including retractions |
 | [`findings/`](findings/) | one file per filed finding; today that is [`tcb-001.md`](findings/tcb-001.md) |
 | [`experience.md`](experience.md) | **what cvc5 did with what we found** — one section per pull request that closed an observation, and what it says about the check that found it |
 | [`discussion.md`](discussion.md) | the standing channel to the rest of the ecosystem, and the gate on responding to it |
@@ -58,5 +58,5 @@ belongs to [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/to
 | | |
 | --- | --- |
 | [`fragment.md`](fragment.md) | *generated* — which term kinds may appear per theory under `--safe-mode=safe`, and how the fragment is enforced |
-| [`reports/static-analysis.md`](reports/static-analysis.md) | a retired path, kept so an old link lands on the Markdown view in `bug_db/` |
 | [`tooling.md`](tooling.md) | the C++ static-analysis landscape, our design decisions, and the posture toward murxla |
+| [`../tools/ydoki/`](../tools/ydoki/README.md) | the research child — which theories and options are worth making proof-supported, and in what order. Its conclusions are not this repository's |

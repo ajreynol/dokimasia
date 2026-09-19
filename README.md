@@ -119,6 +119,25 @@ request on the database entry, and is written up in
 no program here touches a tracker. See
 [the closure assessment](docs/maintenance.md#assessing-closure).
 
+## A question this repository will not answer
+
+The analyzer measures and declines to recommend. **Which** of what safe mode
+switches off is worth making proof-supported, and **in what order**, is a
+judgement about where somebody else should spend their effort — unfalsifiable by
+any run, and so deliberately outside what the checks claim.
+
+[**ydoki**](tools/ydoki/README.md) is the research child that asks it anyway, on
+two axes that are mirror images and are not ranked against each other: the
+**theories** safe mode refuses, which shrink the input language, and the
+**options** it refuses, which are techniques withheld on inputs it already
+accepts. It adds no instrument — every figure in it comes from `fragment`,
+`modes`, `ledger` and `signature` here — and it produces prose, not code.
+
+**Nothing in it is this repository's position, and nothing in it has been
+carried to anybody.** It is named here because the question is worth finding,
+not because the analyzer endorses an answer; the charter's out-of-scope list is
+the part to read first.
+
 ## Documentation and development
 
 | document | purpose |
@@ -131,6 +150,7 @@ no program here touches a tracker. See
 | [Maintenance](docs/maintenance.md) | tests, pins, closure assessment and the script catalogue |
 | [The plan](TODO.md) | what is measured today, what is queued, and what we have decided not to do |
 | [Documentation index](docs/README.md) | findings, case studies and design notes |
+| [ydoki](tools/ydoki/README.md) | the research child: which theories and options are worth making proof-supported, and in what order |
 
 ## The name
 
@@ -147,7 +167,8 @@ kept by Kanon. Anoieu implements the checker; CI pins its revision in
 
 **Written by AI agents, under light human supervision.** A human maintainer
 directs the work, reviews it and decides what is reported upstream. Findings
-are filed by the human. The
+are filed by the human. What this repository holds itself to is stated in its
+own tree — [the promises](docs/findings.md#the-promises) and
+[the bar](docs/findings.md#the-bar); the
 [deprecated reporting policy](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)
-preserves the historical rationale; what this repository holds itself to now is
-[the bar](docs/findings.md#the-bar).
+preserves where they came from and the rationale at the time.

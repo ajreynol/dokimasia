@@ -14,14 +14,20 @@ named argument, not a task.
 
 The former reporting policy and workflow were deprecated on 2026-09-18,
 following Anoieu, and **removed on 2026-09-19** with the three launchers that
-carried them. The data artifact is [`bug_db/`](bug_db/README.md), with a
-generated [Markdown view](bug_db/bugs.md); closure is
-[assessed against cvc5's history](docs/maintenance.md#assessing-closure) by
-`prompts/update_bug_db` and written up in
-[`docs/experience.md`](docs/experience.md). What the bar is, and the rule that
-we never send anything ourselves, are in
-[`docs/findings.md`](docs/findings.md#the-bar). Migrating the curated register
-into the same identity space is the work that remains.
+carried them, the retired `docs/reports/` path, and the last of the tree's
+dependence on the deprecated external policy. The data artifact is
+[`bug_db/`](bug_db/README.md), with a generated [Markdown view](bug_db/bugs.md);
+closure is [assessed against cvc5's history](docs/maintenance.md#assessing-closure)
+by `prompts/update_bug_db` and written up in
+[`docs/experience.md`](docs/experience.md). What we hold ourselves to is stated
+in the tree: [the promises](docs/findings.md#the-promises), each with the tier
+and the test behind it, and [the bar](docs/findings.md#the-bar).
+
+**What is left, and it is not ours.** Anoieu's replacement policy on Koine's
+shared tooling is pending; the four remaining links to its deprecated page are
+citations of origin, not of authority, and nothing here now depends on that page
+being readable. Migrating the curated register into the same identity space as
+`bug_db/` is the work that remains on this side.
 
 ## Implementation inventory
 

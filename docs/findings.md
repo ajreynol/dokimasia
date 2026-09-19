@@ -28,11 +28,38 @@ could check about itself at startup, the deliverable is the patch and our check
 goes with it. See
 [`docs/tooling.md`](tooling.md#d3--where-an-invariant-should-live).
 
-The historical promises came from the now-deprecated
+## The promises
+
+These originated as the position shared with anoieu, in a
 [`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)
-— *publish a candidate, carry a finding*; *a false positive is ours, and so is
-anything we asked them to run*; *presence is not reachability*; *every claim is
-re-checkable without us*; *closing is a verdict* — and are not restated here.
+that anoieu deprecated on 2026-09-18 with its replacement still pending. They
+were cited here by name and not restated, which left the statement of our own
+policy in a deprecated file in another repository. They are restated below
+because a policy you cannot read without leaving the tree is not one you can be
+held to. Cite a position **by name**, never by number.
+
+The tier says what backs it — **enforced**, something fails when it is broken;
+**structural**, the arrangement makes the failure hard rather than impossible;
+**intention**, nothing but our record. Several sit a tier above anoieu's because
+the mechanism here is a test rather than a habit; where that is so, the test is
+named, and a tier with no mechanism beside it is an intention wearing a better
+word.
+
+| | position | tier here | what backs it |
+| --- | --- | --- | --- |
+| **1** | **Silence is never evidence** | structural | where a check reports nothing, the most that may be said is that *those checks reported nothing*. Every code in [`checks.md`](checks.md#structured-observations) carries a limitation column, and every archived observation a `limitation` field |
+| **4** | **Publish a candidate; carry a finding** | structural | candidates live in [`bug_db/`](../bug_db/README.md) under their own header; findings live in [the log](#the-log) below. Promoting one takes a deliberate act in a different file, not a slip |
+| **5** | **Presence is not reachability** | structural | *"this rule has no checker"* and *"and an ordinary run emits it"* are different claims, and only the second is worth somebody's time. [`reachability.md`](reachability.md) is the measurement that separates them; the 182 latent holes are what it found |
+| **6** | **A false positive is ours — and so is anything we asked cvc5 to run** | enforced, for the half that can be | a check that fired wrongly is narrowed until it stops, and the narrowing is recorded in [the retractions](#retractions) in cvc5's terms rather than kinder ones. Eight `baseline --check` ratchets under `tests/baselines/` fail the build on a change that invents one |
+| **7** | **Every claim is re-checkable without us** | enforced | a number carries whatever regenerates it and the revision it was measured at. [`scripts/cvc5.lock`](../scripts/cvc5.lock) pins that revision, `tests/test_pin.py` enforces it, and CI fails if the pin names a commit reachable only on a fork — which is the retraction directly below that bought this rule |
+| **8** | **Closing is a verdict, not an absence** | enforced, for the launcher | no row leaves without one recorded, and *"won't fix, because —"* is worth as much as a fix. Koine's writer is additive and cannot delete a row; `tests/test_experience.py` fails if [`prompts/update_bug_db`](../prompts/update_bug_db) stops carrying **Absence closes nothing** and **Confirm the closure in the current source** |
+| **9** | **A reply is triage; an artifact settles it** | intention | what comes back from cvc5 is somebody's reading, made quickly and on our word. Here the settling artifact is a **cvc5 commit whose effect is re-read in current source** — not the commit message, and not the row going quiet. Failing to find one settles nothing |
+
+Two more are stated in this file rather than in this table, because they are
+load-bearing where they sit: *nothing crosses a repository boundary
+automatically* is [the bar](#the-bar), and *success is the check being deleted*
+is the note on kind D above.
+
 Two things this repository adds, because the subject is a solver rather than a
 signature:
 

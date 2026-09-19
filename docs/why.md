@@ -209,4 +209,5 @@ Reading a row. Every number on this page is reproducible in seconds from a
 checkout with no build and no dependencies, which means no claim here requires
 trusting us — only running the command beside it. A false positive is ours, and
 so is anything we asked you to run that turned out to waste your time
-([historical reporting policy, now deprecated](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)).
+([the promises](findings.md#the-promises), where that one is enforced by the
+ratchets rather than merely meant).

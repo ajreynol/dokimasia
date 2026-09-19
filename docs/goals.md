@@ -33,13 +33,15 @@ reaches the step. We ask it of the code, with no benchmark in hand.
 repository that runs in seconds against a checkout. A claim we cannot measure is
 a design note, and lives in [`TODO.md`](../TODO.md) as one.
 
-What we will and will not say about somebody else's code — silence is never
-evidence, a false positive is ours, an artifact settles a finding — is the
-historical position shared with anoieu in the now-deprecated
-[`reporting-policy.md`](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md).
-What we hold ourselves to now is [the bar](findings.md#the-bar), and what
-somebody else's code did about a claim of ours is recorded in
-[`experience.md`](experience.md).
+What we will and will not say about somebody else's code — *silence is never
+evidence*, *a false positive is ours*, *an artifact settles a finding* — is
+stated in this tree as [the promises](findings.md#the-promises), each with the
+tier and the mechanism behind it, and enforced at the edge by
+[the bar](findings.md#the-bar). The positions began as
+[a page shared with anoieu](https://github.com/ajreynol/anoieu/blob/main/docs/reports/reporting-policy.md)
+that anoieu has since deprecated; that link is where they came from and no
+longer where they live. What somebody else's code did about a claim of ours is
+recorded in [`experience.md`](experience.md).
 
 ## The operating constraint: agility
 

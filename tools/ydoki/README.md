@@ -5,7 +5,23 @@ whatever it likes and writes nothing outside `tools/ydoki/`. Nothing here is
 dokimasia's position, nothing here is cvc5's, and nothing here has been carried
 to anybody.
 
-**Footing:** `unadvertised-child` — the parent's front page does not name it, because a prioritisation argument is speculative work that should not borrow the analyzer's credibility.
+**A named exception: on the advertising rule it is not an island.** The parent's
+front page and documentation index both name it, which a child is only supposed
+to be once it has stopped being research, so the exception is written down here
+rather than left to drift.
+
+- **What it delivered.** The split of the question into two axes that cannot be
+  ranked against each other, and a measured starting position on each: four
+  theory candidates accounting for 80 of the 125 term kinds safe mode blocks,
+  in four different states rather than one; and on the option axis the five
+  `SAFE`-only options, derived from the guard rather than chosen.
+- **What stopped being true.** Only the advertising. In every other respect it
+  is still an island: nothing outside `tools/ydoki/` imports it, no test or CI
+  job runs it, and deleting the directory changes nothing about what the
+  analyzer does or what CI says.
+- **The promotion decision is open**, and it is the maintainer's. The three
+  endings are unchanged and are at the foot of this charter; being findable is
+  not one of them.
 
 ## The question, on two axes
 
@@ -47,10 +63,18 @@ verifier fire — *not an opinion and not a reading* — and it never opens an i
 or a pull request. A ranking across theories is the other thing: a judgement
 about where somebody else should spend their effort, unfalsifiable by any run.
 
-Published in the parent's own tree it would be read as the analyzer's position
+Folded into the parent's own pages it would be read as the analyzer's position
 on cvc5's roadmap, which is exactly the credibility the analyzer has because it
 does not take positions. **The parent is well placed to ask this and badly
 placed to answer it**, which is what this directory is for.
+
+**It is advertised, and that is a decision about reach rather than about
+standing.** The maintainer judged the question important enough to be findable
+from the front page; being named there makes none of this dokimasia's position,
+and the first three sentences of this charter are the ones that travel with the
+link. A reader who arrives from the parent is reading a ranking nobody has
+carried anywhere, built on the parent's measurements and on judgements the
+parent declines to make.
 
 ## Goals, in order
 
