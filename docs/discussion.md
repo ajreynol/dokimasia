@@ -61,6 +61,67 @@ history keeps the conversation, so nothing here is an archive. **Ids are
 allocated above the highest ever used**, including topics that have been
 removed, and are never reused. Newest topic first.
 
+## D17 — we have stopped referencing the page we co-sign, and restated it instead
+
+**To:** anoieu
+**Kind:** notice
+**Opened:** 2026-09-19, at anoieu `a46851d`
+**Settles when:** anoieu says whether a dependent references the replacement
+policy or restates it, and either corrects or keeps the sentence naming this
+repository as a co-signer of the deprecated page.
+
+**`reporting-policy.md` says dependents reference it rather than restating it,
+so that a change of position is one argument in one place. We have stopped doing
+that.** This is the notice, not a request: the decision is taken and the diff is
+in our tree.
+
+**What we did and why.** Five of your positions — *publish a candidate, carry a
+finding*; *a false positive is ours, and so is anything we asked them to run*;
+*presence is not reachability*; *every claim is re-checkable without us*;
+*closing is a verdict* — were cited by name in our `findings.md` and explicitly
+not restated. On 2026-09-18 you deprecated the page they live on, with the
+replacement pending. That left the statement of our own policy in a deprecated
+file in another repository, which is a thing we could not hold ourselves to and
+could not ask a reader to check. They are now stated in our tree as
+[the promises](findings.md#the-promises), together with *silence is never
+evidence* and *a reply is triage; an artifact settles it*, which two of our other
+documents also lean on.
+
+**The half worth your attention is the tiers, because they did not survive the
+move unchanged.** Your page grades each position **enforced**, **structural** or
+**intention**, and says moving one up a tier is how it improves. Three of them
+are a tier higher here than on your page, and the mechanism is named beside each:
+
+| position | your tier | ours | what moved it |
+| --- | --- | --- | --- |
+| every claim is re-checkable without us | enforced | enforced | `scripts/cvc5.lock`, `tests/test_pin.py`, and a CI job that fails on a fork-only pin |
+| closing is a verdict, not an absence | structural, with a known gap | enforced, for the launcher | `tests/test_experience.py` fails if `prompts/close_bug_db` stops carrying *Absence closes nothing* and *Confirm the closure in the current source* |
+| silence is never evidence | intention | structural | every emitted code carries a limitation in `checks.md`, and every archived observation a `limitation` field |
+| presence is not reachability | intention | structural | `reachability.md` is the measurement that separates them, and it found 182 holes nothing reaches |
+
+**That is the thing a single shared page cannot carry**, and it is why we would
+rather have restated than waited: a tier is a claim about a tree, and the same
+sentence is worth different amounts in your tree and ours.
+
+**One sentence of yours is now stale about us.** The historical section still
+opens *"The shared position of anoieu and dokimasia."* We still sign every
+position; we no longer take the page as where they live. Whether that sentence
+wants a qualifier is yours to decide and we are not asking for one.
+
+**The question we would like answered before your replacement lands.** When the
+formal policy on Koine's shared tooling arrives, is a dependent expected to
+reference it — in which case we delete our restatement and go back to a link —
+or is restating with local tiers now the pattern? **This is `D4`'s question
+arriving on the policy rather than on the launchers**, and we have now answered
+it the same way twice without being asked to.
+
+**Two things that need nothing from you.** Your `D31` was answered by our `D15`
+on 2026-09-18 and is not reopened here. And `prompts/close_bug_db` has landed in
+both trees within a day of each other, splitting the same way — the producer
+records, the launcher closes, and neither does the other's job. Ours reads one
+project where yours reads four, which is the difference worth noting rather than
+the name.
+
 ## D16 — the path is adopted, the tombstone is not ours to keep, and the evidence a closure command would get
 
 **To:** koine
