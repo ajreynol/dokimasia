@@ -33,6 +33,40 @@ at and leaves both files changed and uncommitted. A maintainer reads the diff.
 No entry is written by hand, and none is written for a closure the database does
 not carry.
 
+## What a run learned about itself
+
+Salvaged from the retired `postmortem.md`, which asked a question no other file
+here asks and which the [reporting removal](../TODO.md#reporting) dropped
+without a successor: *what did working this run teach us about how we work* —
+as against `Learned:`, which is about the check that produced the observation.
+A window turns up facts about our own tooling that belong to no pull request and
+so fit in no entry below. They go here, newest first, one line each, and an empty
+section is the honest state when a run turned up nothing.
+
+**2026-09-19, window `40a4bb7e4..dbf176dfb`.**
+
+- **The `ci` check's mode heuristic broke silently on a cvc5 rename.**
+  `Job.mode` in `dokimasia/ci/scan.py` keys on the literal substrings
+  `safe-mode` / `stable-mode` in a matrix `config:` value; cvc5 #12899 renamed
+  those values to `safe` / `stable`. The safe-mode job is still there and still
+  runs `--tester proof`, but the check now classifies every job `unrestricted`,
+  which silently disarms `CI0001` and makes two links of the `CI0002` chain read
+  `NO` for a reason that has nothing to do with cvc5. **A check keyed on a
+  spelling cvc5 is free to change will fail open, and this one did.**
+- **Two of the window's four candidate closures were entity renames.** cvc5
+  #12906 renamed the CI job names carrying all four `CI0004` rows, and #12901
+  renamed the `InferenceId` carrying an `INFERID0001` row — in both cases the
+  condition moved intact under a new name. A re-run will read both as
+  disappearances. *Absence closes nothing* is the rule that caught this; what it
+  cost was re-deriving each claim by hand, because nothing in the record links
+  an identity to its renamed successor.
+- **A retraction went stale in our favour.** [`findings.md`](findings.md#retractions)
+  records that our baselines named `SETS_RELS_TCLOSURE_DOWN`, and that **no such
+  id has ever existed in cvc5**. That was true when written. As of #12901 the id
+  exists, because cvc5 renamed `TCLOSURE_UP` to it. The retraction stays — it is
+  the record of an error we made — but it now needs the date qualifier it did
+  not need before.
+
 ## The shape of an entry
 
 One section per pull request, whatever number of observations it closed, because
