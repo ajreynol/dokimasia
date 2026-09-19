@@ -212,17 +212,25 @@ class ModeDelta:
         ``safe`` includes the shared safe-or-stable block, the safe-only block,
         and -- when proofs are on -- the FULL_STRICT block that safe mode's own
         proofMode upgrade makes reachable.
+
+        **A tag says a guard was seen, not that the row applies.** The safe-only
+        block in `setDefaultsPre` is nested inside the safe-or-stable one, so its
+        rows carry both tags, and matching on `safe_or_stable` alone put five
+        options cvc5 disables only in safe mode -- `nlCov`, `ufSymmetryBreaker`,
+        `cegqiBv`, `varEntEqElimQuant` and the `bvSolver` choice -- into the
+        stable delta as well. The mode-specific tag is therefore a veto for the
+        other mode, not only a claim about its own.
         """
         want: set[str]
         if mode == "safe":
-            want = {"safe", "safe_or_stable"}
+            want, veto = {"safe", "safe_or_stable"}, {"stable"}
             if with_proofs:
                 want |= {"full_strict", "full_pf"}
         elif mode == "stable":
-            want = {"stable", "safe_or_stable"}
+            want, veto = {"stable", "safe_or_stable"}, {"safe"}
         else:
             return []
-        out = [c for c in self.changes if c.tags & want]
+        out = [c for c in self.changes if c.tags & want and not c.tags & veto]
         return sorted(out, key=lambda c: (c.key(), c.line))
 
     def implied(self, c: OptionChange, mode: str) -> bool:

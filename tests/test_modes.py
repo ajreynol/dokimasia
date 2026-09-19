@@ -48,6 +48,18 @@ def test_cvc5(root):
           all("ProofMode::FULL " not in " ".join(c.guards).replace("FULL_STRICT", "")
               for c in strict), True)
 
+    # The safe-only block is nested inside the safe-or-stable one, so its rows
+    # carry both tags. Selecting stable on the shared tag alone swept in five
+    # options cvc5 disables only in safe mode, and the difference between the
+    # two modes is exactly what a promotion argument reads.
+    safe = {c.option for c in md.for_mode("safe")}
+    stable = {c.option for c in md.for_mode("stable")}
+    for opt in ("nlCov", "ufSymmetryBreaker", "cegqiBv", "varEntEqElimQuant", "bvSolver"):
+        check(f"safe mode disables {opt} and stable mode does not",
+              (opt in safe, opt in stable), (True, False))
+    check("the shared block still reaches stable", "bags" in stable and "ff" in stable, True)
+    check("stable is a strict subset of safe", stable < safe, True)
+
     rows = unsupported_but_enabled(src, md)
     check("the no_support cross-check finds stringLazyPreproc",
           "stringLazyPreproc" in {r["option"] for r in rows}, True)

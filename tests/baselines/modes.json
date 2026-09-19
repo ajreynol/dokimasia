@@ -27,23 +27,17 @@
   ],
   "stable": [
     "arith.arithExp=false",
-    "arith.nlCov=false",
     "arrays.arraysExp=false",
     "bags.bags=false",
-    "bv.bvSolver=options::BVSolver::BITBLAST_INTERNAL",
     "datatypes.datatypesExp=false",
     "ff.ff=false",
     "fp.fp=false",
     "fp.fpExp=false",
-    "proof.checkProofsComplete=true",
-    "quantifiers.cegqiBv=false",
-    "quantifiers.varEntEqElimQuant=false",
     "sep.sep=false",
     "sets.relsExp=false",
     "sets.setsCardExp=false",
     "sets.setsExp=false",
     "uf.ufCardExp=false",
-    "uf.ufHoExp=false",
-    "uf.ufSymmetryBreaker=false"
+    "uf.ufHoExp=false"
   ]
 }

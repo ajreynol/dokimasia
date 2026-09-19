@@ -7,16 +7,37 @@ to anybody.
 
 **Footing:** `unadvertised-child` — the parent's front page does not name it, because a prioritisation argument is speculative work that should not borrow the analyzer's credibility.
 
-## The question
+## The question, on two axes
 
-**Of the theories that `--safe-mode=safe` switches off, which are worth making
+**Of what `--safe-mode=safe` switches off, which is worth making
 proof-supported, and in what order?**
 
 Safe mode is cvc5's promise that what it solves, it can prove. It keeps that
-promise partly by refusing work: fourteen theories, and 125 of 341 term kinds,
-are unavailable inside it. Every one of those refusals is a capability traded
-for the guarantee. **Which of them are worth buying back is a question about
-where effort should go, and no check settles it.**
+promise by refusing work, and it refuses two different kinds:
+
+| axis | what is refused | promoting one means |
+| --- | --- | --- |
+| **theories** | term kinds, so the input language shrinks — 125 of 341 | cvc5 accepts a formula it currently rejects outright |
+| **options** | techniques, on inputs it already accepts — 24 option changes | cvc5 solves a formula it accepts but may now fail or time out on |
+
+**They are mirror images and not one list.** The theory axis is about what you
+may *say* to cvc5; the option axis is about what cvc5 may *do* with what you
+said. The same question is asked of both, and **the two cannot be ranked against
+each other on one scale**, because their falsifiers are opposite: a theory
+promotion is worth nothing if nobody writes those terms, while an option
+promotion is worth nothing unless the technique was load-bearing on inputs safe
+mode *already* accepts. This project ranks within an axis and does not pretend
+to rank across them.
+
+**There is a second mirror, and it is the sharper one.** The theory candidates
+are lost in safe **and** stable mode, so the theory axis measures what the
+restricted modes cost against unrestricted. The priority options are lost in
+safe **only** — stable keeps every one of them — so the option axis measures
+what safe costs against stable, a distinction cvc5 already thought worth
+building two modes for.
+
+**Which of any of it is worth buying back is a question about where effort
+should go, and no check settles it.**
 
 ### Why this is a child project rather than a page in the parent
 
@@ -33,19 +54,27 @@ placed to answer it**, which is what this directory is for.
 
 ## Goals, in order
 
-1. **Say what is actually missing per theory, split by layer.** A proof crosses
-   three: the C++ that produces a rule, the checker that checks it, and the
-   Eunoia signature that declares it so ethos can read it. The parent measures
-   all three, and the candidates differ most in *which* layer is empty.
+1. **Say what is actually missing per candidate, split by layer.** On the theory
+   axis a proof crosses three: the C++ that produces a rule, the checker that
+   checks it, and the Eunoia signature that declares it so ethos can read it.
+   The option axis asks the same three of a technique rather than of a theory.
+   The candidates differ most in *which* layer is empty, and the parent measures
+   all three.
 2. **Give each candidate a cost shape rather than a cost.** *Nothing exists at
    any layer* and *everything exists but one skolem* are different kinds of
    work, and that distinction is available from the source without a build.
-3. **Produce a ranked argument a cvc5 maintainer can disagree with**, where the
-   disagreement lands on a named claim rather than on the ranking.
+3. **Say what each refusal costs a user, in the terms its own axis makes
+   available.** For a theory that is blocked term kinds; for an option it is the
+   gap between safe and stable, which is the one comparison cvc5 has already
+   made for us.
+4. **Produce a ranked argument a cvc5 maintainer can disagree with**, one per
+   axis, where the disagreement lands on a named claim rather than on the
+   ranking.
 
 **Wishue** — the outcome we would take if it went unusually well, and are not
-committing to: a ranking cvc5 finds worth arguing with when choosing the next
-theory. The honest form of that success is being told which claim is wrong.
+committing to: a ranking cvc5 finds worth arguing with when choosing what to
+make proof-supported next, on either axis. The honest form of that success is
+being told which claim is wrong.
 
 ## What this project will not do
 
@@ -61,7 +90,17 @@ theory. The honest form of that success is being told which claim is wrong.
   [`docs/ledger.md`](docs/ledger.md) for a person to weigh — not a change this
   project makes.
 - **No performance argument.** Proof-production overhead is outside dokimasia's
-  scope and therefore outside this one's.
+  scope and therefore outside this one's. **This bites hardest on the option
+  axis**, where the case for promoting a technique is partly that losing it
+  costs solving time — so the strongest argument available for a row there is
+  one this project may not make, and a ranking that quietly made it anyway is
+  the failure to watch for.
+- **No ranking across the two axes.** They are mirror images with opposite
+  falsifiers, and one ordered list over both would be a number invented to look
+  decisive.
+- **No re-deriving the complement.** An option that declares no proof support
+  and that safe mode leaves *on* is the opposite defect, and it is already the
+  parent's `i-2` and its settled `s-4`.
 - **No proposal about Eunoia or CPC.** That a theory has no signature is a fact
   recorded here; what the calculus should cover is not ours, and a suggestion
   addressed to it is not a thing this directory produces.
@@ -69,14 +108,14 @@ theory. The honest form of that success is being told which claim is wrong.
   comment, no topic in the parent's discussion file. Candidate feedback
   accumulates in the ledger and a person decides whether any of it travels.
 
-## The candidates
+## The candidates on the theory axis
 
 Four, given as the starting set rather than derived here: **finite fields**,
 **floating point**, **theory of bags**, and **higher-order**. Together they
 account for **80 of the 125 term kinds** safe mode blocks.
 
 They are not four instances of one problem, and
-[`docs/evidence.md`](docs/evidence.md) is the parent's measurements behind that
+[`docs/theories.md`](docs/theories.md) is the parent's measurements behind that
 claim, at cvc5 `40a4bb7e4`:
 
 | candidate | kinds blocked | proof rules | checker | signature | refused skolems |
@@ -97,14 +136,49 @@ skolem the seam refuses.
 reading, none of it establishes that any input reaches these paths, and *how
 much is missing* is not the same question as *what it would take*.
 
+## The candidates on the option axis
+
+Not given but derived, because here the guard does the deriving:
+[`docs/options.md`](docs/options.md) has the measurements and the tiers.
+
+**The priority set is the five options `setDefaultsPre` clears in its
+`SAFE`-only block** — `nlCov`, `ufSymmetryBreaker`, `cegqiBv`,
+`varEntEqElimQuant` and the `bvSolver` choice. Each is `category = "regular"`,
+each declares `no_support = ["proofs"]` in its own `.toml`, four of the five are
+on by default, and **stable mode keeps every one of them**. cvc5's comment on
+the block is the reason they rank first: *"disable features that have no proof
+support but are considered regular."* Regular and on by default means an
+ordinary user has the technique without asking for it, and loses it by asking
+for the guarantee.
+
+**Below that sit the ten expert extensions both restricted modes clear**, of
+which `bags`, `ff`, `fp` and `ufHoExp` are the theory candidates seen from this
+side — the option is *how* the theory is switched off, so for those four the two
+axes name one act. The remaining six are theory-axis candidates nobody has
+proposed yet, and listing them is not proposing them.
+
+**Two groups are excluded rather than ranked low**, and saying so is most of
+what keeps this axis honest. `arraysExp`, `setsExp` and `fpExp` are cleared but
+already off by default, so nothing is lost. `checkProofsComplete`, `proofMode`
+and the `cegqi*`/`dtSharedSelectors` rows are safe mode turning proofs on and
+configuring them, not refusing a capability.
+
+**And the biggest gap on this axis is one we cannot close from the source.**
+Nothing here says any of the five is load-bearing — `nlCov` matters only on
+inputs where coverings beat the alternative, and that needs a build and a
+corpus. It is booked in [`docs/ledger.md`](docs/ledger.md) as a question for the
+parent rather than answered here.
+
 ## It builds on the parent, and here is where
 
 Every figure above is something dokimasia already measures, and this project
 adds no instrument:
 
 - **`dokimasia.fragment`** — the term kinds per theory and how each is blocked.
-- **`dokimasia.modes`** — that `bags`, `ff`, `fp` and `ufHoExp` are cleared in
-  `setDefaultsPre` under *safe options*, with the line each is cleared at.
+- **`dokimasia.modes`** — the whole option axis: which options each mode
+  changes, the guard each change sits under, and the line it happens at. The
+  safe and stable deltas differing by exactly the `SAFE`-only block is what
+  makes the priority set a set rather than an opinion.
 - **`dokimasia.ledger`** — one row per `ProofRule`: produced, checked,
   elaborated, printed. The finite-field rows are the reason that theory is not
   grouped with the other two.

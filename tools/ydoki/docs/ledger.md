@@ -25,3 +25,4 @@ the parent's plan already declines to add instruments that answer nothing.
 
 | id | what we wanted | why the argument needed it |
 | --- | --- | --- |
+| `y-1` | **Which of the five safe-only options is load-bearing**, on inputs safe mode already accepts. Not how much slower — just whether dropping the technique changes an answer or a timeout on anything in a corpus | The option axis can say what each refusal *is* and nothing about what it *costs*. Without this the ranking is by annotation rather than by effect, and `nlCov` ranks first only because it is the one safe mode refuses loudest. **Expect this to be declined or deferred**: it needs a build and a corpus run, which is the parent's own `t-2` debt, and the parent's plan declines instruments that answer nothing |
