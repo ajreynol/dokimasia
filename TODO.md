@@ -10,24 +10,15 @@ named argument, not a task.
 
 *Numbers below are measured against cvc5 `40a4bb7e4` unless stated.*
 
-## Reporting
+## Findings and records
 
-The former reporting policy and workflow were deprecated on 2026-09-18,
-following Anoieu, and **removed on 2026-09-19** with the three launchers that
-carried them, the retired `docs/reports/` path, and the last of the tree's
-dependence on the deprecated external policy. The data artifact is
-`bug_db/`, with a generated Markdown view (`bug_db/bugs.md`);
-closure is assessed against cvc5's history (`docs/maintenance.md`)
-by `prompts/close_bug_db` and written up in
-`docs/experience.md`. What we hold ourselves to is stated
-in the tree: the promises (`dokimasia_analyzer/README.md`), each with the tier
-and the test behind it, and the bar (`dokimasia_analyzer/README.md`).
+Runs are recorded in `bug_db/`, with a generated [observation view](bug_db/bugs.md).
+`prompts/close_bug_db` assesses closure against cvc5's history, as described in
+`docs/maintenance.md`; interactions with cvc5 are recorded in
+`docs/experience.md`. Review standards are in `dokimasia_analyzer/README.md`.
 
-**What is left, and it is not ours.** Anoieu's replacement policy on Koine's
-shared tooling is pending; the four remaining links to its deprecated page are
-citations of origin, not of authority, and nothing here now depends on that page
-being readable. Migrating the curated register into the same identity space as
-`bug_db/` is the work that remains on this side.
+Migrating the curated issue register into the same identity space as `bug_db/`
+remains open work.
 
 ## Implementation inventory
 
@@ -176,7 +167,7 @@ Everything above that is not on this list is context, not a queue.
 | **t-1** | **Get an input for `i-1` (`LAMBDA_ELIM`).** | The only candidate that could become a rank-1 finding, and static work cannot settle it. **One attempt has failed** — a plain `define-fun` runs clean in safe mode; the macro is expanded before the rewriter. Needs a benchmark that keeps a lambda alive. Treat `s-6` (`docs/README.md`) as the cautionary case |
 | **t-2** | **Re-run the corpus census on a clean upstream build.** | The census (`docs/maintenance.md`) was produced by a binary built from `ajreynol/CVC4` with local modifications, so it is the one set of numbers a reader cannot re-check by fetching the pin. Listed as a debt in `scripts/cvc5.lock`, and it needs a build we do not have |
 | **t-3** | **Work the latent set down.** | `dokimasia_analyzer.latent` now names **182 holes no input has reached**. Each needs an input (it becomes a finding) or an unreachability argument (it leaves the inventory). Start with the 5 latent seam rules — `SAT_REFUTATION` is the one that is not arith |
-| **t-4** | **Answer cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) with `BUILD0001`.** | The case study (`docs/experience.md`) is written and the check passes. We are **not** asking for the configure restriction to be lifted — it is a deliberate simplification. We are reporting what it costs (only safe-build diagnostics on a debug binary) and offering the invariant that keeps the cost that low, as a kind B (`dokimasia_analyzer/README.md`) adoption; better still if cvc5 owns it and ours retires |
+| **t-4** | **Answer cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) with `BUILD0001`.** | The build-mode check passes; its command is documented in `docs/maintenance.md`. We are **not** asking for the configure restriction to be lifted — it is a deliberate simplification. We are reporting what it costs (only safe-build diagnostics on a debug binary) and offering the invariant that keeps the cost that low, as a kind B (`dokimasia_analyzer/README.md`) adoption; better still if cvc5 owns it and ours retires |
 | **t-5** | **Carry `i-3`/`R2` and `i-2` to cvc5.** | The two rows that clear the bar (`dokimasia_analyzer/README.md`). `i-3`: the completeness flag cannot be set in the mode that promises it. `i-2`: safe mode refuses `--strings-lazy-pp` *because it lacks proof support*, then runs with it on. Both are one command to check and a one-line call to fix — see the verdicts (`docs/README.md`) |
 
 Deferred until **R1** has been asked for, because R1 would retire most of what
@@ -222,13 +213,12 @@ unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
   from our own CI — the way we already fetch the policy checker and
   `koine_append_db` — and keep the failure here.
 - **A finding is confirmed before it is filed**, and for a defect that means an
-  input (`docs/experience.md` (`dokimasia_analyzer/README.md`)).
+  input. See **The bar** in `dokimasia_analyzer/README.md`.
 - **A false positive is our bug**, including a retracted number and a fabricated
-  baseline entry — the logs are
-  `issues.md#settled` (`docs/README.md`) and
-  `findings.md#retractions` (`docs/experience.md`).
+  baseline entry. Settled claims are in `docs/README.md`; corrections prompted
+  by cvc5 are recorded in `docs/experience.md`.
 - **We never open a pull request or an issue.**
-  `docs/experience.md#the-bar` (`dokimasia_analyzer/README.md`).
+  See **The bar** in `dokimasia_analyzer/README.md`.
 - **Prefer the claim a maintainer can refute in one command.** Of the recent
   things we got wrong, every one was a static argument that read correctly and
   was false, and every one was caught by running something.

@@ -6,11 +6,9 @@ closure decisions. Koine maintains the shared append, closure and history-window
 Kanon owns ecosystem policy; Anoieu implements the optional policy checker.
 
 General cvc5 development belongs to
-[Paideia](https://github.com/ajreynol/paideia), whose charters, plans,
-protocols, launchers and ledgers are authoritative for it. This tree carries no
-child project, so there is no `tools/`; the cvc5 baseline pin sits at
-`scripts/cvc5.lock` alongside the other dependency pins. Proof-production
-performance belongs to
+[Paideia](https://github.com/ajreynol/paideia). Exploratory research on proof
+support lives in `tools/ydoki/`; dependency pins and local configuration live
+in `scripts/`. Proof-production performance belongs to
 [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros)
 and is outside Dokimasia's scope.
 
@@ -18,7 +16,12 @@ Keep commands and their helpers in `scripts/`, assistant launchers in `prompts/`
 and analysis implementations in `dokimasia_analyzer/`. Add documents to the
 documentation index (`docs/README.md`). Observations are recorded by the analyzer and
 closed by an assessment of cvc5's history; what a closure
-meant is written up in `experience.md`.
+meant is written up in `docs/experience.md`.
+
+For setup, start with **Local dependencies**. **Running the analyzer** explains
+inputs and outputs; **The command reference** covers individual reports.
+Contributors should use **Checks before handing off a change**. Paths in this
+guide are relative to the repository root.
 
 Regression baselines live in `tests/baselines/<analysis>.json`; the runtime
 census lives in `tests/corpus/reach-corpus.json`. Default paths resolve from the
@@ -33,7 +36,7 @@ measurements; the eight baseline ratchets and build invariant are the CI
 regression suite. See the command reference.
 
 Two documents are generated and neither is edited by hand:
-`fragment.md`, written whole by
+`bug_db/fragment.md`, written whole by
 `python3 -m dokimasia_analyzer.fragment doc`, and
 `bug_db/bugs.md`, written whole by
 `scripts/append_findings --render-only`. Both are regenerated and diffed by the
@@ -111,7 +114,7 @@ scripts/bump_anoieu --local /path/to/anoieu --offline --check
 ```
 
 Both generated documents are covered by that list: the observation page by
-`append_findings --render-only --check`, and `fragment.md` by
+`append_findings --render-only --check`, and `bug_db/fragment.md` by
 `tests/test_fragment.py` when it is given the pinned checkout. Against any other
 revision that one names itself as skipped rather than passing quietly, because a
 diff taken elsewhere says nothing about drift.
@@ -146,7 +149,7 @@ assistant live in `prompts/`, so a reader can tell which is which without
 opening a directory. Neither prompt has a second copy to drift from: the
 analyzer's is read from `prompts/analyzer.txt`; Koine assembles the closure
 prompt from its shared discipline and the owner sections in `prompts/closure/`.
-`tests/test_experience.py` checks the post-mortem's shape, and
+`tests/test_experience.py` checks the experience log's structure, and
 `scripts/append_findings --render-only --check` checks the database view's.
 
 ## Pins and generated records
@@ -508,11 +511,11 @@ The initial database is a fresh run at the source revision in
 run records its date, source digest, analyzer content digest and revision; a dirty analyzer flag
 means the implementation was still under review when the run was made.
 
-the register (`docs/README.md`) remains the register for all `i-*` candidates, `R*`
+The register (`docs/README.md`) holds all `i-*` candidates, `R*`
 requests, process items, settled `s-*` hypotheses and filed `f-*` entries.
-the promises (`dokimasia_analyzer/README.md`) retains the reporting kinds, filed record and
-retractions. Nothing is closed, reopened or promoted by a database append;
-closure is its own assessment.
+`dokimasia_analyzer/README.md` defines finding kinds and review standards;
+`docs/experience.md` records cvc5's responses and changes. Nothing is closed,
+reopened or promoted by a database append; closure is its own assessment.
 
 Useful correspondences are `SEAM0001` with `i-7`, `INFER0002` with `i-22`,
 `SIG0003` for `SUBS` with `i-21`, and `MODE0001` for `stringLazyPreproc` with
@@ -555,7 +558,7 @@ python3 -m dokimasia_analyzer report <cvc5> --analysis tcb --analysis latent  # 
 **[`dokimasia_analyzer.buildmode`](../dokimasia_analyzer/buildmode/)** — is a safe *build* still an
 unrestricted build with one option default flipped? That invariant is what keeps
 cvc5's deliberate refusal to combine safe mode with debug symbols nearly
-costless; see the case study (`docs/experience.md`) for cvc5
+costless; the check examines the restriction discussed in cvc5
 [#12899](https://github.com/cvc5/cvc5/pull/12899).
 
 ```bash

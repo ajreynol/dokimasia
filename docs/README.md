@@ -1,73 +1,56 @@
-# dokimasia's documentation
+# Scope, checks and findings
 
-**cvc5 should have complete proofs, always.** That is the point of this
-repository; everything in it is an instrument for that and should be judged by
-how much it moves it. This page is the argument and the registers. Three other
-documents complete the set, and `docs/` holds nothing else:
+Dokimasia looks for gaps in cvc5's proof-production code, with the goal of
+**complete proofs in safe mode**. It examines how proofs are constructed,
+checked and printed, and whether configuration permits unsupported features.
 
-| | |
+Static observations are candidates for investigation. A reachable proof defect
+needs an input and a reproducing command; a clean analysis is not a proof of
+completeness. Measurements below use cvc5 `40a4bb7e4` unless stated otherwise.
+
+## Reading guide
+
+For a first run, start with the repository's `README.md`. On this page:
+
+| Section | What it covers |
 | --- | --- |
-| **this page** | the goal, the contract, the checks, and everything we are asking cvc5 to act on |
-| `maintenance.md` | how to run it, what each command answers, the pins, the tests and the script catalogue |
-| `experience.md` | every interaction we have had with cvc5, numbered `E1` upward — what cvc5 merged, rejected or asked, and what each taught us |
-| `discussion.md` | the standing channel to the rest of the ecosystem, and the gate on responding to it |
+| The contract | the safe-mode guarantee and the stages where proof support can be missing |
+| The checks and Structured observations | implemented analyses, check codes and their limitations |
+| The register | open candidates, requests, settled claims and filed findings |
+| Design proposals and parser details | longer arguments and assumptions behind the checks |
 
-The analyzer's own design philosophy — what counts as a finding, the promises we
-publish under, and the bar a claim clears — is a package document,
-`dokimasia_analyzer/README.md`.
+Supporting measurements and design arguments are expandable below. Other
+documents, with paths relative to the repository root:
 
-Generated views are data artifacts and live with the data, in
-`bug_db/`: `bugs.md` is every
-recorded observation, `fragment.md` is the supported
-fragment per theory.
+| Document | Purpose |
+| --- | --- |
+| `docs/maintenance.md` | setup, commands, dependency pins, tests and corpus measurements |
+| `dokimasia_analyzer/README.md` | module overview and review standards for findings |
+| `bug_db/README.md` | recording runs, archived evidence and closure decisions |
+| `docs/experience.md` | interactions with cvc5 and lessons from them |
+| `docs/discussion.md` | correspondence with related projects |
+| `TODO.md` | planned work |
+| `tools/ydoki/README.md` | exploratory prioritisation of proof support for theories and options |
 
-**The boundary is cvc5's proofs.** General cvc5 development belongs to
-[Paideia](https://github.com/ajreynol/paideia). Performance, including
-proof-production overhead, belongs to
+The generated [observation table](../bug_db/bugs.md) and
+[supported fragment](../bug_db/fragment.md) live with the data in `bug_db/`.
+
+## Approach
+
+The focus is **proof completeness**: whether a solving path lacks a complete
+proof. Reading the source can identify candidates that a benchmark corpus has
+not exercised. Runtime checks, including `--check-proofs-complete`, establish
+which candidates an input actually reaches.
+
+We prioritise source analysis and safe-mode consistency checks because they
+run without a build. Reproducing defects, enforcing invariants and keeping
+regression cases follow. The measured corpus is a baseline for this work; it
+does not establish that every safe-mode input is covered.
+
+General cvc5 development belongs to
+[Paideia](https://github.com/ajreynol/paideia). Performance, including proof
+production overhead, belongs to
 [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
-
-## The stance
-
-**Completeness, not soundness.** Not *is this proof step valid*, but *is there a
-path through the solver that produces no proof at all*.
-
-**White box, and eager.** We read the code. Finding holes by generating inputs
-is murxla's job and it is good at it; the ones that matter now are the holes
-**no input has reached**, which is what reading finds and running cannot. cvc5
-asks our question at runtime — `--check-proofs-complete`, one benchmark at a
-time, firing only on an input that reaches the step. We ask it of the code, with
-no benchmark in hand.
-
-**Only claims we can back.** Every number we publish comes from a tool here that
-runs in seconds against a checkout. A claim we cannot measure is a design note
-and lives in `TODO.md` as one. What we will and will not say about
-somebody else's code is the promises (`dokimasia_analyzer/README.md`), each with
-the tier and the mechanism behind it, enforced at the edge by
-the bar (`dokimasia_analyzer/README.md`).
-
-### The operating constraint: agility
-
-Safe mode already has **almost no proof holes on SMT-LIB**, which makes the
-obvious approach the wrong one. A benchmark corpus is a good oracle and a slow,
-largely exhausted signal; the holes that remain are by definition the ones
-SMT-LIB does not reach. So the thing to optimise is not compute — it is
-**feedback latency**.
-
-| | signal | latency | finds |
-| --- | --- | --- | --- |
-| **1** | **static analysis** of the pipeline | seconds, no build | holes no input has ever reached — *the ones that are left* |
-| **2** | **safe-mode consistency** — does safe mode do what it says? | seconds, no build | features that escape their own guard |
-| **3** | **build-time pruning** — is the unsafe code even linked? | one build | a whole class of hole, converted into a link error |
-| **4** | **fuzzing** — murxla's job, not ours | minutes | inputs a fixed corpus does not contain |
-| **5** | **a curated corpus of known holes** | seconds | regressions on holes already reported |
-| **6** | **SMT-LIB census** | hours | the baseline, once |
-
-Priority order, so it is not ambiguous: **1** complete proofs, always — the goal.
-**2** find the next hole fast; latency is the metric. **3** close the holes, each
-with a reproducer. **4** make safe mode true by construction rather than by a
-hand-maintained list. **5** keep closed holes closed. **6** argue a growing
-fragment is hole-free. Assertions, SARIF uploads and nightly jobs live below all
-of it.
 
 ## The contract
 
@@ -134,10 +117,13 @@ half is ours and the signature half is a reference we consult, never a file we
 diagnose. **The seam itself is C++ and is very much ours:** `src/proof/eo/` is
 where a cvc5 proof becomes a Eunoia proof.
 
+<details>
+<summary>Supporting measurements: what the analysis has established</summary>
+
 ## Why cvc5 should care
 
-Three claims, ranked by how well we can back them, and one admission. Everything
-was measured against cvc5 `40a4bb7e4`.
+These results were measured against cvc5 `40a4bb7e4`. They distinguish static
+coverage, runtime reachability and the limits of what has been demonstrated.
 
 ### 1. We supply the denominator your own counters lack
 
@@ -196,7 +182,7 @@ Adding a `--proof-granularity` flag to the proof tester — an ordinary thing to
 want — breaks link 4 and completeness testing stops. **No test fails.** A fifth
 link once asked for the flag to be named here; it was withdrawn, because making
 the option settable would equally permit `--no-check-proofs-complete`
-(the retractions in `dokimasia_analyzer/README.md` have the detail).
+(episode E10 in `docs/experience.md` records cvc5's response).
 
 **Safe mode's disable list is hand-maintained and unchecked.** The guard fires
 when a user *sets* an option, never on its default value, which is how
@@ -234,6 +220,8 @@ runtime oracle is sufficient and this is a ratchet repository rather than a
 hole-finding one; or our parsing turns out load-bearing and brittle, which is
 the whole argument for `R1`.
 
+</details>
+
 ## The checks
 
 The facets we audit. Each is a namespace of check codes; each check owns a
@@ -265,10 +253,11 @@ the register.
 | ✅ | `LATENT` | **the latent set** | of the holes the facets above declare, which has no input behind it — the static inventory minus what a corpus reached |
 | ○ | `KRN` | **kernel obligations** | see the wishues |
 
-Two of these — the ledger's arity column, and severity derived from reachability
-rather than presence — are things [cvc5 asked anoieu
-for](https://github.com/ajreynol/anoieu/blob/main/docs/README.md). They are C++
-questions, so they live here.
+The ledger's arity column and the option-gate analysis both concern cvc5's C++
+proof pipeline, so they are implemented here.
+
+<details>
+<summary>Measurements and implementation status by check family</summary>
 
 ## What each facet has produced
 
@@ -306,6 +295,8 @@ see. The tool prints that limit beside the result.
 | `INFERID` | nothing; it is live but its precision is bounded by `i-8`, which is cvc5's to fix (`R4`) |
 | `API` | needs the call site, which is the AST tier — see the static-analysis landscape (`docs/maintenance.md`) |
 | `KRN` | `i-4`: reconstruction runs under a search budget with no termination argument, which bounds what any kernel contract can claim |
+
+</details>
 
 ## The check-code convention
 
@@ -364,9 +355,9 @@ numbered section in a design argument — `H1`–`H11` in
 proof hygiene below — is a named argument, not a task; where
 it implies an action it has a row here.
 
-**These are hypotheses, not filed findings.** A finding is confirmed and lives
-in `experience.md`; this is what is waiting for a
-verdict.
+The open rows are hypotheses awaiting review. The **Settled** and **Filed**
+sections below record reviewed outcomes; interactions with cvc5 are in
+`docs/experience.md`.
 
 Ranks: **1** an incomplete proof under `--safe-mode=safe` — a contract
 violation, needs an input · **2** a hole reachable in safe mode, no input yet ·
@@ -483,7 +474,7 @@ worth as much as a finding.
 | s-4 | `macrosQuantMode` escapes safe mode like `stringLazyPreproc` | **spurious.** Its effect is gated by `macrosQuant`, default `false`. A defaults-only check cannot see that gate |
 | s-6 | `SET_FILTER` is ungated in safe mode, and `SETS_FILTER_UP`/`DOWN` are refused by the seam there — so a `set.filter` benchmark should fail `--check-proofs-complete`. A rank-1 candidate | **spurious, and the most instructive miss so far.** Every link held in the source. But `set.filter` takes a predicate, a predicate is a function-typed term, and `TheoryUF::preRegisterTerm` throws `LogicException` on a function-typed term unless the logic is higher-order — which safe *and* stable mode refuse. One command settled what no amount of reading would have. The analysis is fixed rather than the row retracted: `Fragment.requires_higher_order` now recovers this axis from the type rules, and 13 kinds move to blocked. See the bar (`dokimasia_analyzer/README.md`) |
 | s-7 | "No `uf` kind is blocked in safe mode at all", used to strengthen `i-1` | **half wrong.** `HO_APPLY` is blocked, by the same logic axis as `s-6`. `LAMBDA` is *not* — its argument is not function-typed, only its result is — so `i-1` survives at the kind level, but the sweeping form of the claim does not. `tests/test_fragment.py` now asserts the corrected fact |
-| s-5 | The proof checker's TCB is 74% of `src/` | **retracted.** An artifact of a saturating closure mode; the real figure is 8.0%. See the retractions in `dokimasia_analyzer/README.md` |
+| s-5 | The proof checker's TCB is 74% of `src/` | **retracted.** An artifact of a saturating closure mode; the corrected figure at the reference revision is 8.0%, measured by `dokimasia_analyzer.tcb measure`. |
 
 ## Filed
 
@@ -514,13 +505,21 @@ not need the solver — and C++ makes you include the whole class to reach one.
 The coupling is lexical rather than semantic, so the fix is mechanical: move the
 helper to a dependency-light header both sides include. Where the edge is
 `unused` the fix is a deletion, and **the report originally gave the first
-mechanism for all six**, which is the last row of the retractions in
-`dokimasia_analyzer/README.md`. The closure figures were right throughout.
+mechanism for all six**. Episode E14 in `docs/experience.md` records cvc5's
+correction. The closure figures were right throughout.
 
 **Status.** cvc5 has a branch removing the three dead includes and moving the
 strings helpers to `strings::utils`, reporting the closure down to 141 files /
 31,541 lines. It is not on `main`, so it is not yet an episode in
 `docs/experience.md`; it becomes one when it lands.
+
+## Design proposals and parser details
+
+The sections below retain the detailed arguments behind the requests above,
+including withdrawn proposals and known parser limitations.
+
+<details>
+<summary>Proof hygiene and longer-term goals</summary>
 
 ## Proof hygiene
 
@@ -628,6 +627,11 @@ is a consistency check available right now, with no build: the runtime disable
 list and the build-time exclusion list must agree, and today they plainly do not
 (`R8`).
 
+</details>
+
+<details>
+<summary>Review verdicts and proposed upstream work</summary>
+
 ## What to carry next
 
 Of everything in the register above, which is most worth a cvc5 maintainer's
@@ -707,7 +711,7 @@ on 2026-09-19 and is withdrawn.**
    reproduced the opt-out, and reverted it at `215eed21a6c8380075c46513e69181a295b6e3b2`. **The expert refusal
    is the mechanism that makes completeness non-negotiable in safe mode**, and we
    read it as an obstacle to naming the guarantee. Recorded in
-   the retractions in `dokimasia_analyzer/README.md`.
+   episode E10 in `docs/experience.md`.
 
 **What sank half of it, and what that leaves.** The report's own criterion was
 that a maintainer could refute it in thirty seconds, and one did: the refutation
@@ -778,6 +782,11 @@ this repository got wrong recently, three were static arguments that read
 correctly and were false; every one was caught by running something. A report
 whose evidence is a command carries its own refutation, which is the property
 that makes it cheap to receive.
+
+</details>
+
+<details>
+<summary>Evidence and reasoning for each request</summary>
 
 ## The asks, argued
 
@@ -851,7 +860,7 @@ that promises it** — the very property this ask exists to protect. Reproduced 
 cvc5 `a960d7d7210e731cf48ad7baa6ad42fc7345b297`, reverted at `215eed21a6c8380075c46513e69181a295b6e3b2`. The error was ours: we reasoned
 from *the positive flag is refused* to *the option should be settable*, without
 asking what else becomes settable, and it is recorded in
-the retractions in `dokimasia_analyzer/README.md`.
+episode E10 in `docs/experience.md`.
 
 **The one surviving form: assert the implication where it is created** — in
 `setDefaultsPre`, where a safe build turns the option on, state that a safe build
@@ -945,6 +954,11 @@ files in `src/` mention `CVC5_SAFE_MODE`, two only to reword an error message.
 Moving features from "disabled at runtime" to "not compiled" turns a class of
 proof hole into a link error. `docs/README.md`.
 
+</details>
+
+<details>
+<summary>Parser assumptions, limits and corrections</summary>
+
 ## What we parse, and what would break us
 
 Kept short on purpose. The mitigation is not an abstraction layer — it is that
@@ -998,3 +1012,5 @@ wrong output that a cross-check caught rather than a test.
 | anchoring on `bool EoPrinter::isHandled` | matched the call site, then `isHandledTheoryRewrite` is a prefix-match hazard for the other tool | zero results where 53 were expected |
 | fixed-size window past a class declaration | `BaseTester` inherited `UnsatCoreTester`'s flags; the last tester swallowed the module's argparse | reading the output against the source |
 | `exec`-mode include closure | saturated at cvc5's whole link unit, giving 74% for any seed | seeding from an unrelated file |
+
+</details>

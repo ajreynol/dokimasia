@@ -1,105 +1,85 @@
-# Dokimasia's bug database
+# Observation database
 
-**Browse the recorded bugs in Markdown (`bug_db/bugs.md`).** The generated table is
-readable directly on GitHub, with no server or local setup.
+Browse the [recorded observations](bugs.md) without running the analyzer.
+The database contains candidates, disputed claims and observations later closed
+by a cvc5 change. **A recorded observation is not necessarily a confirmed bug.**
 
-This directory is a **data artifact of Dokimasia**: the bugs and observations
-recorded from its runs, including candidates, disputed claims and observations
-since closed by a cvc5 change. Dokimasia owns the
-records, evidence, triage and closure decisions. [Koine's `bug_db_manager`](https://github.com/ajreynol/koine/tree/main/bug_db_manager)
-provides the shared append, history-window, closure and closure-check scripts.
+Dokimasia owns the records, evidence and review decisions.
+[Koine's database tools](https://github.com/ajreynol/koine/tree/main/bug_db_manager)
+provide the shared append, history-window and closure operations.
 
 | Artifact | Contents |
 | --- | --- |
-| [bugs.json](bugs.json) | persistent observation history, with stable identities and ingestion dates |
-| bugs.md | generated browsing view of every database entry |
-| [runs/](runs/) | archived run records: observations, evidence, source revisions and actual coverage |
-
-Scratch dumps are disposable; these committed artifacts preserve the record.
+| [bugs.json](bugs.json) | observation history, stable identities and ingestion dates |
+| [bugs.md](bugs.md) | generated browsing view of every database entry |
+| [runs/](runs/) | archived observations, evidence, source revisions and actual coverage |
+| [fragment.md](fragment.md) | generated report of proof support by theory |
 
 ## Record a run
 
-From the repository root, with Python 3.10 or later and a cvc5 source checkout:
+Use Python 3.10 or later and a cvc5 source checkout. From the repository root:
 
 ```bash
+# Preview inputs, then save a run for inspection.
 scripts/dokimasia_analyzer --cvc5 /path/to/cvc5 --dry-run
-scripts/dokimasia_analyzer --cvc5 /path/to/cvc5
-```
-
-The first command checks the input scope without writing. The second runs the
-analyzer, writes a dump and matching evidence in `scratch/`, archives the run,
-appends through Koine and refreshes `bugs.md`. Recording must succeed for the
-command to succeed. Repeating a run adds no duplicate identities.
-
-Updates need a clean Koine checkout at [`scripts/koine.lock`](../scripts/koine.lock),
-resolved through `$KOINE`, a sibling `koine`, or `deps/koine`. See
-dependency setup (`docs/maintenance.md`). Analysis and
-recording never fetch or alter a dependency checkout.
-
-To inspect a run before recording it:
-
-```bash
 scripts/dokimasia_analyzer --cvc5 /path/to/cvc5 --no-update
+
+# After review, preview and apply the database update.
 scripts/append_findings scratch/new-bugs.json --dry-run
 scripts/append_findings scratch/new-bugs.json
 ```
 
-The append preview validates the dump and its `.run.json` sidecar, then invokes
-Koine's dry run; it changes neither the database, archives nor Markdown.
-The independent assistant producer (`docs/maintenance.md`)
-uses the same format and append command after its claims are reviewed. Both
-producers use the same identity space and artifact; the archive records which
-producer supplied the evidence.
+Analysis needs only cvc5's source. Appending, including its preview, also needs
+a clean Koine checkout at [scripts/koine.lock](../scripts/koine.lock), found
+through `$KOINE`, a sibling `koine` directory or `deps/koine`. Setup is in
+**Local dependencies** in `docs/maintenance.md`. No dependency is fetched or
+changed during a run.
 
-## Refresh the Markdown view
+The append command validates the dump and its `.run.json` evidence sidecar,
+archives the run, updates the database and refreshes `bugs.md`. The preview
+writes nothing. Repeating a run adds no duplicate identities.
+
+To analyze and record in one command, omit `--no-update` from the analyzer
+command. Recording must succeed for that command to succeed. The independent
+assistant producer uses the same format and append command; review its claims
+before appending them.
+
+## Refresh the generated view
 
 ```bash
 scripts/append_findings --render-only
 scripts/append_findings --render-only --check
 ```
 
-Rendering requires neither cvc5 nor Koine. The check fails if the view is stale;
-CI runs it. Commit `bugs.json`, `bugs.md` and new run archives together. Do not
-edit the generated table; the next render replaces it. Runtime `*.json.lock`
-files are ignored.
+Rendering requires neither cvc5 nor Koine. CI runs the check and rejects a
+stale view. Commit `bugs.json`, `bugs.md` and new run archives together; edit
+the source data rather than the generated table.
 
-`--db` selects another database for a trial; its archives go in an adjacent
-`runs/` directory and its default view is an adjacent `bugs.md`. `--page`
-overrides that view's location.
+For a trial database, use `--db /path/to/bugs.json`. Archives and the default
+Markdown view go beside it. `--page` overrides the view's location.
 
-## Interpret the record
+## Interpret a record
 
 The JSON has a top-level `bugs` array. Each observation carries an `id`, `bug`,
-`tool`, `owner`, `code`, `entity`, `description` and `kind`, plus Koine's
-`first_seen` and `last_seen` ingestion dates. The
-analyzer guide (`docs/maintenance.md`) defines identities
-and the evidence keyed by those identities in the run archives.
+`tool`, `owner`, `code`, `entity`, `description` and `kind`, plus `first_seen`
+and `last_seen` ingestion dates. See **Identity and evidence** in
+`docs/maintenance.md` for the identity scheme and archived evidence.
 
 Koine preserves the original claim and updates `last_seen` on re-ingestion,
-including when it reports a conflicting claim. Dates do not establish fresh
-reproduction or confirmation. An absent observation stays in the database;
-absence alone does not establish that it was fixed.
+including when it reports a conflicting claim. These dates do not establish
+fresh reproduction. An absent observation remains in the database.
 
-## Closing an observation
+## Close an observation
 
-A closure is a decision about a **cvc5 change**, made by
-[`prompts/close_bug_db`](../prompts/close_bug_db): it reads the commits
-between the revision an observation was recorded against and cvc5's `main`
-(or a checkout with `--use-local`), using the pinned Koine closure scripts.
-It marks only what a commit can be shown to have fixed. Disappearance
-from a later dump closes nothing, and a database append neither closes nor
-promotes a claim.
+`prompts/close_bug_db` launches an assessment of cvc5's history using the pinned
+Koine tools. A closure requires evidence of a cvc5 change that fixed the claim;
+disappearance from a later run is insufficient. See **Assessing closure** in
+`docs/maintenance.md` for commands and requirements.
 
-A closed entry carries `closed_on`, `closed_commit`, `closed_pr` where the
-commit names one, and a one-sentence `closed_why`. Everything else about it is
-untouched: the identity, the original claim and both dates. Nothing is ever
-removed; Koine reports a reopen candidate when an entry is re-observed after
-its `closed_on`. Re-assess that closure rather than correcting the record.
-What the change actually did is written up
-in `docs/experience.md`, one section per pull request.
+Closed entries keep their original identity, claim and ingestion dates, and
+add `closed_on`, `closed_commit`, `closed_pr` when available, and `closed_why`.
+Re-observing a closed entry produces a reopen candidate for review.
 
-Reviewed verdicts, replies and retractions stay in the
-issue register (`docs/README.md`) and the
-findings ledger (`dokimasia_analyzer/README.md`); see
-assessing closure (`docs/maintenance.md`) for the mechanics
-and what is still missing.
+The issue register in `docs/README.md` holds reviewed verdicts and filed
+findings. `docs/experience.md` records cvc5's responses and changes. All
+documentation paths here are relative to the repository root.

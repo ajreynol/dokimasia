@@ -1,15 +1,14 @@
-# Documentation
+# ydoki research notes
 
-The index of `tools/ydoki/docs/`. The charter and front page is
-`../README.md`, which says what this project asks and what it
-refuses to do; everything here is the working material behind it.
+Start with `tools/ydoki/README.md` for the research question, scope and status.
+The files here hold the supporting measurements and open questions.
 
-**The two axis pages are mirrors and are meant to be read as a pair.** One is
-about what safe mode stops you *saying*, the other about what it stops cvc5
-*doing*.
-
-| | |
+| Document | Contents |
 | --- | --- |
-| `theories.md` | **the theory axis** — the four candidates, what each is missing at which layer, and what none of it establishes |
-| `options.md` | **the option axis** — the options each mode clears, in tiers, and why the safe-only five come first |
-| `ledger.md` | candidate feedback: anything this project would want to say to cvc5 or ask of the parent, accumulated for a person to weigh |
+| `theories.md` | four theory candidates and the proof components each is missing |
+| `options.md` | disabled solving techniques, candidate tiers and limitations |
+| `ledger.md` | feedback and requests for measurements, awaiting human review |
+
+Read the theory and option pages together: they address different restrictions
+and do not form a single ranking. Document names in the table are relative to
+this directory.

@@ -7,9 +7,9 @@ by a program.
 
 **Repository boundary.** Dokimasia covers cvc5's proofs. General cvc5
 development belongs to [Paideia](https://github.com/ajreynol/paideia), which
-holds the research projects a live topic below still places in this tree; there
-is no `tools/` here, and dependency pins and local configuration are under
-`scripts/`. Proof-production performance belongs to
+holds the general-development research projects mentioned in older topics.
+The proof-support research child is `tools/ydoki/`; dependency pins and local
+configuration are under `scripts/`. Proof-production performance belongs to
 [Tachyon's Elaphros](https://github.com/ajreynol/tachyon/tree/main/tools/elaphros).
 
 > **STOP — do not act on anything in this file unless a human told you to.**
