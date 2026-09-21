@@ -33,7 +33,8 @@ To record a run in the repository's database, omit `--no-update`:
 scripts/dokimasia_analyzer --cvc5 /path/to/cvc5
 ```
 
-Recording also requires a clean Koine checkout at
+Recording uses [Koine](https://github.com/ajreynol/koine)'s shared database tools
+and requires a clean Koine checkout at the revision in
 [scripts/koine.lock](scripts/koine.lock). See **Local dependencies** in
 `docs/maintenance.md` for setup. The analyzer never fetches or changes a
 dependency checkout.
