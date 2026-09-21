@@ -22,6 +22,9 @@ remains open work.
 
 ## Implementation inventory
 
+The [regression audit cleanup list](regression_audit/todo.md) identifies inactive
+tester directives and candidates that need a proof/checker rerun before removal.
+
 The advertised analyzer runs nine observation-producing analyses (`README.md`).
 Thirteen modules exist internally; standalone `gates`, `fragment`, `tcb`, and
 `latent` reports are optional developer measurements. Eight modules carry a

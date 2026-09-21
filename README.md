@@ -67,9 +67,10 @@ To see which regressions disable proof checking, run:
 ```
 
 The [regression audit](regression_audit/README.md) lists `proof`, `cpc`, and
-planned `cpc-logos` exclusions, inherited disables, suite-wide exclusions and
+planned `cpc-logos` directives, inherited disables and
 available reason comments. It uses the configured cvc5 checkout; `--cvc5`
-selects another one, and `--summary` prints just the counts and tester status.
+selects another one. The default is a compact table with totals; `--verbose`
+shows source evidence, and `--summary` prints just the totals and tester status.
 
 ## Reading the results
 

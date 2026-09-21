@@ -12,9 +12,11 @@ import unittest
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from regression_audit.audit import CLI, CMAKE, HARNESS, read_harness, scan
+from regression_audit.audit import CLI, HARNESS, read_harness, scan
+from regression_audit.cli import compact_rows
 
 SCRIPT = ROOT / "scripts/eo_cvc5_regressions_audit"
+CMAKE = CLI / "CMakeLists.txt"
 REAL_CHECKOUT = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 else (
     Path(os.environ["CVC5"]).resolve() if os.environ.get("CVC5") else None)
 
@@ -91,9 +93,8 @@ class AuditTests(unittest.TestCase):
         report = scan(self.root)
         self.assertEqual(report["files_scanned"], 6)
         proof, cpc = (report["testers"][t] for t in ("proof", "cpc"))
-        self.assertEqual((proof["direct"], proof["total_disabled"]), (2, 4))
-        self.assertEqual((cpc["direct"], cpc["inherited_only"], cpc["total_disabled"]), (2, 1, 5))
-        self.assertEqual(cpc["suite_disabled"], 3)
+        self.assertEqual((proof["direct"], proof["total_disabled"]), (2, 2))
+        self.assertEqual((cpc["direct"], cpc["inherited_only"], cpc["total_disabled"]), (2, 1, 3))
         self.assertEqual(report["testers"]["cpc-logos"]["status"], "planned (not registered)")
         self.assertIsNone(report["testers"]["cpc-logos"]["total_disabled"])
         rows = self.rows(report)
@@ -108,21 +109,21 @@ class AuditTests(unittest.TestCase):
         # General descriptions must not become fabricated explanations.
         self.assertFalse(rows["both.smt2"]["directives"][0]["reason_comments"])
         self.assertIn("Ported", rows["both.smt2"]["directives"][0]["context"][0]["text"])
-        self.assertEqual(rows["both.smt2"]["suite_disabled"]["location"], f"{CMAKE}:3")
-        self.assertEqual(rows["suite.smt2"]["suite_disabled"]["reason_comments"][0]["text"], "platform-dependent output")
-        self.assertFalse(rows["unexplained.smt2"]["suite_disabled"]["reason_comments"])
+        self.assertNotIn("suite.smt2", rows)
+        self.assertNotIn("unexplained.smt2", rows)
+        self.assertNotIn("suite_disabled", rows["both.smt2"])
 
     def test_harness_cascades_follow_selected_checkout(self):
         # Registering logos does not imply that proof or cpc disables it.
         runner = RUNNER.replace('"base": Base()', '"cpc-logos": Logos(), "base": Base()')
         self.write(HARNESS, runner)
-        self.assertEqual(scan(self.root)["testers"]["cpc-logos"]["total_disabled"], 3)
+        self.assertEqual(scan(self.root)["testers"]["cpc-logos"]["total_disabled"], 0)
         self.write(HARNESS, runner + '''        if "cpc-logos" in testers:
             testers.remove("cpc-logos")
 ''')
         self.write(CLI / "regress1/logos.smt2", "; DISABLE-TESTER: cpc-logos\n")
         logos = scan(self.root)["testers"]["cpc-logos"]
-        self.assertEqual((logos["direct"], logos["inherited_only"], logos["total_disabled"]), (1, 2, 5))
+        self.assertEqual((logos["direct"], logos["inherited_only"], logos["total_disabled"]), (1, 2, 3))
         self.write(HARNESS, runner + '''    if disable_tester == "cpc":
         if "cpc-logos" in testers:
             testers.remove("cpc-logos")
@@ -158,8 +159,8 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertNotIn("Traceback", result.stderr)
         self.write(CMAKE, "set(regression_disabled_tests\nregress0/missing.smt2\n)\n")
-        with self.assertRaisesRegex(ValueError, "files missing"):
-            scan(self.root)
+        self.write(CLI / "regress0/invalid.smt2", "; EXPECT: sat\n")
+        self.assertEqual(len(scan(self.root)["regressions"]), 3)
         with self.assertRaisesRegex(ValueError, "literal g_testers"):
             read_harness("g_testers = make_testers()")
         with self.assertRaisesRegex(ValueError, "dynamic disable cascade"):
@@ -168,9 +169,28 @@ class AuditTests(unittest.TestCase):
     def test_cli_works_from_another_directory_and_uses_shared_resolution(self):
         result = self.run_cli(env={"DOKIMASIA_CVC5": str(self.root)})
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("cpc via proof", result.stdout)
-        self.assertIn("Reason: unknown", result.stdout)
+        header = next(line for line in result.stdout.splitlines() if line.startswith("Regression"))
+        self.assertEqual(header.split(), ["Regression", "proof", "cpc", "cpc-logos", "Note"])
+        table = {line.split()[0]: line for line in result.stdout.splitlines() if line.startswith("regress0/")}
+        self.assertRegex(table["regress0/proof.smt2"], r"proof\.smt2 +yes +-- +-- +")
+        self.assertRegex(table["regress0/cpc.smt2"], r"cpc\.smt2 +no +yes +-- +")
+        self.assertNotIn("regress0/suite.smt2", table)
+        self.assertRegex(table["regress0/both.smt2"], r"both\.smt2 +yes +yes +-- +unknown")
+        self.assertNotIn("suite: timeout", result.stdout)
+        self.assertIn("Yes totals: proof 2 / cpc 2 / cpc-logos 0 (planned); sum 4 (3 regressions)", result.stdout)
+        self.assertIn("Reasons (yes only): timeout 0 / other 2 / unknown 2", result.stdout)
+        self.assertEqual(sum(line.startswith("regress0/") for line in result.stdout.splitlines()), 3)
+        self.assertNotIn("COMMAND-LINE:", result.stdout)
+        self.assertNotIn(str(HARNESS), result.stdout)
+        self.assertNotIn("Reason comment:", result.stdout)
         self.assertIn("overloaded constructors", result.stdout)
+        verbose = self.run_cli("--verbose", "--cvc5", str(self.root))
+        self.assertEqual(verbose.returncode, 0, verbose.stderr)
+        self.assertIn("cpc via proof", verbose.stdout)
+        self.assertIn("Reason: unknown", verbose.stdout)
+        self.assertIn("COMMAND-LINE: --global-negate", verbose.stdout)
+        self.assertIn(f"{HARNESS}:12", verbose.stdout)
+        self.assertIn("Ported from another solver", verbose.stdout)
         summary = self.run_cli("--summary", "--cvc5", str(self.root),
                                env={"DOKIMASIA_CVC5": str(self.root / "wrong")})
         self.assertEqual(summary.returncode, 0, summary.stderr)
@@ -182,9 +202,36 @@ class AuditTests(unittest.TestCase):
         report = json.loads(result.stdout)
         self.assertEqual(list(report["testers"]), ["cpc"])
         self.assertEqual(report["resolved_via"], str(mapping))
-        self.assertEqual(report["testers"]["cpc"]["total_disabled"], 5)
+        self.assertEqual(report["testers"]["cpc"]["total_disabled"], 3)
+        self.assertEqual(report["totals"], {"yes_entries": 2, "regressions_with_directives": 2,
+                                          "reasons": {"timeout": 0, "other": 1, "unknown": 1}})
         result = self.run_cli("--json", "--tester", "cpc-logos", "--cvc5", str(self.root))
         self.assertEqual(json.loads(result.stdout)["regressions"], [])
+        self.assertEqual(json.loads(result.stdout)["totals"]["yes_entries"], 0)
+
+    def test_timeout_reasons_and_filtered_totals(self):
+        for comment in ("timeout", "Timeouts on debug builds", "time out", "times out",
+                        "timed out", "timing out", "time-out"):
+            with self.subTest(comment=comment):
+                self.write(CLI / "regress0/plain.smt2", f"; DISABLE-TESTER: cpc\n; {comment}\n")
+                result = self.run_cli("--json", "--tester", "cpc", "--cvc5", str(self.root))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                report = json.loads(result.stdout)
+                self.assertEqual(self.rows(report)["plain.smt2"]["directives"][0]["reason_comments"][0]["text"], comment)
+                self.assertEqual(report["totals"]["reasons"]["timeout"], 1)
+                self.assertEqual(sum(report["totals"]["reasons"].values()), report["totals"]["yes_entries"])
+        # A cpc-only timeout must not affect the proof tally.
+        result = self.run_cli("--summary", "--tester", "proof", "--cvc5", str(self.root))
+        self.assertIn("Yes totals: proof 2; sum 2 (2 regressions)", result.stdout)
+        self.assertIn("Reasons (yes only): timeout 0 / other 1 / unknown 1", result.stdout)
+        # Keep general performance explanations; do not silently relabel slow
+        # conversion as a demonstrated timeout or infer reasons from filenames.
+        self.write(CLI / "regress0/plain.smt2", "; DISABLE-TESTER: cpc\n;; slow conversion\n")
+        result = self.run_cli("--cvc5", str(self.root))
+        self.assertIn("slow conversion", result.stdout)
+        self.assertIn("Reasons (yes only): timeout 0 / other 3 / unknown 2", result.stdout)
+        self.write(CLI / "regress0/plain.smt2", "; DISABLE-TESTER: cpc\n; test timeout-core generation\n")
+        self.assertFalse(self.rows(scan(self.root))["plain.smt2"]["directives"][0]["reason_comments"])
 
     @unittest.skipUnless(REAL_CHECKOUT, "pass a cvc5 checkout or set CVC5 for the source cross-check")
     def test_real_checkout(self):
@@ -204,6 +251,9 @@ class AuditTests(unittest.TestCase):
         self.assertEqual(report["files_scanned"], len(files))
         for tester, paths in direct.items():
             self.assertEqual(report["testers"][tester]["direct"], len(paths))
+            yes_paths = {REAL_CHECKOUT / CLI / r["path"]
+                         for r in compact_rows(report, list(direct)) if r["cells"][tester] == "yes"}
+            self.assertEqual(yes_paths, paths)
         # Every directive location must point into the selected checkout.
         for row in report["regressions"]:
             for directive in row["directives"]:
