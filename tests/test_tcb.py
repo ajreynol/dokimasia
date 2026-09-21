@@ -6,7 +6,9 @@ The synthetic tests need nothing. If a cvc5 checkout is given (or CVC5 is set),
 the tree tests also run and guard the numbers in docs/experience.md.
 """
 
+import json
 import os
+import re
 import sys
 import tempfile
 
@@ -123,6 +125,44 @@ def test_edge_use():
               g.edge_use("a/fwd_user.cpp", "b/fwd.h"), "unused")
 
 
+def test_index_quotes_no_loose_figure():
+    """Every TCB figure in `docs/README.md` is the baseline's, or is not there.
+
+    The page argues from a number cvc5 moves, so a figure written into its
+    prose is stale the moment cvc5 lands a patch -- `E15` is exactly that
+    happening. The rule the page now follows is that a *standing* claim names
+    the measurement (`dokimasia_analyzer.tcb measure`) and a *dated* record
+    names the revision it was taken at. This enforces the half a reader cannot
+    see: whatever figures survive must equal `tests/baselines/tcb.json`, so a
+    copy is re-counted rather than trusted, and bumping the pin without
+    re-recording the baseline fails here rather than silently drifting.
+    """
+    print("\nthe index's TCB figures:")
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, "baselines", "tcb.json"), encoding="utf-8") as fh:
+        base = json.load(fh)
+    with open(os.path.join(os.path.dirname(here), "docs", "README.md"),
+              encoding="utf-8") as fh:
+        text = fh.read()
+
+    # Only the headline pair and the percentage: the `f-1` edge table quotes a
+    # per-edge "uniquely worth" size, which is a different measurement and is
+    # dated in the page rather than carried by the baseline.
+    pairs = {(int(f.replace(",", "")), int(l.replace(",", "")))
+             for f, l in re.findall(r"([\d,]+) files, ([\d,]+) lines", text)}
+    allowed_pairs = {(base["tcb_files"], base["tcb_lines"]),
+                     (base["src_files"], base["src_lines"])}
+    check("the index quotes no closure size the baseline does not carry",
+          sorted(pairs - allowed_pairs), [])
+    # 74% is the retracted `s-5` claim, which the page keeps on purpose.
+    pcts = {float(m) for m in re.findall(r"([\d.]+)% of `src/`", text)}
+    check("the index quotes no src/ percentage the baseline does not carry",
+          sorted(pcts - {base["pct_files"], base["pct_lines"], 74.0}), [])
+    if FAILURES:
+        print("        either drop the figure and name the measurement, or "
+              "re-record: python3 -m dokimasia_analyzer.tcb baseline <cvc5> --write")
+
+
 def test_cvc5(root):
     print(f"cvc5 tree at {root}:")
     from dokimasia_analyzer.tcb.closure import SEED_SETS, resolve_src
@@ -175,6 +215,7 @@ def test_cvc5(root):
 if __name__ == "__main__":
     test_synthetic()
     test_edge_use()
+    test_index_quotes_no_loose_figure()
     root = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("CVC5")
     if root and os.path.isdir(root):
         print()

@@ -190,9 +190,11 @@ the option settable would equally permit `--no-check-proofs-complete`
 when a user *sets* an option, never on its default value, which is how
 `stringLazyPreproc` gets through (`i-2`).
 
-**The checker's trusted surface is not measured** — 179 files, 41,446 lines,
-8.0% of `src/`. Nothing in cvc5 measures it, so nothing would notice it growing,
-and it is the number any kernel argument starts from.
+**The checker's trusted surface is not measured by cvc5.** Ours reports it for
+any checkout — `dokimasia_analyzer.tcb measure` — and `tests/baselines/tcb.json`
+carries the figure at the revision in `scripts/cvc5.lock`. Nothing in cvc5
+measures it, so nothing would notice it growing, and it is the number any kernel
+argument starts from.
 
 **The mechanism, and the first thing it caught.** Every property has a
 `baseline --check` ratchet: no build, no dependencies, seconds against a
@@ -421,7 +423,7 @@ the one that makes everything else exact.
 | --- | --- | --- |
 | **R1** emit the registries as JSON | *all of G1–G4* | inferred → exact. Retires most of our fragility and several asks below |
 | **R2** assert the completeness implication in `setDefaultsPre`, at the granularities where it holds | G4 completeness chain | the guarantee obtainable only as a side effect → stated in cvc5's own tree |
-| **R3** extract helpers out of solver classes | G2 checker TCB | 41,446 lines → smaller, and 1 of 13 checkers over-scoped → 0 |
+| **R3** extract helpers out of solver classes | G2 checker TCB | the measured closure → smaller, and 1 of 13 checkers over-scoped → 0 |
 | **R4** one `InferenceId`, one site | G3 nameability | 84% single-site → 100% |
 | **R5** `no_support` covers defaults | G4 contract | 1 option escaping → 0 |
 | **R6** declare intentional seam refusals | G1 hole census | 14 gaps *inferred* → 14 gaps *stated* |
@@ -476,7 +478,7 @@ worth as much as a finding.
 | s-4 | `macrosQuantMode` escapes safe mode like `stringLazyPreproc` | **spurious.** Its effect is gated by `macrosQuant`, default `false`. A defaults-only check cannot see that gate |
 | s-6 | `SET_FILTER` is ungated in safe mode, and `SETS_FILTER_UP`/`DOWN` are refused by the seam there — so a `set.filter` benchmark should fail `--check-proofs-complete`. A rank-1 candidate | **spurious, and the most instructive miss so far.** Every link held in the source. But `set.filter` takes a predicate, a predicate is a function-typed term, and `TheoryUF::preRegisterTerm` throws `LogicException` on a function-typed term unless the logic is higher-order — which safe *and* stable mode refuse. One command settled what no amount of reading would have. The analysis is fixed rather than the row retracted: `Fragment.requires_higher_order` now recovers this axis from the type rules, and 13 kinds move to blocked. See the bar (`dokimasia_analyzer/README.md`) |
 | s-7 | "No `uf` kind is blocked in safe mode at all", used to strengthen `i-1` | **half wrong.** `HO_APPLY` is blocked, by the same logic axis as `s-6`. `LAMBDA` is *not* — its argument is not function-typed, only its result is — so `i-1` survives at the kind level, but the sweeping form of the claim does not. `tests/test_fragment.py` now asserts the corrected fact |
-| s-5 | The proof checker's TCB is 74% of `src/` | **retracted.** An artifact of a saturating closure mode; the corrected figure at the reference revision is 8.0%, measured by `dokimasia_analyzer.tcb measure`. |
+| s-5 | The proof checker's TCB is 74% of `src/` | **retracted.** An artifact of a saturating closure mode; the corrected figure at the revision in `scripts/cvc5.lock` is 8.0%, measured by `dokimasia_analyzer.tcb measure`. |
 
 ## Filed
 
@@ -489,8 +491,13 @@ its value depends on how little of cvc5 it needs to be right. The base class is
 already disciplined: 12 of 13 registered rule checkers take nothing but a
 `NodeManager*`. Six included the headers of the solvers they were checking,
 putting `theory/strings/core_solver.h`, `theory/arith/linear/constraint.h`,
-`theory/theory.h` and `theory/rewriter.h` inside a surface of **179 files,
-41,446 lines, 8.0% of `src/`** (`dokimasia_analyzer.tcb measure`).
+`theory/theory.h` and `theory/rewriter.h` inside the checker's compile-time
+surface. **How big that surface is, is a measurement and not a constant:** run
+`dokimasia_analyzer.tcb measure <cvc5>` against any checkout, and see
+`tests/baselines/tcb.json` for the figure at the revision in `scripts/cvc5.lock`.
+
+The edges as filed, at the revision in `scripts/cvc5.lock`;
+`dokimasia_analyzer.tcb cuts` recomputes them for any checkout:
 
 | from | include | uniquely worth | use |
 | --- | --- | --- | --- |
@@ -510,10 +517,10 @@ helper to a dependency-light header both sides include. Where the edge is
 mechanism for all six**. Episode E14 in `docs/experience.md` records cvc5's
 correction. The closure figures were right throughout.
 
-**Status.** cvc5 has a branch removing the three dead includes and moving the
-strings helpers to `strings::utils`, reporting the closure down to 141 files /
-31,541 lines. It is not on `main`, so it is not yet an episode in
-`docs/experience.md`; it becomes one when it lands.
+**Status.** Landed. cvc5 removed the dead includes and moved the strings helpers
+to `strings::utils`; episode `E15` in `docs/experience.md` records that change and
+the measurement either side of it. Where the closure stands in any checkout since
+is a question for `dokimasia_analyzer.tcb measure`, not for this page.
 
 ## Design proposals and parser details
 
@@ -599,8 +606,8 @@ cvc5 is its proof kernel — not a machine-checked theorem, but
 | axis | the question | today |
 | --- | --- | --- |
 | **nameable** | can you enumerate the kernel at all? | partly — `--safe-mode=safe` names a configuration, not a set of code |
-| **closed** | does the boundary hold — does nothing inside reach out? | unknown, and `tcb-001` is one place it does not |
-| **small** | how much is inside? | the internal checker compiles against 41,446 lines, 8.0% of `src/` |
+| **closed** | does the boundary hold — does nothing inside reach out? | unknown; `tcb-001` was one place it did not, and `E15` closed that one |
+| **small** | how much is inside? | measurable, and measured — `dokimasia_analyzer.tcb measure`; smaller since `E15` |
 | **local** | can a reader check one obligation by reading one function? | rarely |
 | **mechanized** | is any part machine-checked? | no, and that is the *last* axis, not the first |
 

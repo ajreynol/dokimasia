@@ -22,10 +22,10 @@ identities, dates, archived evidence and the `closed_*` fields a closure adds.
 The open hypotheses that have not yet become an episode are the register in
 `docs/README.md`.
 
-**3 episodes so far, and 2 of 3 are negative** — all from the same week, and
-none is a proof hole. Of the three, one was cvc5 accepting something and two
-were cvc5 telling us we were wrong. That is the honest summary of what this
-repository has cost cvc5 and returned to them to date.
+**4 episodes so far, and 2 of 4 are negative** — and none is a proof hole. Two
+were cvc5 accepting something and two were cvc5 telling us we were wrong; the
+first three fell in one week and `E15` is the first since. That is the honest
+summary of what this repository has cost cvc5 and returned to them to date.
 
 The numbering starts at `E9` because `E1`–`E8` and `E11`–`E13` were withdrawn on
 2026-09-19: they recorded corrections cvc5 was never party to. **A pull request
@@ -124,6 +124,43 @@ never checked the story.** `Closure.edge_use` now classifies every edge `used`,
 calling a live include dead is the same error reflected. Getting that bias right
 took three corrections of its own, each now a named test. The closure figures
 were right throughout and are unchanged.
+
+## E15: cvc5 isolated the internal proof checker's dependencies we filed as `tcb-001`
+
+| | |
+| --- | --- |
+| **When** | 2026-09-21 |
+| **Kind** | positive — an ask acted on, citing us |
+| **Ours** | `f-1` / `tcb-001`, and `dokimasia_analyzer.tcb measure` behind it |
+| **cvc5** | [#12959](https://github.com/cvc5/cvc5/pull/12959), `90def7690b7ba98b5337f2838f2ad28cb37e6147` |
+| **Outcome** | merged; the measured closure falls from 179 files and 41,446 lines to 141 and 31,541 |
+
+**What happened.** `f-1` said six proof rule checkers compile against the theory
+solvers they check, which put `theory/strings/core_solver.h`,
+`theory/arith/linear/constraint.h` and their transitive closure — 179 files,
+41,446 lines — inside the surface the internal checker has to be right about.
+`E14` records cvc5's answer that on three of those edges nothing was used and the
+includes were simply dead. **#12959 did both halves.** It deleted the four dead
+includes — `theory/arith/linear/constraint.h` from the arithmetic checker,
+`theory/quantifiers/extended_rewrite.h` from the builtin checker, and
+`expr/dtype_cons.h` with `theory/rewriter.h` from the datatypes checker — and on
+the strings edge, the one where the coupling was real, it moved the `static`
+helpers off `CoreSolver` and `TermRegistry` into `theory_strings_utils`, which is
+the dependency-light header the report asked for. The commit describes itself as
+"Code moves only" and says it is *"Based on the `tcb` goal of
+https://github.com/ajreynol/dokimasia/"*. Re-measured at that commit, the closure
+is 141 files and 31,541 lines.
+
+**What we learned.** The ask was right in aggregate and wrong about the mechanism
+for half its rows, and cvc5 acted on the aggregate anyway — so what carried it
+was the measurement, not the story told around it. The number survived `E14`
+retracting that story, which is the sharpest argument yet for reporting a
+quantity a maintainer can re-derive and keeping the explanation separable from
+it. `Closure.edge_use`, added because of `E14`, is what would have let the report
+split the dead edges from the coupled ones before filing rather than after. And
+this is the first time the TCB figure has moved at all: `docs/README.md` argues
+that the number going down *is* the argument getting shorter, and a 24% cut is
+the first evidence that the argument responds to being made.
 
 ## How this page is maintained
 
