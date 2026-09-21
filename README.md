@@ -60,6 +60,17 @@ The check catalogue in `docs/README.md` describes each claim and its limits.
 Optional developer reports and individual commands are in
 `docs/maintenance.md`.
 
+To see which regressions disable proof checking, run:
+
+```bash
+./scripts/eo_cvc5_regressions_audit
+```
+
+The [regression audit](regression_audit/README.md) lists `proof`, `cpc`, and
+planned `cpc-logos` exclusions, inherited disables, suite-wide exclusions and
+available reason comments. It uses the configured cvc5 checkout; `--cvc5`
+selects another one, and `--summary` prints just the counts and tester status.
+
 ## Reading the results
 
 **Browse the [recorded observations](bug_db/bugs.md)** for the accumulated
@@ -86,6 +97,7 @@ Documentation paths below are relative to the repository root.
 | `docs/README.md` | scope, check catalogue, limitations and issue register |
 | `docs/maintenance.md` | setup, commands, dependency pins and development checks |
 | `dokimasia_analyzer/README.md` | module overview and standards for reviewing findings |
+| `regression_audit/README.md` | regression exclusions, reason attribution and audit commands |
 | `bug_db/README.md` | recording runs and interpreting the database |
 | `docs/experience.md` | interactions with cvc5 and what they taught us |
 | `TODO.md` | planned work and priorities |

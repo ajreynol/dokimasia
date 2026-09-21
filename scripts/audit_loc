@@ -189,6 +189,10 @@ def _language_of(path: str) -> str:
 def _attribute(rel: str) -> tuple[str, str]:
     """(analysis, role) for a repository-relative path."""
     parts = rel.split(os.sep)
+    if parts[0] == "regression_audit":
+        role = "docs" if rel.endswith(".md") else (
+            "cli" if parts[-1] == "cli.py" else "engine")
+        return "regression_audit", role
     if parts[0] == "dokimasia_analyzer":
         if len(parts) == 2:                       # dokimasia_analyzer/sanity.py
             return "(shared)", "engine"

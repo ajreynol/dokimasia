@@ -26,6 +26,7 @@ documents, with paths relative to the repository root:
 | --- | --- |
 | `docs/maintenance.md` | setup, commands, dependency pins, tests and corpus measurements |
 | `dokimasia_analyzer/README.md` | module overview and review standards for findings |
+| `regression_audit/README.md` | proof tester exclusions and their recorded reasons |
 | `bug_db/README.md` | recording runs, archived evidence and closure decisions |
 | `docs/experience.md` | interactions with cvc5 and lessons from them |
 | `docs/discussion.md` | correspondence with related projects |

@@ -13,7 +13,8 @@ in `scripts/`. Proof-production performance belongs to
 and is outside Dokimasia's scope.
 
 Keep commands and their helpers in `scripts/`, assistant launchers in `prompts/`,
-and analysis implementations in `dokimasia_analyzer/`. Add documents to the
+and analysis implementations in `dokimasia_analyzer/`. The standalone regression
+exclusion audit is implemented in `regression_audit/`. Add documents to the
 documentation index (`docs/README.md`). Observations are recorded by the analyzer and
 closed by an assessment of cvc5's history; what a closure
 meant is written up in `docs/experience.md`.
@@ -131,6 +132,7 @@ database integration.
 | command | purpose |
 | --- | --- |
 | `scripts/dokimasia_analyzer` | collect observations and evidence; optionally append via Koine |
+| `scripts/eo_cvc5_regressions_audit` | report proof, CPC and planned CPC-Logos regression exclusions with reasons |
 | `scripts/append_findings` | validate a dump and evidence, append, or regenerate/check the page |
 | `scripts/compare_findings` | compare producers on an identical source snapshot |
 | `scripts/finding_id.py` | format a stable record or compute its identity without analysis |

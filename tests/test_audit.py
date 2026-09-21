@@ -48,6 +48,8 @@ def test_attribution():
     print("file attribution:")
     check("an engine module", audit._attribute("dokimasia_analyzer/ledger/build.py"), ("ledger", "engine"))
     check("a CLI", audit._attribute("dokimasia_analyzer/ledger/__main__.py"), ("ledger", "cli"))
+    check("regression audit implementation", audit._attribute("regression_audit/audit.py"), ("regression_audit", "engine"))
+    check("regression audit documentation", audit._attribute("regression_audit/README.md"), ("regression_audit", "docs"))
     check("shared infrastructure", audit._attribute("dokimasia_analyzer/sanity.py"), ("(shared)", "engine"))
     check("a test maps to its analysis",
           audit._attribute("tests/test_ledger.py"), ("ledger", "tests"))
