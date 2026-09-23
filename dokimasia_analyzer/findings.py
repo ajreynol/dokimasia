@@ -29,6 +29,8 @@ CHECKS = {
     "RW0002": ("rewrites", "Implemented rewrite is printable only in unrestricted mode"),
     "TRUST0001": ("trust", "File constructs trust steps with no reason id"),
     "INFER0002": ("infer", "Emitted inference has no case in a reconstructor with a trust fallback"),
+    "INFER0001": ("preprocess", "Preprocessing path emits a skolem lemma with an explicit null proof generator"),
+    "API0005": ("proofshape", "Literal proof-step arity disagrees with a checker entry assertion"),
     "INFERID0001": ("inferid", "Inference id has multiple detected production sites"),
     "INFERID0002": ("inferid", "File produces an inference with a sentinel id"),
     "SIG0001": ("signature", "Printable rule has no signature declaration"),
@@ -210,6 +212,35 @@ def collect_inferid(root, out):
     for name, sites in r.sentinel_uses().items():
         for s in sites:
             out.add("INFERID0002", "src/" + s.path + "#" + name, location="src/" + s.where())
+
+
+def collect_preprocess(root, out):
+    from .preprocess.scan import scan
+    r = scan(root)
+    out.measurements["preprocess"] = {"output_methods": r.methods,
+        "local_paths": r.reachable, "paths_with_proof_handling": r.guarded,
+        "null_generator_sites": len(r.issues), "fallback": r.fallback}
+    for row in r.issues:
+        entity = row["location"].rsplit(":", 1)[0] + "#" + row["function"]
+        out.add("INFER0001", entity, **row,
+                limitation="Only explicit nullptr generators, adjacent bindings and local calls are recognized. "
+                "Proof-handling methods are skipped conservatively; option gates, external callers, "
+                "and survival in the final proof need separate verification.")
+
+
+def collect_proofshape(root, out):
+    from .proofshape.scan import scan
+    r = scan(root)
+    out.measurements["proofshape"] = {"contracts": len(r.contracts),
+        "rules": len({c.rule for c in r.contracts}), "literal_rule_calls": r.calls,
+        "compared_calls": r.compared, "unknown_calls": r.unknown,
+        "ambiguous_rules": sorted(r.ambiguous_rules)}
+    for row in r.issues:
+        entity = row["location"].rsplit(":", 1)[0] + "#" + row["rule"] + ":" + row["vector"]
+        out.add("API0005", entity, **row,
+                limitation="Syntactic API matching without receiver type resolution. Only literal lists "
+                "and leading single-rule checker assertions are compared; dynamic lists and ambiguous "
+                "contracts are unknown. Assertions may compile out; runtime reachability is untested.")
 
 
 def collect_signature(root, out):

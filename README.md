@@ -41,7 +41,7 @@ dependency checkout.
 
 ## What it checks
 
-The default run includes nine analyses. Repeat `--analysis NAME` to select a
+The default run includes eleven analyses. Repeat `--analysis NAME` to select a
 subset, for example `--analysis ledger --analysis ci`.
 
 | Analysis | Looks for |
@@ -53,6 +53,8 @@ subset, for example `--analysis ledger --analysis ci`.
 | `rewrites` | implemented rewrites the printer refuses or restricts to unrestricted mode |
 | `trust` | trust steps constructed without a reason identifier |
 | `infer` | inferences missing reconstruction cases where the fallback is a trust step |
+| `preprocess` | preprocessing skolem lemmas explicitly constructed without a proof generator |
+| `proofshape` | literal proof-step premise and argument counts that disagree with checker entry assertions |
 | `inferid` | inference identifiers shared across production sites or sentinel identifiers used in production |
 | `signature` | missing declarations in the Eunoia proof format, refused auxiliary symbols (skolems), and disagreements about rule argument counts |
 

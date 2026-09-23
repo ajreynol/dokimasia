@@ -18,16 +18,16 @@ Runs are recorded in `bug_db/`, with a generated [observation view](bug_db/bugs.
 `docs/experience.md`. Review standards are in `dokimasia_analyzer/README.md`.
 
 Migrating the curated issue register into the same identity space as `bug_db/`
-remains open work. `i-24` is the live instance of the cost: a finding nothing
-emits has no code, so it has no id and no record — only a register row (`t-7`).
+remains open work. `i-24` now has an emitted `INFER0001` identity; mapping that observation
+to the curated verdict remains a review decision.
 
 ## Implementation inventory
 
 The [regression audit cleanup list](regression_audit/todo.md) identifies inactive
 tester directives and candidates that need a proof/checker rerun before removal.
 
-The advertised analyzer runs nine observation-producing analyses (`README.md`).
-Thirteen modules exist internally; standalone `gates`, `fragment`, `tcb`, and
+The advertised analyzer runs eleven observation-producing analyses (`README.md`).
+Fifteen modules exist internally; standalone `gates`, `fragment`, `tcb`, and
 `latent` reports are optional developer measurements. Eight modules carry a
 `baseline --check` ratchet for CI, with snapshots under `tests/baselines/`.
 
@@ -38,6 +38,8 @@ Thirteen modules exist internally; standalone `gates`, `fragment`, `tcb`, and
 | `trust` | every `TrustId` construction site, and the preprocessing correspondence | ✅ |
 | `inferid` | whether each `InferenceId` names one program point | ✅ |
 | `infer` | whether every inference a theory makes has a proof reconstruction | ✅ |
+| `preprocess` | explicit null-generator skolem lemmas on local preprocessing paths | fixtures + pin |
+| `proofshape` | literal proof calls versus checker entry arity assertions | fixtures + pin |
 | `rewrites` | the 533-rule rewrite vocabulary, RARE vs hand-written vs applied | ✅ |
 | `modes` | what safe and stable mode change about the defaults | ✅ |
 | `ci` | whether cvc5's proof testing is still attached | ✅ |
@@ -112,9 +114,9 @@ is.*
 | pass↔`TrustId` names not derivable | **7**, incl. `PREPROCESS_BV_GUASS` | 0 |
 | theories emitting inferences with no `InferProofCons` | **10** | *unknown by this mechanism* — needs the call site |
 
-**Left to do:** `INFER0001` (a lemma sent with a null `ProofGenerator`) and the
-rest of G3's precision need the call site, which is the AST tier — deferred
-until **R1** has been asked for.
+**Left to do:** general proof-generator resolution beyond `INFER0001`'s
+explicit-null preprocessing subset, and the rest of G3's precision, need the
+AST tier — deferred until **R1** has been asked for.
 
 **What cvc5 can do:** **R4** (one id, one site), **R7** (derivable names),
 **R10** (rule on the hygiene standard (`docs/README.md`)). **R7b** is
@@ -174,10 +176,10 @@ Everything above that is not on this list is context, not a queue.
 | **t-4** | **Answer cvc5 [#12899](https://github.com/cvc5/cvc5/pull/12899) with `BUILD0001`.** | The build-mode check passes; its command is documented in `docs/maintenance.md`. We are **not** asking for the configure restriction to be lifted — it is a deliberate simplification. We are reporting what it costs (only safe-build diagnostics on a debug binary) and offering the invariant that keeps the cost that low, as a kind B (`dokimasia_analyzer/README.md`) adoption; better still if cvc5 owns it and ours retires |
 | **t-5** | **Carry `i-3`/`R2` and `i-2` to cvc5.** | The two rows that clear the bar (`dokimasia_analyzer/README.md`). `i-3`: the completeness flag cannot be set in the mode that promises it. `i-2`: safe mode refuses `--strings-lazy-pp` *because it lacks proof support*, then runs with it on. Both are one command to check and a one-line call to fix — see the verdicts (`docs/README.md`) |
 | **t-6** | **Run the two `set.choose` inputs for `i-24`.** | Both are in the row (`docs/README.md`); each is six lines and `unsat`, and the whole task is `--safe-mode=safe --produce-proofs --check-proofs` on a binary. Where `t-1`'s problem is *finding* an input, this one's is *running* one — so it is the candidate closest to becoming the first rank-1 finding. The static chain holds at every link; the step nothing has tested is whether the lemma survives preprocessing into the final proof. Treat `s-6` (`docs/README.md`) as the cautionary case |
-| **t-7** | **Implement `INFER0001` narrowly, so `i-24` can be recorded.** | `i-24` has no home in `bug_db/`: `findings.finding_id` raises on any code outside `CHECKS`, and `test_catalogue_covers_exact_emitted_code_set` pins the catalogue to exactly the emitted set, so an observation exists only if a check emits it. `INFER0001` is reserved for the call-site check and deferred with the AST tier — **but the deferral does not cover this subset.** A `ppRewrite` that pushes `SkolemLemma(TrustNode::mkTrustLemma(lem, nullptr))` with no `isTheoryProofProducing()` guard is a certain `THEORY_PREPROCESS_LEMMA` (`theory/theory_engine.cpp:966`), needs no generator resolution, and the whole population is two sites: `sets` (`i-24`) and `bags`. Arith's guarded `mkSkolemLemma` and strings' `eagerReduceTrusted` are the negative cases a scan must not report |
 
 Deferred until **R1** has been asked for, because R1 would retire most of what
-they are for: the AST tier (`API0001`–`0004`, `INFER0001`), `SEAM0002` (the
+they are for: the AST tier (`API0001`–`0004`, general generator resolution beyond the
+explicit-null subset of `INFER0001`), `SEAM0002` (the
 unhandled *argument* set of the conditional arms), `ELAB0002`/`0003`
 (granularity is a runtime property).
 

@@ -31,7 +31,7 @@ repository location, so checks work from any working directory; baseline
 `python3 -m dokimasia_analyzer write /path/to/cvc5` only after reviewing the change they
 describe.
 
-The analyzer and assistant default to the nine analyses in the README.
+The analyzer and assistant default to the eleven analyses in the README.
 Standalone gates, fragment, TCB and latent reports are optional developer
 measurements; the eight baseline ratchets and build invariant are the CI
 regression suite. See the command reference.
@@ -322,8 +322,9 @@ scripts/dokimasia_analyzer --analysis ledger --analysis ci
 ```
 
 The last command selects analyses explicitly; omitting `--analysis` runs the
-nine advertised analyses (`README.md`): `ledger`,
-`ci`, `buildmode`, `modes`, `rewrites`, `trust`, `infer`, `inferid`, and `signature`.
+eleven advertised analyses (`README.md`): `ledger`,
+`ci`, `buildmode`, `modes`, `rewrites`, `trust`, `infer`, `preprocess`,
+`proofshape`, `inferid`, and `signature`.
 The program and assistant launcher share this default. Standalone `gates`,
 `fragment`, `tcb`, and `latent` measurements are developer tools, included only
 when explicitly selected with `--analysis`. Explicit selections replace the
@@ -411,6 +412,8 @@ This namespace matters because Koine treats an explicit `id` as a global key.
 | `SIG0002` | the `SkolemId` enum name |
 | `MODE0001` | the option's internal name |
 | `INFER0002` | `theory:InferenceId` |
+| `INFER0001` | `src/relative/file.cpp#Class::method` |
+| `API0005` | `src/relative/file.cpp#ProofRule:children` or `src/relative/file.cpp#ProofRule:args` |
 | `INFERID0001` | the `InferenceId` enum name |
 | `INFERID0002` | `src/relative/file.cpp#SENTINEL_NAME` |
 | `TRUST0001` | the project-relative source filename, including `src/` |
@@ -543,7 +546,7 @@ These examples describe the measurements at cvc5 `40a4bb7e4`, the revision in
 tree; the comments are recorded examples, not assertions about current upstream.
 
 
-The advertised interface is `scripts/dokimasia_analyzer`, with the nine analyses
+The advertised interface is `scripts/dokimasia_analyzer`, with the eleven analyses
 listed in the README (`README.md`). The commands below
 expose their implementation details and optional measurements for development.
 Standalone `gates`, `fragment`, `tcb`, and `latent` reports are opt-in; none
@@ -553,9 +556,46 @@ No dependencies; Python 3.10+; reads a checkout, needs no build.
 
 ```bash
 python3 -m dokimasia_analyzer check  <cvc5>   # eight baseline ratchets and one invariant
-python3 -m dokimasia_analyzer report <cvc5>   # the nine advertised analyses, printed
+python3 -m dokimasia_analyzer report <cvc5>   # the eleven advertised analyses, printed
 python3 -m dokimasia_analyzer report <cvc5> --analysis tcb --analysis latent  # explicit selection
 ```
+
+**Preprocessing generators and proof construction arities.** These two passes
+use balanced source delimiters with comments and literals masked. They need no
+build or C++ tooling:
+
+```bash
+python3 -m dokimasia_analyzer.preprocess check <cvc5>
+python3 -m dokimasia_analyzer.proofshape check <cvc5>
+scripts/dokimasia_analyzer --cvc5 <cvc5> --analysis preprocess --analysis proofshape --no-update
+```
+
+`preprocess` emits `INFER0001` for explicit null-generator `SkolemLemma`
+constructions reached through same-file, same-class calls from `ppRewrite`.
+It checks that the theory engine still supplies the named trust fallback.
+Only inline expressions and immediately preceding `TrustNode` bindings are
+recognized. A method with explicit proof handling is left unknown. At the pin,
+this identifies sets and bags `expandChooseOperator`, automating the two sites
+already discussed in `i-24`. Sets is the priority candidate; bags is excluded
+from safe mode. Neither result establishes survival in a final proof. The
+falsifier is a proof generator on the actual path, an effective option guard,
+or a complete proof for the proposed reproducer.
+
+`proofshape` emits `API0005` when a literal child/argument list violates an
+entry assertion in a single-rule `checkInternal` arm. It recognizes both
+`addStep` argument orders and proof `mkNode` calls. It deliberately does not
+reuse the documentation arity heuristic: nested assertions and indices are
+not entry contracts. At the pin it recovers 220 bounds for 117 rules and
+compares at least one list in 470 of 570 literal-rule calls, with no mismatch.
+The remaining 100 calls are unknown, not successful checks. This is a text
+analysis without receiver type resolution, macro expansion, or dynamic vector
+tracking; duplicate contracts also stay unknown. A reported mismatch is
+falsified by showing that the call targets a different API, or by checking the
+actual list against the actual checker. Assertions may disappear in release
+builds. Neither pass claims a confirmed runtime defect.
+
+The focused regression suite is `python3 tests/test_proofpaths.py <cvc5>`;
+synthetic failure and false-positive cases also run without a checkout.
 
 **[`dokimasia_analyzer.buildmode`](../dokimasia_analyzer/buildmode/)** — is a safe *build* still an
 unrestricted build with one option default flipped? That invariant is what keeps

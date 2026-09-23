@@ -91,6 +91,7 @@ def cmd_report(args) -> int:
         "inferid": ["check"], "tcb": ["measure"], "gates": ["verdicts"],
         "fragment": ["check"], "signature": ["skolems"],
         "latent": ["census"], "buildmode": ["check"],
+        "preprocess": ["check"], "proofshape": ["check"],
     }
     for mod in dict.fromkeys(args.analysis or DEFAULT_ANALYSES):
         print(f"\n{'=' * 72}\n== {mod}\n{'=' * 72}")

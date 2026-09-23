@@ -109,7 +109,7 @@ class AnalyzerTests(unittest.TestCase):
         self.assertEqual(*outputs)
         self.assertEqual(set(DEFAULT_ANALYSES),
                          {"ledger", "ci", "buildmode", "modes", "rewrites",
-                          "trust", "infer", "inferid", "signature"})
+                          "trust", "infer", "inferid", "signature", "preprocess", "proofshape"})
         self.assertIn(", ".join(DEFAULT_ANALYSES), outputs[0])
         self.assertFalse((self.base / "agent.json").exists())
 

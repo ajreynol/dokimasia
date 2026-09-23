@@ -1,7 +1,7 @@
 # Dokimasia analyzer
 
-This Python package contains thirteen static analyses of cvc5's proof-production
-source. It reads a checkout without building cvc5. Nine analyses emit the
+This Python package contains fifteen static analyses of cvc5's proof-production
+source. It reads a checkout without building cvc5. Eleven analyses emit the
 observations collected by `scripts/dokimasia_analyzer`; four provide additional
 developer reports.
 
@@ -19,6 +19,8 @@ issue register are in `docs/README.md`; interactions with cvc5 are recorded in
 | [`trust`](trust/) | every `TrustId` construction site, and the preprocessing correspondence |
 | [`inferid`](inferid/) | whether each `InferenceId` names one program point |
 | [`infer`](infer/) | whether every inference a theory makes has a proof reconstruction |
+| [`preprocess`](preprocess/) | whether local preprocessing paths explicitly emit skolem lemmas with null proof generators |
+| [`proofshape`](proofshape/) | whether literal proof-step lists agree with checker entry arity assertions |
 | [`rewrites`](rewrites/) | the rewrite vocabulary, RARE vs hand-written vs applied |
 | [`modes`](modes/) | what safe and stable mode change about the defaults |
 | [`ci`](ci/) | whether cvc5's proof testing is still attached |
@@ -28,7 +30,7 @@ issue register are in `docs/README.md`; interactions with cvc5 are recorded in
 | [`buildmode`](buildmode/) | is a safe *build* still an unrestricted build with one default flipped? |
 | [`latent`](latent/) | the static inventory minus what a corpus reached |
 
-Nine are advertised and emit observations; standalone `gates`, `fragment`,
+Eleven are advertised and emit observations; standalone `gates`, `fragment`,
 `tcb` and `latent` reports are developer measurements that emit none.
 [`findings.py`](findings.py) owns the check catalogue and the identity scheme;
 [`sanity.py`](sanity.py) holds the expectations that make a scanner fail loudly
