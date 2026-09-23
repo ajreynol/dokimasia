@@ -93,6 +93,12 @@ def test_experience():
     # footnote and every length check on it measures the wrong thing.
     entries = [re.split(r"^## ", e, maxsplit=1, flags=re.M)[0]
                for e in re.split(r"^## (?=E\d+: )", text, flags=re.M)[1:]]
+    counts = [sum(bool(re.search(rf"^\| \*\*Kind\*\* \| (?:\*\*)?{kind}\b", e, re.M))
+                  for e in entries) for kind in ("positive", "negative", "neutral")]
+    tally = re.search(r"^\| cvc5 \| (\d+) \| (\d+) \| (\d+) \| (\d+) \|$", text, re.M)
+    check("the tally counts every positive, negative and neutral episode",
+          bool(tally) and list(map(int, tally.groups())) == counts + [len(entries)],
+          f"expected {counts} and {len(entries)} total episodes")
     if not entries:
         print("  ok   nothing has happened yet, so there is no entry to check")
         return
@@ -169,7 +175,8 @@ def test_launcher():
             ("closed_commit", "a closure names the commit that made it"),
             ("koine_check_db", "Koine checks that only closure fields changed"),
             ("docs/experience.md", "the write-up is half of what a run produces"),
-            ("scripts/append_findings --render-only", "the database tally must be refreshed"),
+            ("scripts/append_findings --render-only", "the experience tally must be refreshed"),
+            ("counts each episode's `Kind`", "both positive and negative episodes count"),
             ("closes no database row", "an episode need not close an observation"),
             ("Commit nothing and push nothing", "the run leaves a diff, not history")):
         check(f"the prompt says: {phrase}", phrase in p.stdout, why)

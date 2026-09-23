@@ -154,8 +154,8 @@ opening a directory. Neither prompt has a second copy to drift from: the
 analyzer's is read from `prompts/analyzer.txt`; Koine assembles the closure
 prompt from its shared discipline and the owner sections in `prompts/closure/`.
 `tests/test_experience.py` checks the experience log's structure, and
-`scripts/append_findings --render-only --check` checks the database view and
-the running tally against the database.
+`scripts/append_findings --render-only --check` checks the database view against
+the database and the running tally against the experience entries' `Kind` fields.
 
 ## Pins and generated records
 
@@ -284,9 +284,10 @@ so a marked observation survives later appends unchanged. It also keeps moving
 after its `closed_on`, and that contradiction is exactly the signal that the
 closure may be wrong. Koine reports it as a reopen candidate. Re-assess it —
 do not tidy the record. The generated database page renders the original claim,
-while the running tally in `docs/experience.md` counts recorded closures.
-After a closure, run `scripts/append_findings --render-only` to refresh both;
-`--check` confirms that they match the database. The closure prompt also
+while the running tally in `docs/experience.md` counts positive, negative and
+neutral episodes. After a closure or new episode, run
+`scripts/append_findings --render-only` to refresh both; `--check` confirms that
+each matches its source. The closure prompt also
 requires `koine_check_db`: against the committed database, it rejects changed
 claims, missing or reordered entries, and edits to existing closures. Start a
 closure assessment from a committed database so that comparison isolates the

@@ -333,27 +333,43 @@ class AnalyzerTests(unittest.TestCase):
         self.assertNotIn("../docs/", body)
         self.assertIn("a &#124; b &lt;tag&gt; &#96;code&#96; next line", body)
 
-    def test_tally_counts_closed_observations_and_preserves_episodes(self):
+    def test_tally_counts_experiences_by_kind_and_preserves_episodes(self):
         experience = self.base / "experience.md"
-        before, after = "# Experience\n\n", "\n\n## E9: an existing episode\nUnchanged.\n"
+        before = "# Experience\n\nWithdrawn ids: E1–E8 and E11–E13.\n\n"
+        after = """
+
+## E9: cvc5 fixed documentation
+| **Kind** | positive — one observation closed |
+Unchanged prose.
+## E10: cvc5 rejected an ask
+| **Kind** | negative — our ask was rejected |
+## E14: cvc5 corrected our claim
+| **Kind** | negative — the mechanism was wrong |
+## E15: cvc5 isolated dependencies
+| **Kind** | positive — a register-only ask acted on |
+## How this page is maintained
+```text
+## E999: a quoted example must not count
+| **Kind** | positive — example |
+```
+"""
         experience.write_text(before + bug_reports.TALLY_BEGIN + "\nold tally\n"
                               + bug_reports.TALLY_END + after)
-        write_json(self.db, {"bugs": [
-            {"owner": "cvc5", "id": "open"},
-            {"owner": "cvc5", "id": "closed-1", "closed_on": "2026-09-19", "closed_pr": "same-pr"},
-            {"owner": "cvc5", "id": "closed-2", "closed_on": "2026-09-19", "closed_pr": "same-pr"},
-            {"owner": "other", "id": "also-open"}]})
-        body = bug_reports.render_experience(self.db, experience)
+        # Four experiences count even though the database has only one closure.
+        write_json(self.db, {"bugs": [{"owner": "cvc5", "closed_on": "2026-09-19"}]})
+        body = bug_reports.render_experience(experience)
         self.assertTrue(body.startswith(before + bug_reports.TALLY_BEGIN))
         self.assertTrue(body.endswith(bug_reports.TALLY_END + after))
-        self.assertIn("| cvc5 | 2 | 2 |", body)
-        self.assertIn("| other | 0 | 0 |", body)
-        self.assertIn("| **total** | **2** | **2** |", body)
+        self.assertIn("| cvc5 | 2 | 2 | 0 | 4 |", body)
+        self.assertIn("| **total** | **2** | **2** | **0** | **4** |", body)
         experience.write_text(body)
-        self.assertEqual(bug_reports.render_experience(self.db, experience), body)
+        self.assertEqual(bug_reports.render_experience(experience), body)
         write_json(self.db, {"bugs": []})
-        self.assertIn("| **total** | **0** | **0** |",
-                      bug_reports.render_experience(self.db, experience))
+        self.assertEqual(bug_reports.render_experience(experience), body)
+        experience.write_text(body + "\n## E16: cvc5 asked a question\n| **Kind** | neutral — question |\n")
+        self.assertIn("| cvc5 | 2 | 2 | 1 | 5 |", bug_reports.render_experience(experience))
+        experience.write_text(before + bug_reports.TALLY_BEGIN + "\n" + bug_reports.TALLY_END)
+        self.assertIn("| cvc5 | 0 | 0 | 0 | 0 |", bug_reports.render_experience(experience))
         # A relocated/trial database never reads or rewrites the real log.
         with patch.object(bug_reports, "EXPERIENCE", self.base / "missing.md"):
             self.assertEqual(set(bug_reports.render_views(self.db, self.page)), {self.page})
@@ -387,8 +403,18 @@ class AnalyzerTests(unittest.TestCase):
         self.assertEqual(cli()[0], 0)
         self.assertEqual(cli("--check")[0], 0)
         self.assertEqual(self.db.read_bytes(), db_before)
+        # A new negative episode invalidates the tally without any DB change.
+        experience.write_text(experience.read_text()
+                              + "\n## E10: cvc5 rejected an ask\n| **Kind** | negative — rejected |\n")
+        self.assertEqual(cli("--check")[0], 1)
+        self.assertEqual(cli()[0], 0)
+        self.assertIn("| cvc5 | 0 | 1 | 0 | 1 |", experience.read_text())
+        self.assertEqual(cli("--check")[0], 0)
         for broken in ("no markers", bug_reports.TALLY_END + bug_reports.TALLY_BEGIN,
-                       original + bug_reports.TALLY_END):
+                       original + bug_reports.TALLY_END,
+                       original + "\n## E9: no Kind row\n",
+                       original + "\n## E9: invalid Kind\n| **Kind** | unknown |\n",
+                       original + "\n## E9: empty Kind\n| **Kind** |   |\n"):
             with self.subTest(markers=broken):
                 experience.write_text(broken)
                 self.page.write_text("stale view")

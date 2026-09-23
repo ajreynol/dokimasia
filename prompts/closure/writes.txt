@@ -29,5 +29,7 @@ Write two things:
     observation of ours and is evidence the check pointed at something real.
 
 Regenerate the database view and the running tally in `docs/experience.md` with
-`scripts/append_findings --render-only` before running the checks. Do not edit
-the tally by hand or infer database closures from the episode count.
+`scripts/append_findings --render-only` before running the checks. The tally
+counts each episode's `Kind`, including positive and negative experiences
+that closed no database row. Do not edit the tally by hand or infer database
+closures from the episode count.

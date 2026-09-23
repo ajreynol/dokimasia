@@ -1,7 +1,7 @@
 """Dokimasia's dump validation and report rendering; Koine alone edits the DB.
 
-`render` rewrites `bug_db/bugs.md`; `render_experience` refreshes only the
-running tally in `docs/experience.md` from the same database artifact. Koine
+`render` rewrites `bug_db/bugs.md` from the database; `render_experience`
+refreshes the running tally from the episodes in `docs/experience.md`. Koine
 provides the only database writer; Dokimasia owns the records and evidence.
 Triage decisions remain in the reviewed register, outside the generated page.
 """
@@ -125,9 +125,9 @@ def render(db=DB, page=None):
     return "\n".join(lines) + "\n"
 
 
-def render_experience(db=DB, page=EXPERIENCE):
+def render_experience(page=EXPERIENCE):
     """Replace the marked tally, preserving the surrounding episode prose."""
-    db, page = Path(db).resolve(), Path(page).resolve()
+    page = Path(page).resolve()
     text = page.read_text()
     if text.count(TALLY_BEGIN) != 1 or text.count(TALLY_END) != 1:
         raise ValueError(f"{page}: expected exactly one pair of tally markers")
@@ -135,23 +135,28 @@ def render_experience(db=DB, page=EXPERIENCE):
     if TALLY_END not in rest:
         raise ValueError(f"{page}: tally markers are out of order")
     _, after = rest.split(TALLY_END)
-    bugs = json.loads(db.read_text())["bugs"]
-    # Dokimasia's closure fields record landed fixes only. Rejected asks and
-    # register-only findings are episodes, not database closure categories.
-    counts = Counter({b["owner"]: 0 for b in bugs})
-    counts.update(b["owner"] for b in bugs if b.get("closed_on"))
-    lines = ["| project | observations closed | landed upstream |",
-             "| --- | ---: | ---: |"]
-    for owner, count in sorted(counts.items()):
-        lines.append(f"| {owner} | {count} | {count} |")
+    # Count numbered episodes, excluding the tally, maintenance template and
+    # any quoted examples. A positive episode need not close a database row.
+    episodes = re.sub(r"```.*?```", "", before + after, flags=re.S)
+    counts = Counter()
+    for section in re.split(r"^## ", episodes, flags=re.M)[1:]:
+        if not re.match(r"E\d+: ", section):
+            continue
+        kinds = re.findall(r"^\| \*\*Kind\*\* \| (.+?) \|$", section, re.M)
+        kind = kinds[0].split()[0].strip("*") if len(kinds) == 1 and kinds[0].strip() else None
+        if kind not in ("positive", "negative", "neutral"):
+            raise ValueError(f"{page}: {section.splitlines()[0]} needs one positive, negative or neutral Kind")
+        counts[kind] += 1
     total = sum(counts.values())
-    lines.append(f"| **total** | **{total}** | **{total}** |")
-    link = quote(Path(os.path.relpath(db, page.parent)).as_posix(), safe="/.")
-    lines += ["", f"Closed observations only, counted from [`bug_db/bugs.json`]({link});",
-              "do not edit by hand. Each observation counts once, even when one",
-              "pull request closes several. Dokimasia records database closures only",
-              "for landed upstream fixes; rejected asks and register-only findings",
-              "are not included in this table."]
+    values = [counts[kind] for kind in ("positive", "negative", "neutral")] + [total]
+    lines = ["| project | positive | negative | neutral | total episodes |",
+             "| --- | ---: | ---: | ---: | ---: |",
+             "| cvc5 | " + " | ".join(str(n) for n in values) + " |",
+             "| **total** | " + " | ".join(f"**{n}**" for n in values) + " |",
+             "", "Counted from the **Kind** field of each numbered episode below; do not edit",
+             "by hand. Every episode counts once, including rejected asks and corrections",
+             "from cvc5, whether or not it closed a database observation. Withdrawn ids",
+             "and the maintenance template are excluded."]
     return before + TALLY_BEGIN + "\n\n" + "\n".join(lines) + "\n\n" + TALLY_END + after
 
 
@@ -161,7 +166,7 @@ def render_views(db=DB, page=PAGE):
         raise ValueError("the database view cannot overwrite the experience log")
     views = {Path(page): render(db, page)}
     if Path(db).resolve() == DB.resolve():
-        views[EXPERIENCE] = render_experience(db, EXPERIENCE)
+        views[EXPERIENCE] = render_experience(EXPERIENCE)
     return views
 
 

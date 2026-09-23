@@ -53,8 +53,10 @@ scripts/append_findings --render-only --check
 ```
 
 Rendering requires neither cvc5 nor Koine. CI runs the check and rejects a
-stale view or tally. Commit `bugs.json`, its generated view and tally, and new
-run archives together; edit the source data rather than the generated tables.
+stale view or tally. The view comes from `bugs.json`; the tally counts the
+positive, negative and neutral episodes in `docs/experience.md`. Regenerate
+after a database change or a new episode, and commit the corresponding generated
+changes together with their source and any new run archives.
 
 For a trial database, use `--db /path/to/bugs.json`. Archives and the default
 Markdown view go beside it. `--page` overrides the view's location. A trial
