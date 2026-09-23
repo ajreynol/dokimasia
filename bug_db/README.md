@@ -36,7 +36,8 @@ through `$KOINE`, a sibling `koine` directory or `deps/koine`. Setup is in
 changed during a run.
 
 The append command validates the dump and its `.run.json` evidence sidecar,
-archives the run, updates the database and refreshes `bugs.md`. The preview
+archives the run, updates the database and refreshes `bugs.md` and the running
+tally in [`docs/experience.md`](../docs/experience.md). The preview
 writes nothing. Repeating a run adds no duplicate identities.
 
 To analyze and record in one command, omit `--no-update` from the analyzer
@@ -44,7 +45,7 @@ command. Recording must succeed for that command to succeed. The independent
 assistant producer uses the same format and append command; review its claims
 before appending them.
 
-## Refresh the generated view
+## Refresh the generated view and tally
 
 ```bash
 scripts/append_findings --render-only
@@ -52,11 +53,12 @@ scripts/append_findings --render-only --check
 ```
 
 Rendering requires neither cvc5 nor Koine. CI runs the check and rejects a
-stale view. Commit `bugs.json`, `bugs.md` and new run archives together; edit
-the source data rather than the generated table.
+stale view or tally. Commit `bugs.json`, its generated view and tally, and new
+run archives together; edit the source data rather than the generated tables.
 
 For a trial database, use `--db /path/to/bugs.json`. Archives and the default
-Markdown view go beside it. `--page` overrides the view's location.
+Markdown view go beside it. `--page` overrides the view's location. A trial
+database does not update the repository's experience log.
 
 ## Interpret a record
 

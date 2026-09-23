@@ -6,7 +6,7 @@ import sys
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from bug_reports import DB, PAGE, append, render, write
+from bug_reports import DB, PAGE, append, render_views, write
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__)
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     ap.add_argument("--page", help="default: bugs.md beside the database")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--render-only", action="store_true")
-    ap.add_argument("--check", action="store_true", help="with --render-only: check the page without writing")
+    ap.add_argument("--check", action="store_true", help="with --render-only: check the page and running tally without writing")
     ap.add_argument("--date", help="explicit observation date, for replay")
     args = ap.parse_args()
     try:
@@ -25,18 +25,17 @@ if __name__ == "__main__":
         if args.render_only:
             if args.dump or args.dry_run:
                 ap.error("--render-only cannot be combined with a dump or --dry-run")
-            body = render(args.db, args.page)
+            views = render_views(args.db, args.page)
             if args.check:
-                if Path(args.page).read_text() == body:
-                    sys.exit(0)
-                # The page is generated, so a mismatch means somebody edited it
-                # or the database moved without it. Say which command fixes it:
-                # an exit code alone sends a reader to the source to find out.
-                print(f"append_findings: {args.page} is not what "
-                      f"{args.db} renders to; regenerate it with "
-                      "scripts/append_findings --render-only", file=sys.stderr)
-                sys.exit(1)
-            write(args.page, body)
+                stale = [path for path, body in views.items()
+                         if not path.exists() or path.read_text() != body]
+                for path in stale:
+                    print(f"append_findings: {path} is not what "
+                          f"{args.db} renders to; regenerate it with "
+                          "scripts/append_findings --render-only", file=sys.stderr)
+                sys.exit(1 if stale else 0)
+            for path, body in views.items():
+                write(path, body)
             sys.exit(0)
         if not args.dump or args.check:
             ap.error("provide a dump, or use --render-only [--check]")

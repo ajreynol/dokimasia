@@ -49,25 +49,25 @@ def test_experience():
     """One numbered episode per interaction with cvc5, all in one shape.
 
     The page is a list of self-contained case studies, so what is checked is
-    that it stays a list: nothing but `E<n>:` headings and the maintenance
-    footnote, ids allocated upward and never reused, and every entry carrying
+    that it stays a list after the running tally: `E<n>:` headings and the
+    maintenance footnote, ids allocated upward and never reused, and every entry carrying
     the same five-row block and the same two prose fields. The template is
     checked as well as the entries, because it is what the next run copies.
     """
     print("the experience log:")
-    LIMIT = 4
-    ROWS = ("When", "Kind", "Ours", "cvc5", "Outcome")
+    ROWS = ("When", "Kind", "Ours", "Theirs", "Outcome")
     PROSE = ("What happened.", "What we learned.")
     FOOT = "## How this page is maintained"
     raw = read(EXPERIENCE)
     text = re.sub(r"```.*?```", "", raw, flags=re.S)  # not the template
 
-    # The shape is the point: a reader should see one pattern repeated and
-    # nothing else competing with it.
+    # The tally leads, then a reader sees one pattern repeated.
     heads = re.findall(r"^## (.+)$", text, re.M)
     stray = [h for h in heads
-             if not re.match(r"E\d+: ", h) and h != FOOT[3:]]
-    check("the only headings are the episodes and the footnote", not stray, stray)
+             if not re.match(r"E\d+: ", h) and h not in ("Running tally", FOOT[3:])]
+    check("the only headings are the tally, episodes and footnote", not stray, stray)
+    check("one running tally precedes the episodes",
+          heads and heads[0] == "Running tally" and heads.count("Running tally") == 1, heads)
     check("the footnote is last",
           heads and heads[-1] == FOOT[3:], heads[-1] if heads else "none")
     deep = re.findall(r"^#{3,6} .*$", text, re.M)
@@ -86,6 +86,8 @@ def test_experience():
     check("the template carries both prose fields",
           bool(template) and all(f"**{f}**" in body for f in PROSE),
           "an entry with no lesson records an event and not an episode")
+    check("the template includes the optional unresolved observations field",
+          "**Not closed.**" in body and "Omit the field when there is none." in body)
 
     # Cut at the next top-level heading, or the last entry swallows the
     # footnote and every length check on it measures the wrong thing.
@@ -167,6 +169,8 @@ def test_launcher():
             ("closed_commit", "a closure names the commit that made it"),
             ("koine_check_db", "Koine checks that only closure fields changed"),
             ("docs/experience.md", "the write-up is half of what a run produces"),
+            ("scripts/append_findings --render-only", "the database tally must be refreshed"),
+            ("closes no database row", "an episode need not close an observation"),
             ("Commit nothing and push nothing", "the run leaves a diff, not history")):
         check(f"the prompt says: {phrase}", phrase in p.stdout, why)
     # The window is resolved, not described: a prompt that names no revision is

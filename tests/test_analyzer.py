@@ -17,6 +17,7 @@ sys.path[:0] = [str(ROOT), str(ROOT / "scripts")]
 from dokimasia_analyzer.findings import ANALYSES, DEFAULT_ANALYSES, CHECKS, collect, finding_id, observation
 from dokimasia_analyzer.sanity import ExtractionError
 from bug_reports import DB, PAGE, append, read_dump, read_run, render, write_json
+import bug_reports
 import koine
 import targets
 
@@ -331,6 +332,69 @@ class AnalyzerTests(unittest.TestCase):
         self.assertNotIn("](docs/maintenance.md", body)
         self.assertNotIn("../docs/", body)
         self.assertIn("a &#124; b &lt;tag&gt; &#96;code&#96; next line", body)
+
+    def test_tally_counts_closed_observations_and_preserves_episodes(self):
+        experience = self.base / "experience.md"
+        before, after = "# Experience\n\n", "\n\n## E9: an existing episode\nUnchanged.\n"
+        experience.write_text(before + bug_reports.TALLY_BEGIN + "\nold tally\n"
+                              + bug_reports.TALLY_END + after)
+        write_json(self.db, {"bugs": [
+            {"owner": "cvc5", "id": "open"},
+            {"owner": "cvc5", "id": "closed-1", "closed_on": "2026-09-19", "closed_pr": "same-pr"},
+            {"owner": "cvc5", "id": "closed-2", "closed_on": "2026-09-19", "closed_pr": "same-pr"},
+            {"owner": "other", "id": "also-open"}]})
+        body = bug_reports.render_experience(self.db, experience)
+        self.assertTrue(body.startswith(before + bug_reports.TALLY_BEGIN))
+        self.assertTrue(body.endswith(bug_reports.TALLY_END + after))
+        self.assertIn("| cvc5 | 2 | 2 |", body)
+        self.assertIn("| other | 0 | 0 |", body)
+        self.assertIn("| **total** | **2** | **2** |", body)
+        experience.write_text(body)
+        self.assertEqual(bug_reports.render_experience(self.db, experience), body)
+        write_json(self.db, {"bugs": []})
+        self.assertIn("| **total** | **0** | **0** |",
+                      bug_reports.render_experience(self.db, experience))
+        # A relocated/trial database never reads or rewrites the real log.
+        with patch.object(bug_reports, "EXPERIENCE", self.base / "missing.md"):
+            self.assertEqual(set(bug_reports.render_views(self.db, self.page)), {self.page})
+        with patch.object(bug_reports, "EXPERIENCE", experience):
+            with self.assertRaisesRegex(ValueError, "cannot overwrite the experience log"):
+                bug_reports.render_views(self.db, experience)
+            with self.assertRaisesRegex(ValueError, "cannot overwrite the experience log"):
+                append(self.dump, self.db, experience)
+
+    def test_tally_cli_detects_drift_without_writing_and_refuses_broken_markers(self):
+        experience = self.base / "experience.md"
+        original = "Episode prose\n" + bug_reports.TALLY_BEGIN + "\nstale\n" + bug_reports.TALLY_END
+        experience.write_text(original)
+        write_json(self.db, {"bugs": [{"owner": "cvc5", "closed_on": "2026-09-19"}]})
+        self.page.write_text(render(self.db, self.page))
+        db_before = self.db.read_bytes()
+        def cli(*flags):
+            argv = [str(ROOT / "scripts/append_findings"), "--db", str(self.db),
+                    "--page", str(self.page), "--render-only", *flags]
+            with patch.object(bug_reports, "DB", self.db), \
+                    patch.object(bug_reports, "EXPERIENCE", experience), \
+                    patch.object(sys, "argv", argv), \
+                    contextlib.redirect_stderr(io.StringIO()) as err, \
+                    self.assertRaises(SystemExit) as result:
+                runpy.run_path(argv[0], run_name="__main__")
+            return result.exception.code, err.getvalue()
+        rc, error = cli("--check")
+        self.assertEqual(rc, 1)
+        self.assertIn(str(experience), error)
+        self.assertEqual(experience.read_text(), original)
+        self.assertEqual(cli()[0], 0)
+        self.assertEqual(cli("--check")[0], 0)
+        self.assertEqual(self.db.read_bytes(), db_before)
+        for broken in ("no markers", bug_reports.TALLY_END + bug_reports.TALLY_BEGIN,
+                       original + bug_reports.TALLY_END):
+            with self.subTest(markers=broken):
+                experience.write_text(broken)
+                self.page.write_text("stale view")
+                self.assertEqual(cli()[0], 2)
+                self.assertEqual(experience.read_text(), broken)
+                self.assertEqual(self.page.read_text(), "stale view")
 
     def test_retired_koine_layouts_are_refused(self):
         (self.base / "scripts").mkdir()

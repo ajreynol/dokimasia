@@ -41,7 +41,9 @@ Two documents are generated and neither is edited by hand:
 `python3 -m dokimasia_analyzer.fragment doc`, and
 `bug_db/bugs.md`, written whole by
 `scripts/append_findings --render-only`. Both are regenerated and diffed by the
-checks below, so neither can drift from the code beside it.
+checks below, so neither can drift from the code beside it. The same append
+command also regenerates the marked running tally in `docs/experience.md`,
+preserving the surrounding episode prose. Its `--check` checks both outputs.
 
 ## Local dependencies
 
@@ -133,7 +135,7 @@ database integration.
 | --- | --- |
 | `scripts/dokimasia_analyzer` | collect observations and evidence; optionally append via Koine |
 | `scripts/eo_cvc5_regressions_audit` | report proof, CPC and planned CPC-Logos regression exclusions with reasons |
-| `scripts/append_findings` | validate a dump and evidence, append, or regenerate/check the page |
+| `scripts/append_findings` | validate a dump and evidence, append, or regenerate/check the page and tally |
 | `scripts/compare_findings` | compare producers on an identical source snapshot |
 | `scripts/finding_id.py` | format a stable record or compute its identity without analysis |
 | `scripts/targets.py`, `scripts/targets.json` | shared checkout resolution and declared input scope |
@@ -152,7 +154,8 @@ opening a directory. Neither prompt has a second copy to drift from: the
 analyzer's is read from `prompts/analyzer.txt`; Koine assembles the closure
 prompt from its shared discipline and the owner sections in `prompts/closure/`.
 `tests/test_experience.py` checks the experience log's structure, and
-`scripts/append_findings --render-only --check` checks the database view's.
+`scripts/append_findings --render-only --check` checks the database view and
+the running tally against the database.
 
 ## Pins and generated records
 
@@ -280,16 +283,18 @@ so a marked observation survives later appends unchanged. It also keeps moving
 `last_seen`: an analyzer run that re-observes a closed identity puts a sighting
 after its `closed_on`, and that contradiction is exactly the signal that the
 closure may be wrong. Koine reports it as a reopen candidate. Re-assess it —
-do not tidy the record. The generated page
-renders the original claim and is unaffected either way, which
-`scripts/append_findings --render-only --check` confirms. The closure prompt also
+do not tidy the record. The generated database page renders the original claim,
+while the running tally in `docs/experience.md` counts recorded closures.
+After a closure, run `scripts/append_findings --render-only` to refresh both;
+`--check` confirms that they match the database. The closure prompt also
 requires `koine_check_db`: against the committed database, it rejects changed
 claims, missing or reordered entries, and edits to existing closures. Start a
 closure assessment from a committed database so that comparison isolates the
 closure edits.
 
-Each pull request is then written up in `experience.md`, whose
-shape `tests/test_experience.py` holds. The run leaves both files uncommitted:
+Each landed pull request or response answering something of ours is written up
+in `experience.md`, even if it closes no database row. Its shape is checked by
+`tests/test_experience.py`. The run leaves the changed files uncommitted:
 reading that diff is the review. Deciding what is worth carrying upstream, and
 the rule that no program here sends anything to anybody, are unchanged and live
 with the bar (`dokimasia_analyzer/README.md`).

@@ -17,9 +17,17 @@ Write two things:
     past `closed_on`, and Koine reports a reopen candidate. That contradiction
     is how a wrong closure surfaces; do not tidy it away.
 
-(b) **`docs/experience.md`** -- one section per cvc5 pull request that closed
-    something, in the order and shape that file sets out. At a high level,
+(b) **`docs/experience.md`** -- one section per cvc5 pull request or response
+    that answers something of ours, in the order and shape that file sets out.
+    A landed change, rejection or correction earns an episode even when it
+    closes no database row. State what is still owed in `Outcome`, and use the
+    optional `Not closed` field for observations the change did not resolve.
+    A later closure gets a new entry naming the earlier one. At a high level,
     explain what was wrong, what the change did about it, and what that says
     about the check that found it. Record whether the change cites us, without
     arguing for attribution: a fix cvc5 found independently still closed an
     observation of ours and is evidence the check pointed at something real.
+
+Regenerate the database view and the running tally in `docs/experience.md` with
+`scripts/append_findings --render-only` before running the checks. Do not edit
+the tally by hand or infer database closures from the episode count.
