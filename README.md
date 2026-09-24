@@ -74,6 +74,19 @@ available reason comments. It uses the configured cvc5 checkout; `--cvc5`
 selects another one. The default is a compact table with totals; `--verbose`
 shows source evidence, and `--summary` prints just the totals and tester status.
 
+To count the internal proof checker's trusted computing base (TCB), run:
+
+```bash
+./scripts/eo_cvc5_tcb_count
+./scripts/eo_cvc5_tcb_count --cvc5 /path/to/cvc5 --json
+```
+
+The [TCB count](scripts/eo_cvc5_tcb_count) uses the configured cvc5 checkout and
+reports file and line counts, the share of `src/`, and a subsystem breakdown.
+`--json` prints the headline counts for scripting. It measures the transitive
+`#include` closure: compile-time dependencies, not runtime reachability.
+Generated headers are omitted; no cvc5 build is needed.
+
 ## Reading the results
 
 **Browse the [recorded observations](bug_db/bugs.md)** for the accumulated

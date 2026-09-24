@@ -627,6 +627,18 @@ scripts/sweep_corpus --cvc5 <binary> --corpus <dir>  # regenerate the census
 **[`dokimasia_analyzer.tcb`](../dokimasia_analyzer/tcb/)** — optional measurement of the trusted computing base of the
 internal proof checker, the natural kernel candidate.
 
+The user-facing count command uses the shared checkout configuration, with
+`--cvc5` to override it and `--json` for machine-readable counts:
+
+```bash
+./scripts/eo_cvc5_tcb_count
+./scripts/eo_cvc5_tcb_count --cvc5 /path/to/cvc5 --json
+```
+
+It reports the `proof-checker` seed set in `headers` mode, the same measurement
+as the module's `measure` command. For dependency cuts, include paths, other
+seed sets, or baseline checks, use the module directly:
+
 ```bash
 python3 -m dokimasia_analyzer.tcb measure  <cvc5>   # 179 files, 41,446 lines, 8.0% of src/
 python3 -m dokimasia_analyzer.tcb cuts     <cvc5>   # what each dependency edge costs
