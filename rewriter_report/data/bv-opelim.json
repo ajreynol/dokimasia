@@ -1,0 +1,639 @@
+{
+  "unit": "bv-opelim",
+  "source_rev": "40a4bb7e43",
+  "binary": "cvc5 version 1.3.2.dev+main@dc8ad24031 [git dc8ad24031 on branch main]",
+  "notes": [
+    "C++ of this rule differs between binary dc8ad24031 and HEAD only cosmetically (clang-format, brace-init mkNode for deterministic node ids).",
+    "Binary predates large changes to src/rewriter/basic_rewrite_rcons.cpp and rewrite_db_proof_cons.cpp (and CPC :opaque indices, a13878bc19); 'no trust' results are for the binary's reconstruction. CPC proofs were checked with ethos against the HEAD signature in deps/cvc5/proofs/eo/cpc.",
+    "Overflow predicates on non-constant arguments are eliminated in TheoryBV::ppRewrite with a generator-less TrustNode (THEORY_PREPROCESS); the probes show the post-processor reconstructs these via RARE/theory rewrites with no residual trust."
+  ],
+  "rules": [
+    {
+      "id": "SizeEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:29",
+      "dispatch": "post-rewrite BITVECTOR_SIZE via RewriteSize (only rule)",
+      "summary": "(@bvsize x) -> integer constant width(x)",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "evaluate"
+      ],
+      "guard_comparison": "Internal kind (@bvsize) not expressible in SMT-LIB input; it only arises inside RARE side conditions. Evaluator case BITVECTOR_SIZE (evaluator.cpp:1308) computes the same width; proofs show `evaluate :args ((@bvsize x))`.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "no dedicated probe (not user-facing); seen as `evaluate (@bvsize x)` in e.g. probes/bv/UaddoEliminate_spec_w4.smt2 proofs",
+      "confidence": "n/a",
+      "rationale": "Pure width evaluation of an internal kind, justified by EVALUATE.",
+      "witness": null
+    },
+    {
+      "id": "UgtEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:46",
+      "dispatch": "post-rewrite BITVECTOR_UGT via RewriteUgt, after UgtUrem",
+      "summary": "(bvugt a b) -> (bvult b a)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ugt-eliminate"
+      ],
+      "guard_comparison": "Unconditional C++ rule; RARE rule has identical LHS pattern and RHS with the same operand order. Both widths 1 and 4 probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UgtEliminate_proof_w1.smt2",
+        "probes/bv/UgtEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4; no trust; RARE bv-ugt-eliminate in proof; ethos (HEAD CPC sig) accepts",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; proof reconstructs without trust and checks in ethos.",
+      "witness": null
+    },
+    {
+      "id": "UgeEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:63",
+      "dispatch": "post-rewrite BITVECTOR_UGE via RewriteUge (only rule)",
+      "summary": "(bvuge a b) -> (bvule b a)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-uge-eliminate"
+      ],
+      "guard_comparison": "Unconditional C++ rule; RARE rule has identical LHS pattern and RHS with the same operand order. Both widths 1 and 4 probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UgeEliminate_proof_w1.smt2",
+        "probes/bv/UgeEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4; no trust; RARE bv-uge-eliminate in proof; ethos (HEAD CPC sig) accepts",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; proof reconstructs without trust and checks in ethos.",
+      "witness": null
+    },
+    {
+      "id": "SgtEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:80",
+      "dispatch": "post-rewrite BITVECTOR_SGT via RewriteSgt (only rule)",
+      "summary": "(bvsgt a b) -> (bvslt b a)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-sgt-eliminate"
+      ],
+      "guard_comparison": "Unconditional C++ rule; RARE rule has identical LHS pattern and RHS with the same operand order. Both widths 1 and 4 probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SgtEliminate_proof_w1.smt2",
+        "probes/bv/SgtEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4; no trust; RARE bv-sgt-eliminate in proof; ethos (HEAD CPC sig) accepts",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; proof reconstructs without trust and checks in ethos.",
+      "witness": null
+    },
+    {
+      "id": "SgeEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:97",
+      "dispatch": "post-rewrite BITVECTOR_SGE via RewriteSge (only rule)",
+      "summary": "(bvsge a b) -> (bvsle b a)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-sge-eliminate"
+      ],
+      "guard_comparison": "Unconditional C++ rule; RARE rule has identical LHS pattern and RHS with the same operand order. Both widths 1 and 4 probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SgeEliminate_proof_w1.smt2",
+        "probes/bv/SgeEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4; no trust; RARE bv-sge-eliminate in proof; ethos (HEAD CPC sig) accepts",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; proof reconstructs without trust and checks in ethos.",
+      "witness": null
+    },
+    {
+      "id": "SleEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:114",
+      "dispatch": "post-rewrite BITVECTOR_SLE via RewriteSle, after EvalSle",
+      "summary": "(bvsle a b) -> (not (bvslt b a))",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-sle-eliminate"
+      ],
+      "guard_comparison": "Unconditional C++ rule; RARE rule has identical LHS pattern and RHS with the same operand order. Both widths 1 and 4 probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SleEliminate_proof_w1.smt2",
+        "probes/bv/SleEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4; no trust; RARE bv-sle-eliminate in proof; ethos (HEAD CPC sig) accepts",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; proof reconstructs without trust and checks in ethos.",
+      "witness": null
+    },
+    {
+      "id": "UleEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:131",
+      "dispatch": "post-rewrite BITVECTOR_ULE via RewriteUle, last after EvalUle/UleMax/ZeroUle/IneqElimConversion/UleZero/UleSelf",
+      "summary": "(bvule a b) -> (not (bvult b a))",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ule-eliminate"
+      ],
+      "guard_comparison": "Unconditional C++ rule; RARE rule has identical LHS pattern and RHS with the same operand order. Both widths 1 and 4 probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UleEliminate_proof_w1.smt2",
+        "probes/bv/UleEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4; no trust; RARE bv-ule-eliminate in proof; ethos (HEAD CPC sig) accepts",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; proof reconstructs without trust and checks in ethos.",
+      "witness": null
+    },
+    {
+      "id": "NandEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:249",
+      "dispatch": "post-rewrite BITVECTOR_NAND via RewriteNand (only rule); applies iff 2 children (kind is binary)",
+      "summary": "(bvnand a b) -> (bvnot (bvand a b))",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-nand-eliminate"
+      ],
+      "guard_comparison": "Unconditional C++ rule; RARE rule has identical LHS pattern and RHS with the same operand order. Both widths 1 and 4 probed. Nand/Nor/Xnor kinds have exactly 2 children (kinds.toml), so the numChildren==2 guard never excludes anything.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/NandEliminate_proof_w1.smt2",
+        "probes/bv/NandEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4; no trust; RARE bv-nand-eliminate in proof; ethos (HEAD CPC sig) accepts",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; proof reconstructs without trust and checks in ethos.",
+      "witness": null
+    },
+    {
+      "id": "NorEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:267",
+      "dispatch": "post-rewrite BITVECTOR_NOR via RewriteNor (only rule); applies iff 2 children (kind is binary)",
+      "summary": "(bvnor a b) -> (bvnot (bvor a b))",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-nor-eliminate"
+      ],
+      "guard_comparison": "Unconditional C++ rule; RARE rule has identical LHS pattern and RHS with the same operand order. Both widths 1 and 4 probed. Nand/Nor/Xnor kinds have exactly 2 children (kinds.toml), so the numChildren==2 guard never excludes anything.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/NorEliminate_proof_w1.smt2",
+        "probes/bv/NorEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4; no trust; RARE bv-nor-eliminate in proof; ethos (HEAD CPC sig) accepts",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; proof reconstructs without trust and checks in ethos.",
+      "witness": null
+    },
+    {
+      "id": "XnorEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:285",
+      "dispatch": "post-rewrite BITVECTOR_XNOR via RewriteXnor (only rule); applies iff 2 children (kind is binary)",
+      "summary": "(bvxnor a b) -> (bvnot (bvxor a b))",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-xnor-eliminate"
+      ],
+      "guard_comparison": "Unconditional C++ rule; RARE rule has identical LHS pattern and RHS with the same operand order. Both widths 1 and 4 probed. Nand/Nor/Xnor kinds have exactly 2 children (kinds.toml), so the numChildren==2 guard never excludes anything.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/XnorEliminate_proof_w1.smt2",
+        "probes/bv/XnorEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4; no trust; RARE bv-xnor-eliminate in proof; ethos (HEAD CPC sig) accepts",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; proof reconstructs without trust and checks in ethos.",
+      "witness": null
+    },
+    {
+      "id": "SubEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:148",
+      "dispatch": "post-rewrite BITVECTOR_SUB via RewriteSub (only rule)",
+      "summary": "(bvsub a b) -> (bvadd a (bvneg b))",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-sub-eliminate",
+        "bv_poly_norm"
+      ],
+      "guard_comparison": "BITVECTOR_SUB is binary (kinds.toml); RARE bv-sub-eliminate (src/theory/bv/rewrites:212) is the same unconditional equation. In the probe the step was closed by bv_poly_norm (independent polynomial normalization) instead.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SubEliminate_proof_w1.smt2",
+        "probes/bv/SubEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4; no trust; step justified by bv_poly_norm; ethos accepts",
+      "confidence": "high",
+      "rationale": "Unconditional RARE rule matches exactly, and bv_poly_norm independently justifies it.",
+      "witness": null
+    },
+    {
+      "id": "RepeatEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:165",
+      "dispatch": "post-rewrite BITVECTOR_REPEAT via RewriteRepeat (only rule); ProofRewriteRule BV_REPEAT_ELIM registered PRE_DSL",
+      "summary": "(repeat n a) -> a if n=1 else (concat a ... a) n times",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "BV_REPEAT_ELIM",
+        "bv-repeat-elim (CPC)"
+      ],
+      "guard_comparison": "No RARE rule. Internal checker is circular (rewriteViaRule calls RepeatEliminate). The CPC rule bv-repeat-elim (proofs/eo/cpc/rules/BitVectors.eo:17) uses $bv_unfold_repeat = eo::list_repeat concat a n plus list_singleton_elim (n=1 -> a), a generic list builder independent of the C++ loop; CPC `repeat` requires a positive numeral, matching the C++ Assert(amount>=1). repeat 0 is not well-typed input.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/RepeatEliminate_amounts_w1.smt2",
+        "probes/bv/RepeatEliminate_amounts_w3.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat for n in {1,2,5} at w1 and {1,2,3} at w3; no trust; bv-repeat-elim in proof; ethos (HEAD sig) accepts",
+      "confidence": "high",
+      "rationale": "Theory rewrite whose Eunoia definition is an independent, trivial list repetition; the CPC proofs check in ethos.",
+      "witness": null
+    },
+    {
+      "id": "RotateLeftEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:193",
+      "dispatch": "post-rewrite BITVECTOR_ROTATE_LEFT via RewriteRotateLeft (only rule)",
+      "summary": "(rotate_left k x) -> x if k mod w = 0, else concat of two extracts",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-rotate-left-eliminate-1",
+        "bv-rotate-left-eliminate-2"
+      ],
+      "guard_comparison": "C++: a = amount mod w; a=0 -> x; else concat(x[w-1-a:0], x[w-1:w-a]). RARE -1: a=(mod amount n)!=0, u1=n-(1+a), u2=n-1, l2=n-a; -2: (mod amount n)=0 -> x. Identical index arithmetic; RARE uses unbounded Int amount, C++ uint32 (equal at HEAD since the parser rejects indices >= 2^32).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/RotateLeftEliminate_amount_2pow32.smt2",
+        "probes/bv/RotateLeftEliminate_amounts_w1.smt2",
+        "probes/bv/RotateLeftEliminate_amounts_w4.smt2",
+        "probes/bv/RotateLeftEliminate_amounts_w5.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat for amounts {0,1,5}@w1, {0,1,3,4,6,9}@w4, {7,4294967295}@w5 against independently computed concats; no trust; both RARE variants used; ethos accepts; old-binary artifact: RotateLeftEliminate_amount_2pow32 gives cvc5=sat (expected unsat), z3=parse error. get-value shows binary dc8ad24031 parsed the index 4294967296 as 4294967295 (stringstream saturation); the rewrite of that term is correct. HEAD (c403bf1c3e) rejects indices >= 2^32 in Smt2TermParser::tokenStrToUnsigned, so this is a fixed parser bug, not a rewrite bug",
+      "confidence": "high",
+      "rationale": "The C++ case split (mod = 0 or not) maps one-to-one onto the two RARE rules with identical index arithmetic; edge amounts (0, >= width, multiples of width, 2^32-1, width 1) reconstruct without trust.",
+      "witness": null
+    },
+    {
+      "id": "RotateRightEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:222",
+      "dispatch": "post-rewrite BITVECTOR_ROTATE_RIGHT via RewriteRotateRight (only rule)",
+      "summary": "(rotate_right k x) -> x if k mod w = 0, else concat of two extracts",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-rotate-right-eliminate-1",
+        "bv-rotate-right-eliminate-2"
+      ],
+      "guard_comparison": "C++: a = amount mod w; a=0 -> x; else concat(x[a-1:0], x[w-1:a]). RARE -1: u1=a-1, u2=n-1, l2=a; -2: mod=0 -> x. Identical; RARE amount is Int, C++ uint32.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/RotateRightEliminate_amounts_w1.smt2",
+        "probes/bv/RotateRightEliminate_amounts_w4.smt2",
+        "probes/bv/RotateRightEliminate_amounts_w5.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat for amounts {0,1,5}@w1, {0,1,3,4,6,9}@w4, {7,4294967295}@w5 against independently computed concats; no trust; both RARE variants used; ethos accepts",
+      "confidence": "high",
+      "rationale": "The C++ case split (mod = 0 or not) maps one-to-one onto the two RARE rules with identical index arithmetic; edge amounts (0, >= width, multiples of width, 2^32-1, width 1) reconstruct without trust.",
+      "witness": null
+    },
+    {
+      "id": "SdivEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:303",
+      "dispatch": "post-rewrite BITVECTOR_SDIV via RewriteSdiv (only rule; also applied to constant arguments)",
+      "summary": "(bvsdiv a b) -> ite(xor(a<0,b<0), -(|a| udiv |b|), |a| udiv |b|) with a<0 := (extract w-1 w-1 a)=#b1",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-sdiv-eliminate"
+      ],
+      "guard_comparison": "RARE rule has the same term structure, same sign tests (#b1 / #b0 comparisons of the msb extract, same ite branch order), and binds nm1/wm1 = (@bvsize x)-1 matching C++ size-1. No guard: both are unconditional. INT_MIN/-1, division/remainder by 0 and width 1 checked.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SdivEliminate_edges_w1.smt2",
+        "probes/bv/SdivEliminate_edges_w4.smt2",
+        "probes/bv/SdivEliminate_proof_w1.smt2",
+        "probes/bv/SdivEliminate_proof_w4.smt2",
+        "probes/bv/SdivEliminate_table_w1.smt2",
+        "probes/bv/SdivEliminate_table_w3.smt2"
+      ],
+      "probe_result": "exhaustive constant tables at w1,w3 (all 4/64 pairs, every row goes through the C++ rule since no eval precedes it) unsat in cvc5 and z3; symbolic proof probes at w1,w4 and INT_MIN/-1/0 edge probe: no trust, bv-sdiv-eliminate used; ethos accepts; mutating one table row makes cvc5 sat (probe is sensitive)",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; exhaustive small-width differential agrees with SMT-LIB semantics and proofs reconstruct without trust.",
+      "witness": null
+    },
+    {
+      "id": "SremEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:338",
+      "dispatch": "post-rewrite BITVECTOR_SREM via RewriteSrem (only rule; also applied to constant arguments)",
+      "summary": "(bvsrem a b) -> ite(a<0, -(|a| urem |b|), |a| urem |b|)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-srem-eliminate"
+      ],
+      "guard_comparison": "RARE rule has the same term structure, same sign tests (#b1 / #b0 comparisons of the msb extract, same ite branch order), and binds nm1/wm1 = (@bvsize x)-1 matching C++ size-1. No guard: both are unconditional. INT_MIN/-1, division/remainder by 0 and width 1 checked.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SremEliminate_proof_w1.smt2",
+        "probes/bv/SremEliminate_proof_w4.smt2",
+        "probes/bv/SremEliminate_table_w1.smt2",
+        "probes/bv/SremEliminate_table_w3.smt2"
+      ],
+      "probe_result": "exhaustive constant tables at w1,w3 (all 4/64 pairs, every row goes through the C++ rule since no eval precedes it) unsat in cvc5 and z3; symbolic proof probes at w1,w4 and INT_MIN/-1/0 edge probe: no trust, bv-srem-eliminate used; ethos accepts; mutating one table row makes cvc5 sat (probe is sensitive)",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; exhaustive small-width differential agrees with SMT-LIB semantics and proofs reconstruct without trust.",
+      "witness": null
+    },
+    {
+      "id": "SmodEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:372",
+      "dispatch": "post-rewrite BITVECTOR_SMOD via RewriteSmod (only rule; also applied to constant arguments)",
+      "summary": "(bvsmod a b) -> SMT-LIB 4-way smod definition over u = |s| urem |t|",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-smod-eliminate"
+      ],
+      "guard_comparison": "RARE rule has the same term structure, same sign tests (#b1 / #b0 comparisons of the msb extract, same ite branch order), and binds nm1/wm1 = (@bvsize x)-1 matching C++ size-1. No guard: both are unconditional. INT_MIN/-1, division/remainder by 0 and width 1 checked.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SmodEliminate_proof_w1.smt2",
+        "probes/bv/SmodEliminate_proof_w4.smt2",
+        "probes/bv/SmodEliminate_table_w1.smt2",
+        "probes/bv/SmodEliminate_table_w3.smt2"
+      ],
+      "probe_result": "exhaustive constant tables at w1,w3 (all 4/64 pairs, every row goes through the C++ rule since no eval precedes it) unsat in cvc5 and z3; symbolic proof probes at w1,w4 and INT_MIN/-1/0 edge probe: no trust, bv-smod-eliminate used; ethos accepts; mutating one table row makes cvc5 sat (probe is sensitive)",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional RARE rule; exhaustive small-width differential agrees with SMT-LIB semantics and proofs reconstruct without trust.",
+      "witness": null
+    },
+    {
+      "id": "ZeroExtendEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:435",
+      "dispatch": "post-rewrite BITVECTOR_ZERO_EXTEND via RewriteZeroExtend (only rule)",
+      "summary": "(zero_extend n x) -> x if n=0 else (concat (_ bv0 n) x)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-zero-extend-eliminate",
+        "bv-zero-extend-eliminate-0"
+      ],
+      "guard_comparison": "The n=0 branch of the C++ is covered by bv-zero-extend-eliminate-0 (src/theory/bv/rewrites:181); n>0 by bv-zero-extend-eliminate (rewrites-elimination). Widths 1 and 4, n in {0,1,2,3}.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ZeroExtendEliminate_amounts_w1.smt2",
+        "probes/bv/ZeroExtendEliminate_amounts_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; both RARE rules appear; ethos accepts",
+      "confidence": "high",
+      "rationale": "Both C++ branches map to unconditional RARE rules; proofs reconstruct without trust.",
+      "witness": null
+    },
+    {
+      "id": "RedorEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:460",
+      "dispatch": "post-rewrite BITVECTOR_REDOR via RewriteRedor (only rule)",
+      "summary": "(bvredor x) -> (bvnot (bvcomp x 0))",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-redor-eliminate"
+      ],
+      "guard_comparison": "C++ uses constant 0 of width(x); RARE (@bv 0 w) with w = (@bvsize x).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/RedorEliminate_proof_w1.smt2",
+        "probes/bv/RedorEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4 against an ite spec; no trust; bv-redor-eliminate in proof; ethos accepts",
+      "confidence": "high",
+      "rationale": "Direct instance of a RARE rule with a width-binding condition that follows from typing.",
+      "witness": null
+    },
+    {
+      "id": "RedandEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:480",
+      "dispatch": "post-rewrite BITVECTOR_REDAND via RewriteRedand (only rule)",
+      "summary": "(bvredand x) -> (bvcomp x ones)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-redand-eliminate"
+      ],
+      "guard_comparison": "C++ uses mkOnes(width); RARE (bvnot (@bv 0 w)) with w=(@bvsize x), which evaluates to the same constant.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/RedandEliminate_proof_w1.smt2",
+        "probes/bv/RedandEliminate_proof_w4.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat at w1,w4 against an ite spec; no trust; bv-redand-eliminate in proof; ethos accepts",
+      "confidence": "high",
+      "rationale": "Direct instance of a RARE rule with a width-binding condition that follows from typing.",
+      "witness": null
+    },
+    {
+      "id": "NegoEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:499",
+      "dispatch": "post-rewrite BITVECTOR_NEGO via RewriteNego (only rule; any arguments)",
+      "summary": "(bvnego x) -> (= x INT_MIN)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-nego-eliminate"
+      ],
+      "guard_comparison": "C++ uses constant mkMinSigned(w); RARE uses (concat (@bv 1 1) (@bv 0 n)) with n=w-1, i.e. a zero-width (@bv 0 0) at w=1; reconstruction evaluates the concat. Width 1 checked explicitly.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/NegoEliminate_spec_w1.smt2",
+        "probes/bv/NegoEliminate_spec_w2.smt2",
+        "probes/bv/NegoEliminate_spec_w4.smt2",
+        "probes/bv/NegoEliminate_table_w1.smt2",
+        "probes/bv/NegoEliminate_table_w2.smt2",
+        "probes/bv/NegoEliminate_table_w4.smt2"
+      ],
+      "probe_result": "spec + exhaustive tables at w1,w2,w4: cvc5=unsat z3=unsat; no trust; ethos accepts the w1 proof containing (@bv 0 0)",
+      "confidence": "high",
+      "rationale": "Direct RARE instance; the width-1 zero-width-constant corner reconstructs and checks.",
+      "witness": null
+    },
+    {
+      "id": "SdivoEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:777",
+      "dispatch": "post-rewrite BITVECTOR_SDIVO via RewriteSdivo (only rule; any arguments)",
+      "summary": "(bvsdivo x y) -> (and (= x INT_MIN) (= y ones))",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-sdivo-eliminate"
+      ],
+      "guard_comparison": "C++ uses constants mkMinSigned/mkOnes; RARE uses (concat (@bv 1 1) (@bv 0 wm1)) and (bvnot (@bv 0 w)); same conjunct order. Width 1 (INT_MIN = -1 = #b1) checked.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SdivoEliminate_spec_w1.smt2",
+        "probes/bv/SdivoEliminate_spec_w4.smt2",
+        "probes/bv/SdivoEliminate_table_w1.smt2",
+        "probes/bv/SdivoEliminate_table_w3.smt2"
+      ],
+      "probe_result": "spec at w1,w4 and exhaustive tables at w1,w3: cvc5=unsat z3=unsat; no trust; ethos accepts",
+      "confidence": "high",
+      "rationale": "Direct RARE instance; differential tables agree with SMT-LIB semantics.",
+      "witness": null
+    },
+    {
+      "id": "UaddoEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:517",
+      "dispatch": "TheoryBV::ppRewrite -> TheoryBVRewriter::eliminateOverflows (skipped when --solve-bv-as-int is on); the TrustNode has no generator, so it becomes a THEORY_PREPROCESS trust step that the proof post-processor reconstructs as a rewrite. Also post-rewrite via RewriteOverflow, but only when all children are constants. expandDefinition (check-models only) calls the same function.",
+      "summary": "(bvuaddo a b) -> sign/carry-bit formula",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-uaddo-eliminate"
+      ],
+      "guard_comparison": "C++: (= (extract w w (bvadd (concat #b0 a) (concat #b0 b))) #b1); RARE identical with w=(@bvsize x). The generator-less ppRewrite step is closed by RARE reconstruction (no residual trust in probes).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UaddoEliminate_spec_w1.smt2",
+        "probes/bv/UaddoEliminate_spec_w4.smt2",
+        "probes/bv/UaddoEliminate_table_w1.smt2",
+        "probes/bv/UaddoEliminate_table_w3.smt2"
+      ],
+      "probe_result": "spec at w1,w4 vs an independent sign/zero-extended spec and exhaustive constant tables at w1,w3: cvc5=unsat z3=unsat; no trust; bv-uaddo-eliminate in proofs; ethos accepts the spec proofs",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional (width-binding) RARE rule; both the ppRewrite and constant-folding paths reconstruct without trust and differential tables agree.",
+      "witness": null
+    },
+    {
+      "id": "SaddoEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:542",
+      "dispatch": "TheoryBV::ppRewrite -> TheoryBVRewriter::eliminateOverflows (skipped when --solve-bv-as-int is on); the TrustNode has no generator, so it becomes a THEORY_PREPROCESS trust step that the proof post-processor reconstructs as a rewrite. Also post-rewrite via RewriteOverflow, but only when all children are constants. expandDefinition (check-models only) calls the same function.",
+      "summary": "(bvsaddo a b) -> sign/carry-bit formula",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-saddo-eliminate"
+      ],
+      "guard_comparison": "C++: (or (and (and s0=1 s1=1) sa=0) (and (and s0=0 s1=0) sa=1)) with sign bits extract w-1; RARE identical, wm1=(@bvsize x)-1. The generator-less ppRewrite step is closed by RARE reconstruction (no residual trust in probes).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SaddoEliminate_spec_w1.smt2",
+        "probes/bv/SaddoEliminate_spec_w4.smt2",
+        "probes/bv/SaddoEliminate_table_w1.smt2",
+        "probes/bv/SaddoEliminate_table_w3.smt2"
+      ],
+      "probe_result": "spec at w1,w4 vs an independent sign/zero-extended spec and exhaustive constant tables at w1,w3: cvc5=unsat z3=unsat; no trust; bv-saddo-eliminate in proofs; ethos accepts the spec proofs",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional (width-binding) RARE rule; both the ppRewrite and constant-folding paths reconstruct without trust and differential tables agree.",
+      "witness": null
+    },
+    {
+      "id": "UsuboEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:707",
+      "dispatch": "TheoryBV::ppRewrite -> TheoryBVRewriter::eliminateOverflows (skipped when --solve-bv-as-int is on); the TrustNode has no generator, so it becomes a THEORY_PREPROCESS trust step that the proof post-processor reconstructs as a rewrite. Also post-rewrite via RewriteOverflow, but only when all children are constants. expandDefinition (check-models only) calls the same function.",
+      "summary": "(bvusubo a b) -> sign/carry-bit formula",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-usubo-eliminate"
+      ],
+      "guard_comparison": "C++: (= (extract w w (bvsub (zero_extend 1 a) (zero_extend 1 b))) #b1); RARE identical, n=(@bvsize x). The generator-less ppRewrite step is closed by RARE reconstruction (no residual trust in probes).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UsuboEliminate_spec_w1.smt2",
+        "probes/bv/UsuboEliminate_spec_w4.smt2",
+        "probes/bv/UsuboEliminate_table_w1.smt2",
+        "probes/bv/UsuboEliminate_table_w3.smt2"
+      ],
+      "probe_result": "spec at w1,w4 vs an independent sign/zero-extended spec and exhaustive constant tables at w1,w3: cvc5=unsat z3=unsat; no trust; bv-usubo-eliminate in proofs; ethos accepts the spec proofs; ethos crashes on the constant-table proofs (old-binary CPC prints cong with premises for extract indices, rejected by HEAD sig after a13878bc19 made indices :opaque) - a printer/signature version mismatch, not a rewrite issue",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional (width-binding) RARE rule; both the ppRewrite and constant-folding paths reconstruct without trust and differential tables agree.",
+      "witness": null
+    },
+    {
+      "id": "SsuboEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:733",
+      "dispatch": "TheoryBV::ppRewrite -> TheoryBVRewriter::eliminateOverflows (skipped when --solve-bv-as-int is on); the TrustNode has no generator, so it becomes a THEORY_PREPROCESS trust step that the proof post-processor reconstructs as a rewrite. Also post-rewrite via RewriteOverflow, but only when all children are constants. expandDefinition (check-models only) calls the same function.",
+      "summary": "(bvssubo a b) -> sign/carry-bit formula",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ssubo-eliminate"
+      ],
+      "guard_comparison": "C++: neg_pos & result_pos OR pos_neg & result_neg; RARE identical, nm1=n-1. The generator-less ppRewrite step is closed by RARE reconstruction (no residual trust in probes).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SsuboEliminate_spec_w1.smt2",
+        "probes/bv/SsuboEliminate_spec_w4.smt2",
+        "probes/bv/SsuboEliminate_table_w1.smt2",
+        "probes/bv/SsuboEliminate_table_w3.smt2"
+      ],
+      "probe_result": "spec at w1,w4 vs an independent sign/zero-extended spec and exhaustive constant tables at w1,w3: cvc5=unsat z3=unsat; no trust; bv-ssubo-eliminate in proofs; ethos accepts the spec proofs; ethos crashes on the constant-table proofs (old-binary CPC prints cong with premises for extract indices, rejected by HEAD sig after a13878bc19 made indices :opaque) - a printer/signature version mismatch, not a rewrite issue",
+      "confidence": "high",
+      "rationale": "Direct instance of an unconditional (width-binding) RARE rule; both the ppRewrite and constant-folding paths reconstruct without trust and differential tables agree.",
+      "witness": null
+    },
+    {
+      "id": "UmuloEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:587",
+      "dispatch": "TheoryBV::ppRewrite -> TheoryBVRewriter::eliminateOverflows (skipped when --solve-bv-as-int is on); the TrustNode has no generator, so it becomes a THEORY_PREPROCESS trust step that the proof post-processor reconstructs as a rewrite. Also post-rewrite via RewriteOverflow, but only when all children are constants. expandDefinition (check-models only) calls the same function. ProofRewriteRule BV_UMULO_ELIM registered POST_DSL.",
+      "summary": "(bvumulo a b) -> overflow-detection circuit (= (bvor ...) #b1)",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "BV_UMULO_ELIM",
+        "bv-umulo-elim (CPC)"
+      ],
+      "guard_comparison": "C++ Gok-Schulte-Balzola circuit: w=1 -> false; else OR_{i=1..w-1}(b[i] & OR_{j>=w-i} a[j]) | (zext1 a * zext1 b)[w] = #b1. CPC $bv_umulo_elim (proofs/eo/cpc/rules/BitVectors.eo:107) is a line-by-line transcription (same w=1 case, same iota over 1..w-1, same bvor list order), so it is not independent of the C++; it only catches divergence between the two transcriptions. Internal THEORY_REWRITE checker is circular (rewriteViaRule calls the same RewriteRule).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UmuloEliminate_spec_w1.smt2",
+        "probes/bv/UmuloEliminate_spec_w2.smt2",
+        "probes/bv/UmuloEliminate_spec_w3.smt2",
+        "probes/bv/UmuloEliminate_spec_w5.smt2",
+        "probes/bv/UmuloEliminate_table_w1.smt2",
+        "probes/bv/UmuloEliminate_table_w3.smt2",
+        "probes/bv/UmuloEliminate_table_w4.smt2"
+      ],
+      "probe_result": "spec probes at w1,w2,w3,w5 (all width branches) vs an independent double-width-multiply spec and exhaustive constant tables at w1,w3,w4: cvc5=unsat z3=unsat; no trust; bv-umulo-elim in proofs; ethos (HEAD sig) accepts all, i.e. CPC def == C++ output on these instances. Independent check: z3 proves the C++ circuit (transcribed) equals the double-width spec for every width 1..12.",
+      "confidence": "medium",
+      "rationale": "Covered only by a theory rewrite whose Eunoia definition is a transcription of the C++ algorithm, so a shared algorithmic error would pass the proof checker; the circuit itself was independently validated with z3 for widths 1..12 and by differential probes.",
+      "witness": null
+    },
+    {
+      "id": "SmuloEliminate",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_operator_elimination.h:634",
+      "dispatch": "TheoryBV::ppRewrite -> TheoryBVRewriter::eliminateOverflows (skipped when --solve-bv-as-int is on); the TrustNode has no generator, so it becomes a THEORY_PREPROCESS trust step that the proof post-processor reconstructs as a rewrite. Also post-rewrite via RewriteOverflow, but only when all children are constants. expandDefinition (check-models only) calls the same function. ProofRewriteRule BV_SMULO_ELIM registered POST_DSL.",
+      "summary": "(bvsmulo a b) -> overflow-detection circuit (= (bvor ...) #b1)",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "BV_SMULO_ELIM",
+        "bv-smulo-elim (CPC)"
+      ],
+      "guard_comparison": "C++ circuit with three width cases (w=1: a&b; w=2: top-two-bits xor of sext1 product; w>=3: ppc/res accumulation over i=1..w-3 plus top xor). CPC $bv_smulo_elim (BitVectors.eo:50) transcribes the same three cases and the same loop ($iota2 1 (w-3)); not independent of the C++. Internal THEORY_REWRITE checker is circular (rewriteViaRule calls the same RewriteRule).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SmuloEliminate_spec_w1.smt2",
+        "probes/bv/SmuloEliminate_spec_w2.smt2",
+        "probes/bv/SmuloEliminate_spec_w3.smt2",
+        "probes/bv/SmuloEliminate_spec_w5.smt2",
+        "probes/bv/SmuloEliminate_table_w1.smt2",
+        "probes/bv/SmuloEliminate_table_w3.smt2",
+        "probes/bv/SmuloEliminate_table_w4.smt2"
+      ],
+      "probe_result": "spec probes at w1,w2,w3,w5 (all width branches) vs an independent double-width-multiply spec and exhaustive constant tables at w1,w3,w4: cvc5=unsat z3=unsat; no trust; bv-smulo-elim in proofs; ethos (HEAD sig) accepts all, i.e. CPC def == C++ output on these instances. Independent check: z3 proves the C++ circuit (transcribed) equals the double-width spec for every width 1..12.",
+      "confidence": "medium",
+      "rationale": "Covered only by a theory rewrite whose Eunoia definition is a transcription of the C++ algorithm, so a shared algorithmic error would pass the proof checker; the circuit itself was independently validated with z3 for widths 1..12 and by differential probes.",
+      "witness": null
+    }
+  ]
+}

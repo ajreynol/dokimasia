@@ -1,0 +1,10 @@
+; AndOrXorConcatPullUp (and): two concat children both with a middle constant (elaborator regroups both)
+; EXPECT: unsat
+(set-logic QF_BV)
+(declare-const x (_ BitVec 8))
+(declare-const a (_ BitVec 2))
+(declare-const b (_ BitVec 2))
+(declare-const c (_ BitVec 2))
+(declare-const d (_ BitVec 2))
+(assert (not (= (bvand x (concat a #x0 b) (concat c #xF d)) (concat (bvand ((_ extract 7 6) x) a c) #x0 (bvand ((_ extract 1 0) x) b d)))))
+(check-sat)

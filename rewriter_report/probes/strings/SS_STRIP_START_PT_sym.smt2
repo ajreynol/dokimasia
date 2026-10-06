@@ -1,0 +1,11 @@
+; strip prefix of known length (macro substr strip sym length)
+; EXPECT: unsat
+(set-logic ALL)
+(declare-const x String)
+(declare-const y String)
+(declare-const z String)
+(declare-const w String)
+(declare-const n Int)
+(declare-const m Int)
+(assert (not (= (str.substr (str.++ "ab" x) (+ 2 (str.len y)) m) (str.substr x (str.len y) m))))
+(check-sat)

@@ -1,0 +1,10 @@
+; "A" in (str.to_re y)* forces y = "A" (y="" gives only the empty word)
+; EXPECT: unsat
+(set-logic QF_SLIA)
+(declare-const x String)
+(declare-const y String)
+(declare-const z String)
+(declare-const w String)
+(assert (str.in_re "A" (re.* (str.to_re y))))
+(assert (not (= y "A")))
+(check-sat)

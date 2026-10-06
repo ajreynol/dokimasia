@@ -1,0 +1,2112 @@
+{
+ "unit": "strings-c",
+ "source_rev": "40a4bb7e43",
+ "binary": "cvc5 version 1.3.2.dev+main@dc8ad24031 [git dc8ad24031 on branch main] (PATH); cross-checked with /space/ajreynol/bin/ajr-cvc5-b08092b (cvc5 1.3.4.dev, git b08092b502, an ancestor of 40a4bb7e43 whose sequences_rewriter.cpp, strings_entail.cpp and macro_rewrite_elaborator.cpp are identical to the source rev)",
+ "notes": "Range: src/theory/strings/sequences_rewriter.cpp lines 2508-4187 (rewriteSubstr, rewriteUpdate, rewriteContains, rewriteIndexof, rewriteIndexofRe, rewriteReplace, rewriteReplaceAll, rewriteReplaceInternal, rewriteReplaceRe, rewriteReplaceReAll, firstMatch, rewriteStrReverse, rewritePrefixSuffix, lengthPreserveRewrite, canonicalStrForSymbolicLength, rewriteSeqUnit, returnRewrite). rewriteSubstr starts at line 2508 and is included. No ProofRewriteRule is computed in this range (all rewriteVia* definitions are above line 2508); the macro/theory rules invoked from here (MACRO_STR_CONST_NCTN_CONCAT, MACRO_STR_COMPONENT_CTN, MACRO_STR_STRIP_ENDPOINTS, MACRO_STR_SPLIT_CTN, MACRO_SUBSTR_STRIP_SYM_LENGTH, STR_INDEXOF_RE_EVAL, STR_REPLACE_RE_EVAL, STR_REPLACE_RE_ALL_EVAL) are assessed inside the Rewrite:: records that use them. Binary vs HEAD: the only semantic change in this range is 6ab254bba1 (REPLALL_CONST flattens only for a constant replacement); RARE rules str-replace-all-id/-self (7d80d24a0d) and 3 others (04e95aee6f) postdate dc8ad24031, so the PATH binary leaves trust for replace_all identity/self/empty-needle that b08092b502 reconstructs. Evidence per probe: Rewrite id actually fired (cvc5 -t strings-rewrite), cvc5/z3 answers, trust ids on both binaries, and an ethos check of the b08092b502 CPC proof against deps/cvc5/proofs/eo/cpc (correct = fully checked, incomplete = trust present). z3 4.13.4 rejects str.update/str.rev/str.indexof_re/seq.replace_all/seq.update/seq.rev; those z3 answers are recorded as 'unsupported' (the current probe.py reports them as sat/DISAGREE, which is spurious). Additional evidence: (1) brute-force spec check of ~25 schematic rewrites (incl. the RARE rule str-repl-repl-lookahead-id-simp) over |strings|<=4 on {a,b}: no counterexample; (2) differential fuzzing of cvc5 (simplify t) against a Python SMT-LIB string evaluator: 128 runs x 400 terms per binary (random + templates targeting this range), exercising every Rewrite id here except the regex, sequence-only and shadowed ones; 0 mismatches.",
+ "rules": [
+  {
+   "id": "Rewrite::SS_EMPTYSTR",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2518",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr (first case)",
+   "summary": "(str.substr \"\" n m) --> \"\"",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-substr-empty-str"
+   ],
+   "guard_comparison": "C++: node[0] is the empty constant; RARE: (= (str.len x) 0). Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_EMPTYSTR_sym.smt2"
+   ],
+   "probe_result": "SS_EMPTYSTR_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Single RARE rule whose condition follows from the guard; trust-free and ethos-checked."
+  },
+  {
+   "id": "Rewrite::SS_CONST_START_MAX_OOB",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2531",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr (constant arguments)",
+   "summary": "all-constant substr with start > 2^32-1 --> empty",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "All three arguments constant; uint32 overflow of start+len guarded by the rMaxInt check before the addition. Edge probes at start=len, start=2^32, start+len=2^32 agree with z3.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_CONST_START_MAX_OOB_big.smt2"
+   ],
+   "probe_result": "SS_CONST_START_MAX_OOB_big: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation; proofs use EVALUATE (trust-free, ethos-checked)."
+  },
+  {
+   "id": "Rewrite::SS_CONST_START_NEG",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2537",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr (constant arguments)",
+   "summary": "all-constant substr with negative start --> empty",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "All three arguments constant; uint32 overflow of start+len guarded by the rMaxInt check before the addition. Edge probes at start=len, start=2^32, start+len=2^32 agree with z3.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_CONST_START_NEG_m1.smt2"
+   ],
+   "probe_result": "SS_CONST_START_NEG_m1: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation; proofs use EVALUATE (trust-free, ethos-checked)."
+  },
+  {
+   "id": "Rewrite::SS_CONST_START_OOB",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2546",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr (constant arguments)",
+   "summary": "all-constant substr with start >= len --> empty",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "All three arguments constant; uint32 overflow of start+len guarded by the rMaxInt check before the addition. Edge probes at start=len, start=2^32, start+len=2^32 agree with z3.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_CONST_START_OOB_atlen.smt2"
+   ],
+   "probe_result": "SS_CONST_START_OOB_atlen: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation; proofs use EVALUATE (trust-free, ethos-checked)."
+  },
+  {
+   "id": "Rewrite::SS_CONST_LEN_MAX_OOB",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2556",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr (constant arguments)",
+   "summary": "all-constant substr with start+len > 2^32-1 --> suffix from start",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "All three arguments constant; uint32 overflow of start+len guarded by the rMaxInt check before the addition. Edge probes at start=len, start=2^32, start+len=2^32 agree with z3.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_CONST_LEN_MAX_OOB_big.smt2"
+   ],
+   "probe_result": "SS_CONST_LEN_MAX_OOB_big: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation; proofs use EVALUATE (trust-free, ethos-checked)."
+  },
+  {
+   "id": "Rewrite::SS_CONST_LEN_NON_POS",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2561",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr (constant arguments)",
+   "summary": "all-constant substr with len <= 0 --> empty",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "All three arguments constant; uint32 overflow of start+len guarded by the rMaxInt check before the addition. Edge probes at start=len, start=2^32, start+len=2^32 agree with z3.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_CONST_LEN_NON_POS_zero.smt2"
+   ],
+   "probe_result": "SS_CONST_LEN_NON_POS_zero: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation; proofs use EVALUATE (trust-free, ethos-checked)."
+  },
+  {
+   "id": "Rewrite::SS_CONST_END_OOB",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2574",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr (constant arguments)",
+   "summary": "all-constant substr whose end passes the string end --> suffix",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "All three arguments constant; uint32 overflow of start+len guarded by the rMaxInt check before the addition. Edge probes at start=len, start=2^32, start+len=2^32 agree with z3.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_CONST_END_OOB_edge.smt2"
+   ],
+   "probe_result": "SS_CONST_END_OOB_edge: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation; proofs use EVALUATE (trust-free, ethos-checked)."
+  },
+  {
+   "id": "Rewrite::SS_CONST_SS",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2580",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr (constant arguments)",
+   "summary": "all-constant substr --> constant",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "All three arguments constant; uint32 overflow of start+len guarded by the rMaxInt check before the addition. Edge probes at start=len, start=2^32, start+len=2^32 agree with z3.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "no isolating probe",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation; proofs use EVALUATE (trust-free, ethos-checked)."
+  },
+  {
+   "id": "Rewrite::SS_START_NEG",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2591",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr",
+   "summary": "(str.substr s n m) --> empty if ArithEntail proves n < 0",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-substr-empty-start-neg",
+    "arith-string-pred-entail"
+   ],
+   "guard_comparison": "C++ arith-entailment check(0, n, strict); RARE condition (< n 0) discharged by ARITH_STRING_PRED_ENTAIL (theory rewrite with CPC definition).",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_START_NEG_sym.smt2"
+   ],
+   "probe_result": "SS_START_NEG_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "RARE rule matches; side condition re-derived in the proof; ethos-checked."
+  },
+  {
+   "id": "Rewrite::SS_LEN_NON_POS",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2596",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr",
+   "summary": "(str.substr s n m) --> empty if ArithEntail proves m <= 0",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-substr-empty-range",
+    "arith-string-pred-entail"
+   ],
+   "guard_comparison": "C++ check(0, m); RARE (>= 0 m). Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_LEN_NON_POS_sym.smt2"
+   ],
+   "probe_result": "SS_LEN_NON_POS_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Single RARE rule; condition proven; ethos-checked."
+  },
+  {
+   "id": "Rewrite::SS_START_GEQ_LEN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2622",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr, node[0] is STRING_SUBSTR",
+   "summary": "(str.substr (str.substr x a b) c d) --> empty if c >= b",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-substr-substr-start-geq-len",
+    "arith-string-pred-entail"
+   ],
+   "guard_comparison": "C++ check(c, b); RARE (>= n2 m1). Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_START_GEQ_LEN_sym.smt2"
+   ],
+   "probe_result": "SS_START_GEQ_LEN_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Single RARE rule; ethos-checked."
+  },
+  {
+   "id": "Rewrite::SUBSTR_REPL_SWAP",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2640",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr, node[0] is STRING_REPLACE and start syntactically 0",
+   "summary": "(str.substr (str.replace x y z) 0 n) --> (str.replace (str.substr x 0 n) y z) if len y = len z = 1",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-substr-replace"
+   ],
+   "guard_comparison": "C++ checkLengthOne(.., strict=true) on y and z (len exactly 1); RARE requires len t = len r and len t = 1. Same.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SUBSTR_REPL_SWAP_sym.smt2"
+   ],
+   "probe_result": "SUBSTR_REPL_SWAP_sym: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Single RARE rule with equivalent guard; spec brute-forced (len<=4); ethos-checked."
+  },
+  {
+   "id": "Rewrite::SS_LEN_ONE_Z_Z",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2651",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr",
+   "summary": "(str.substr s n n) --> empty if len s <= 1",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-substr-char-start-eq-len",
+    "arith-string-pred-safe-approx"
+   ],
+   "guard_comparison": "C++ checkLengthOne non-strict (len<=1); RARE (>= 1 (str.len x)). Same.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_LEN_ONE_Z_Z_sym.smt2"
+   ],
+   "probe_result": "SS_LEN_ONE_Z_Z_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Single RARE rule; ethos-checked."
+  },
+  {
+   "id": "Rewrite::SS_END_PT_NORM",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2660",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr",
+   "summary": "(str.substr s n m) --> (str.substr s n (str.len s)) if m > len s",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-substr-len-norm"
+   ],
+   "guard_comparison": "C++ strict check m > len s; RARE (>= m (str.len s)) is weaker, so every C++ instance is covered.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_END_PT_NORM_sym.smt2"
+   ],
+   "probe_result": "SS_END_PT_NORM_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Single RARE rule; ethos-checked."
+  },
+  {
+   "id": "Rewrite::SS_LEN_INCLUDE",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2672",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr via StringsEntail::rewriteViaMacroSubstrStripSymLength (MACRO_SUBSTR_STRIP_SYM_LENGTH)",
+   "summary": "(str.substr (str.++ s1..sk ..) 0 m) --> s1..sj ++ substr(rest, 0, m - len(s1..sj)) when m >= len(s1..sj)",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_SUBSTR_STRIP_SYM_LENGTH",
+    "str-substr-concat1",
+    "str-substr-full-eq",
+    "str-substr-len-include-pre"
+   ],
+   "guard_comparison": "Computed by the strings-entailment utility (outside this range; shared with the macro elaborator, which re-runs it and leaves a MACRO_THEORY_REWRITE_RCONS subgoal that RARE reconstruction closes). Partial-constant stripping depends on ArithEntail::getConstantBound.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_LEN_INCLUDE_sym.smt2",
+    "probes/strings/SS_LEN_INCLUDE_partial.smt2"
+   ],
+   "probe_result": "SS_LEN_INCLUDE_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; SS_LEN_INCLUDE_partial: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Covered via macro elaboration + generic reconstruction (budgeted search); probes trust-free and ethos-checked. Utility reviewed by another unit."
+  },
+  {
+   "id": "Rewrite::SS_STRIP_START_PT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2672",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr via rewriteViaMacroSubstrStripSymLength",
+   "summary": "(str.substr (str.++ p rest) n m) --> (str.substr rest (- n (str.len p)) m) when n >= len p",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_SUBSTR_STRIP_SYM_LENGTH",
+    "str-substr-concat2"
+   ],
+   "guard_comparison": "Same macro as SS_LEN_INCLUDE; RARE str-substr-concat2 (>= n (str.len s1)) matches one component at a time.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_STRIP_START_PT_sym.smt2"
+   ],
+   "probe_result": "SS_STRIP_START_PT_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Macro elaboration + reconstruction; trust-free and ethos-checked."
+  },
+  {
+   "id": "Rewrite::SS_STRIP_END_PT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2672",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr via rewriteViaMacroSubstrStripSymLength",
+   "summary": "(str.substr (str.++ s suf) n m) --> (str.substr s n m) when len(suf) <= len(s ++ suf) - (n+m)",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_SUBSTR_STRIP_SYM_LENGTH",
+    "str-substr-concat1"
+   ],
+   "guard_comparison": "Same macro; RARE str-substr-concat1 needs n >= 0, which is not a C++ guard (n<0 gives empty on both sides) -- reconstruction handled the probe.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_STRIP_END_PT_sym.smt2"
+   ],
+   "probe_result": "SS_STRIP_END_PT_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Macro elaboration + reconstruction; trust-free and ethos-checked."
+  },
+  {
+   "id": "Rewrite::SS_COMBINE_EQ",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2695",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr, node[0] is STRING_SUBSTR",
+   "summary": "(str.substr (str.substr x n1 m1) n2 m2) --> (str.substr x (+ n1 n2) m2) when m2 is syntactically (- m1 n2)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-substr-combine1",
+    "str-substr-combine2"
+   ],
+   "guard_comparison": "Requires node[2] == mkNode(SUB, m1, n2) syntactically; rewritten arithmetic never contains SUB, so this branch is unreachable on rewritten children. If reached, combine1/combine2 cover it.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "no isolating probe",
+   "confidence": "n/a",
+   "rationale": "Unreachable: post-rewrite children are arith-normalized (no SUB nodes); never observed in fuzzing."
+  },
+  {
+   "id": "Rewrite::SS_COMBINE_GEQ_INNER",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2700",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr, node[0] is STRING_SUBSTR, n1,n2 >= 0 entailed",
+   "summary": "(str.substr (str.substr x n1 m1) n2 m2) --> (str.substr x (+ n1 n2) m2) if m1 - n2 >= m2",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-substr-combine2",
+    "arith-string-pred-entail"
+   ],
+   "guard_comparison": "C++ checks n1>=0, n2>=0, (m1-n2) >= m2; RARE combine2 has exactly these conditions.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_COMBINE_GEQ_INNER_sym.smt2"
+   ],
+   "probe_result": "SS_COMBINE_GEQ_INNER_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE counterpart; ethos-checked."
+  },
+  {
+   "id": "Rewrite::SS_COMBINE_GEQ_OUTER",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2705",
+   "dispatch": "post-rewrite STRING_SUBSTR via rewriteSubstr, node[0] is STRING_SUBSTR, n1,n2 >= 0 entailed",
+   "summary": "(str.substr (str.substr x n1 m1) n2 m2) --> (str.substr x (+ n1 n2) (- m1 n2)) if m2 >= m1 - n2",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-substr-combine1",
+    "arith-string-pred-entail"
+   ],
+   "guard_comparison": "C++ checks n1>=0, n2>=0, m2 >= m1-n2; RARE combine1 has exactly these conditions.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SS_COMBINE_GEQ_OUTER_sym.smt2"
+   ],
+   "probe_result": "SS_COMBINE_GEQ_OUTER_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE counterpart; ethos-checked."
+  },
+  {
+   "id": "Rewrite::UPD_EMPTYSTR",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2729",
+   "dispatch": "post-rewrite STRING_UPDATE via rewriteUpdate",
+   "summary": "(str.update \"\" i x) --> \"\"",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "No RARE rule for update out-of-range/empty cases (only str-len-update-inv and str-update-in-first-concat); EVALUATE does not apply because the replacement is symbolic.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/UPD_EMPTYSTR_sym.smt2"
+   ],
+   "probe_result": "UPD_EMPTYSTR_sym: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "Leaves TRUST_THEORY_REWRITE on both binaries (ethos: incomplete). Trivially sound by semantics. Differential fuzzing (cvc5 (simplify t) vs a Python SMT-LIB evaluator, ~51k random terms per binary, both binaries) found no mismatch."
+  },
+  {
+   "id": "Rewrite::UPD_CONST_INDEX_MAX_OOB",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2739",
+   "dispatch": "post-rewrite STRING_UPDATE via rewriteUpdate (constant s, constant i)",
+   "summary": "(str.update c i x) --> c if i > 2^32-1",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "No RARE rule for update out-of-range/empty cases (only str-len-update-inv and str-update-in-first-concat); EVALUATE does not apply because the replacement is symbolic.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/UPD_CONST_INDEX_MAX_OOB_big.smt2"
+   ],
+   "probe_result": "UPD_CONST_INDEX_MAX_OOB_big: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "Trust on both binaries; sound by semantics (i > max length)."
+  },
+  {
+   "id": "Rewrite::UPD_CONST_INDEX_NEG",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2744",
+   "dispatch": "post-rewrite STRING_UPDATE via rewriteUpdate (constant s, constant i)",
+   "summary": "(str.update c i x) --> c if i < 0",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "No RARE rule for update out-of-range/empty cases (only str-len-update-inv and str-update-in-first-concat); EVALUATE does not apply because the replacement is symbolic.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/UPD_CONST_INDEX_NEG_m1.smt2"
+   ],
+   "probe_result": "UPD_CONST_INDEX_NEG_m1: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "Trust on both binaries; sound by semantics. Differential fuzzing (cvc5 (simplify t) vs a Python SMT-LIB evaluator, ~51k random terms per binary, both binaries) found no mismatch."
+  },
+  {
+   "id": "Rewrite::UPD_CONST_INDEX_OOB",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2752",
+   "dispatch": "post-rewrite STRING_UPDATE via rewriteUpdate (constant s, constant i)",
+   "summary": "(str.update c i x) --> c if i >= len c",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "No RARE rule for update out-of-range/empty cases (only str-len-update-inv and str-update-in-first-concat); EVALUATE does not apply because the replacement is symbolic.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/UPD_CONST_INDEX_OOB_atlen.smt2"
+   ],
+   "probe_result": "UPD_CONST_INDEX_OOB_atlen: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "Trust on both binaries; sound by semantics; edge i = len probed. Differential fuzzing (cvc5 (simplify t) vs a Python SMT-LIB evaluator, ~51k random terms per binary, both binaries) found no mismatch."
+  },
+  {
+   "id": "Rewrite::UPD_EVAL",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2757",
+   "dispatch": "post-rewrite STRING_UPDATE via rewriteUpdate (all constant)",
+   "summary": "constant update evaluation",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "All arguments constant; Word::update truncates the replacement at the end of s (matches SMT-LIB).",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/UPD_EVAL_const.smt2"
+   ],
+   "probe_result": "UPD_EVAL_const: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation (EVALUATE, ethos-checked)."
+  },
+  {
+   "id": "Rewrite::UPD_OOB",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2769",
+   "dispatch": "post-rewrite STRING_UPDATE via rewriteUpdate",
+   "summary": "(str.update s i x) --> s if ArithEntail proves i < 0 or i >= len s",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "No RARE rule for update out-of-range/empty cases (only str-len-update-inv and str-update-in-first-concat); EVALUATE does not apply because the replacement is symbolic.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/UPD_OOB_sym.smt2",
+    "probes/strings/UPD_OOB_neg.smt2"
+   ],
+   "probe_result": "UPD_OOB_sym: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; UPD_OOB_neg: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "Trust on both binaries; sound by semantics. Differential fuzzing (cvc5 (simplify t) vs a Python SMT-LIB evaluator, ~51k random terms per binary, both binaries) found no mismatch."
+  },
+  {
+   "id": "Rewrite::UPD_EVAL_SYM",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2787",
+   "dispatch": "post-rewrite STRING_UPDATE via rewriteUpdate",
+   "summary": "(str.update (str.++ p r s) i x) --> (str.++ p x s) if len p = i and len r = len x (via stripSymbolicLength, strict)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-update-in-first-concat"
+   ],
+   "guard_comparison": "RARE rule only handles an update that falls strictly inside the FIRST component (n + len s < len t, with tpre/tpost substr definitions). C++ strips arbitrary prefix components symbolically (and partially strips constants). Uncovered inputs: update at a symbolic offset past the first component, or replacing a whole component exactly.",
+   "guard_gap": "update over a symbolic prefix, e.g. (str.update (str.++ x \"ab\" y) (str.len x) \"cd\") and (str.update (str.++ \"ab\" y) 0 \"cd\") leave TRUST_THEORY_REWRITE (sound by brute force/fuzz, but unchecked)",
+   "probes": [
+    "probes/strings/UPD_EVAL_SYM_sym.smt2",
+    "probes/strings/UPD_EVAL_SYM_zero.smt2",
+    "probes/strings/UPD_EVAL_SYM_partial.smt2",
+    "probes/strings/UPD_EVAL_SYM_seq.smt2",
+    "probes/strings/UPD_EVAL_SYM_overflow.smt2"
+   ],
+   "probe_result": "UPD_EVAL_SYM_sym: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; UPD_EVAL_SYM_zero: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; UPD_EVAL_SYM_partial: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; UPD_EVAL_SYM_seq: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; UPD_EVAL_SYM_overflow: cvc5=sat z3=unsupported [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none n/a(sat)",
+   "confidence": "low",
+   "rationale": "Only the within-first-constant case reconstructs; the symbolic-prefix and whole-component cases leave trust on both binaries. Differential fuzzing (cvc5 (simplify t) vs a Python SMT-LIB evaluator, ~51k random terms per binary, both binaries) found no mismatch."
+  },
+  {
+   "id": "Rewrite::UPD_REV",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2801",
+   "dispatch": "post-rewrite STRING_UPDATE via rewriteUpdate, s is STRING_REV and len x <= 1",
+   "summary": "(str.update (str.rev s) n t) --> (str.rev (str.update s (- (str.len (str.rev s)) (+ n 1)) t))",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "No RARE rule mentions update of rev. C++ guard checkLengthOne(x) is non-strict (empty replacement allowed; harmless). Index arithmetic checked by brute force for n in [-2,5], |s|<=4, t in {\"\",a,b}: both out-of-range directions map to out-of-range.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/UPD_REV_sym.smt2",
+    "probes/strings/UPD_REV_emptyrepl.smt2",
+    "probes/strings/UPD_REV_oob.smt2",
+    "probes/strings/UPD_REV_seq.smt2"
+   ],
+   "probe_result": "UPD_REV_sym: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; UPD_REV_emptyrepl: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; UPD_REV_oob: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; UPD_REV_seq: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "Trust on both binaries (ethos incomplete); spec verified by brute force and fuzzing (4 hits), no mismatch."
+  },
+  {
+   "id": "Rewrite::CTN_EQ",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2814",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains",
+   "summary": "(str.contains x x) --> true",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-contains-refl"
+   ],
+   "guard_comparison": "Syntactic equality; identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_EQ_sym.smt2"
+   ],
+   "probe_result": "CTN_EQ_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::CTN_CONST",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2821",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains (both constant)",
+   "summary": "constant contains evaluation",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "Word::find on constants; overlapping self-match probed (\"aaa\" contains \"aa\").",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_CONST_overlap.smt2"
+   ],
+   "probe_result": "CTN_CONST_overlap: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation."
+  },
+  {
+   "id": "Rewrite::CTN_LHS_EMPTYSTR",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2835",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains, node[0] = \"\" and len(node[1]) > 0 entailed",
+   "summary": "(str.contains \"\" t) --> false",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "STR_CTN_MULTISET_SUBSET (str-ctn-multiset-subset)"
+   ],
+   "guard_comparison": "Reconstructed through the multiset theory rewrite (CPC $str_is_multiset_subset_strict, independent Eunoia definition), not a dedicated RARE rule.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_LHS_EMPTYSTR_sym.smt2"
+   ],
+   "probe_result": "CTN_LHS_EMPTYSTR_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Covered by a CPC-defined theory rewrite (ethos-checked) rather than RARE; length entailment in C++ is not mirrored one-to-one."
+  },
+  {
+   "id": "Rewrite::CTN_SPLIT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2854,3018",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains (two sites: constant node[0] with len(node[1])<=1 at 2854; MACRO_STR_SPLIT_CTN for concat node[0] at 3018)",
+   "summary": "site 1: (str.contains \"c1..ck\" t) --> (or (= \"\" t) (= \"c1\" t) ... ) if len t <= 1; site 2: (str.contains (str.++ a c b) d) --> (or (str.contains a d) (str.contains b d)) if constant c has no overlap with constant d",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "str-contains-char (len-1 lhs only)",
+    "MACRO_STR_SPLIT_CTN",
+    "STR_OVERLAP_SPLIT_CTN (str-overlap-split-ctn)"
+   ],
+   "guard_comparison": "Site 2 elaborates to STR_OVERLAP_SPLIT_CTN, whose CPC definition independently re-checks both overlap conditions. Site 1 has no RARE counterpart: str-contains-char only covers a length-1 constant first argument (the reverse orientation), and nothing covers a multi-character constant with a len<=1 symbolic needle.",
+   "guard_gap": "site 1 (constant haystack, len<=1 needle), e.g. (str.contains \"ab\" (str.substr x 0 1)); sound but leaves TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/CTN_SPLIT_constlhs.smt2",
+    "probes/strings/CTN_SPLIT_constlhs_emptyedge.smt2",
+    "probes/strings/CTN_SPLIT_constlhs_seq.smt2",
+    "probes/strings/CTN_SPLIT_concat.smt2"
+   ],
+   "probe_result": "CTN_SPLIT_constlhs: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; CTN_SPLIT_constlhs_emptyedge: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; CTN_SPLIT_constlhs_seq: cvc5=unsat z3=unsat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=timeout/crash; CTN_SPLIT_concat: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "low",
+   "rationale": "Site 2 is covered (ethos correct); site 1 leaves trust on both binaries, so soundness of that site rests on C++ (verified by fuzz, 46+ hits, no mismatch)."
+  },
+  {
+   "id": "Rewrite::CTN_NCONST_CTN_CONCAT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2862",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains, node[0] constant string, via MACRO_STR_CONST_NCTN_CONCAT",
+   "summary": "(str.contains \"c\" t) --> false if c is not in the generalized regex of t (e.g. (str.++ x \"d\" y))",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_STR_CONST_NCTN_CONCAT",
+    "STR_IN_RE_EVAL",
+    "STRING_EAGER_REDUCTION",
+    "str-ctn-multiset-subset"
+   ],
+   "guard_comparison": "String-only (rewriteViaRule returns null for sequences). Elaboration goes through eager reduction + regex membership evaluation; the probe was actually closed by STR_CTN_MULTISET_SUBSET.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_NCONST_CTN_CONCAT_sym.smt2"
+   ],
+   "probe_result": "CTN_NCONST_CTN_CONCAT_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Macro elaboration / CPC theory rewrites; ethos-checked; elaboration path not isolated by the probe."
+  },
+  {
+   "id": "Rewrite::CTN_RHS_EMPTYSTR",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2876",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains",
+   "summary": "(str.contains x \"\") --> true",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-contains-emp"
+   ],
+   "guard_comparison": "Constant empty needle; RARE (= (str.len y) 0).",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_RHS_EMPTYSTR_sym.smt2",
+    "probes/strings/CTN_ITOS_NON_DIGIT_empty.smt2"
+   ],
+   "probe_result": "CTN_RHS_EMPTYSTR_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; CTN_ITOS_NON_DIGIT_empty: cvc5=sat z3=sat [fired] trust@dc8ad24031=none trust@b08092b502=none n/a(sat)",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::CTN_CONCAT_CHAR",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2897",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains (deferred: maybeRew, returned at 3100 only if nothing later fires)",
+   "summary": "(str.contains (str.++ x y) \"A\") --> (or (str.contains x \"A\") (str.contains y \"A\"))",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-contains-split-char"
+   ],
+   "guard_comparison": "C++ needle is a constant of length exactly 1; RARE (= (str.len w) 1) applied to the n-ary concat recursively. Covers strings and sequences.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_CONCAT_CHAR_sym.smt2",
+    "probes/strings/CTN_CONCAT_CHAR_seq.smt2"
+   ],
+   "probe_result": "CTN_CONCAT_CHAR_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; CTN_CONCAT_CHAR_seq: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "RARE rule (n-ary split); ethos-checked."
+  },
+  {
+   "id": "Rewrite::CTN_REPL_CHAR",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2914",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains, node[0] is STRING_REPLACE, node[1] constant of length 1",
+   "summary": "(str.contains (str.replace x y z) c) --> (or (str.contains x c) (and (str.contains x y) (str.contains z c))) if contains(y,c) is false",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-contains-repl-char"
+   ],
+   "guard_comparison": "C++ uses StringsEntail::checkContains(y,c)=false; RARE condition (not (str.contains y w)) re-derived in the proof.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_REPL_CHAR_sym.smt2"
+   ],
+   "probe_result": "CTN_REPL_CHAR_sym: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule with re-derived condition; spec brute-forced."
+  },
+  {
+   "id": "Rewrite::CTN_COMPONENT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2928",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains via MACRO_STR_COMPONENT_CTN (StringsEntail::componentContains, non-ext)",
+   "summary": "(str.contains (str.++ .. c ..) (str.++ ..)) --> true by component-wise containment",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_STR_COMPONENT_CTN",
+    "str-contains-concat-find",
+    "str-contains-refl",
+    "str-concat-unify"
+   ],
+   "guard_comparison": "Elaboration re-runs componentContains and leaves two MACRO_THEORY_REWRITE_RCONS_SIMPLE subgoals (regrouping + contains of a middle group) that RARE reconstruction closed in the probes, including partial constant containment.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_COMPONENT_sym.smt2",
+    "probes/strings/CTN_COMPONENT_partial.smt2"
+   ],
+   "probe_result": "CTN_COMPONENT_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; CTN_COMPONENT_partial: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Macro elaboration + budgeted reconstruction; trust-free and ethos-checked."
+  },
+  {
+   "id": "Rewrite::CTN_CONCAT_CTN_SUBSTR",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2938",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains",
+   "summary": "(str.contains (str.++ .. s ..) (str.substr s n m)) --> true",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "str-contains-concat-find",
+    "str-substr-ctn"
+   ],
+   "guard_comparison": "Syntactic component match; two-step RARE chain.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_CONCAT_CTN_SUBSTR_sym.smt2"
+   ],
+   "probe_result": "CTN_CONCAT_CTN_SUBSTR_sym: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Short RARE chain, trust-free, ethos-checked."
+  },
+  {
+   "id": "Rewrite::CTN_STRIP_ENDPT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2947",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains via MACRO_STR_STRIP_ENDPOINTS (stripConstantEndpoints, constant needle: dir -1 then 1; else dir 0)",
+   "summary": "(str.contains (str.++ \"c\" x \"d\") \"ab\") --> (str.contains x \"ab\") (drop/trim endpoint constants that cannot overlap the needle)",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_STR_STRIP_ENDPOINTS",
+    "STR_OVERLAP_ENDPOINTS_CTN (str-overlap-endpoints-ctn)"
+   ],
+   "guard_comparison": "Elaboration regroups via a MACRO_THEORY_REWRITE_RCONS_SIMPLE subgoal, then applies STR_OVERLAP_ENDPOINTS_CTN whose CPC definition independently checks $str_has_overlap on both ends. Also subsumes the from_int case (CTN_ITOS_NON_DIGIT).",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_STRIP_ENDPT_sym.smt2",
+    "probes/strings/CTN_ITOS_NON_DIGIT_sym.smt2"
+   ],
+   "probe_result": "CTN_STRIP_ENDPT_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; CTN_ITOS_NON_DIGIT_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Covered by CPC-checked theory rewrite after macro regrouping; ethos-checked; fuzz 198 hits no mismatch."
+  },
+  {
+   "id": "Rewrite::CTN_CONCAT_COM_NON_CTN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2958",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains, node[1] has >1 component",
+   "summary": "(str.contains x (str.++ .. n ..)) --> false if contains(x, n) is false",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-contains-concat-find-contra"
+   ],
+   "guard_comparison": "C++ checkContains(node[0], n)=false; RARE (not (str.contains y z)). Probe was preempted by CTN_NCONST_CTN_CONCAT/multiset; the RARE rule appeared in CTN_RPL_NON_CTN_concat.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_CONCAT_COM_NON_CTN_sym.smt2",
+    "probes/strings/CTN_RPL_NON_CTN_concat.smt2"
+   ],
+   "probe_result": "CTN_CONCAT_COM_NON_CTN_sym: cvc5=unsat z3=unsat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; CTN_RPL_NON_CTN_concat: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Exact RARE rule exists; the step itself was not isolated by a probe."
+  },
+  {
+   "id": "Rewrite::CTN_RPL_NON_CTN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2977",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains, a component n of node[1] is STRING_REPLACE",
+   "summary": "(str.contains x (str.replace y z w)) --> false if contains(x,y) and contains(x,w) are false",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-dual-ctn-false",
+    "str-contains-concat-find-contra"
+   ],
+   "guard_comparison": "When the replace is one component of a larger concat the C++ still concludes false (sound: x lacks the component). The proof needs str-contains-concat-find-contra + str-replace-dual-ctn-false; probe reconstructed.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_RPL_NON_CTN_sym.smt2",
+    "probes/strings/CTN_RPL_NON_CTN_concat.smt2"
+   ],
+   "probe_result": "CTN_RPL_NON_CTN_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; CTN_RPL_NON_CTN_concat: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "RARE rules re-derive both non-containment conditions; ethos-checked; spec brute-forced."
+  },
+  {
+   "id": "Rewrite::CTN_LEN_INEQ",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:2990",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains",
+   "summary": "(str.contains x y) --> false if len y > len x entailed",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "STR_CTN_MULTISET_SUBSET (str-ctn-multiset-subset)"
+   ],
+   "guard_comparison": "No RARE rule for strict length; reconstructed via the multiset theory rewrite (CPC-defined).",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_LEN_INEQ_sym.smt2"
+   ],
+   "probe_result": "CTN_LEN_INEQ_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "CPC theory rewrite (ethos-checked) rather than RARE; length entailment not mirrored directly."
+  },
+  {
+   "id": "Rewrite::CTN_MSET_NSS",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3000",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains",
+   "summary": "(str.contains x y) --> false by multiset (character-count) reasoning",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "STR_CTN_MULTISET_SUBSET (str-ctn-multiset-subset)"
+   ],
+   "guard_comparison": "C++ checkMultisetSubset; CPC $str_is_multiset_subset_strict is an independent Eunoia definition.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_MSET_NSS_sym.smt2"
+   ],
+   "probe_result": "CTN_MSET_NSS_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Theory rewrite with independent CPC definition; ethos-checked."
+  },
+  {
+   "id": "Rewrite::CTN_LEN_INEQ_NSTRICT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3007",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains",
+   "summary": "(str.contains x y) --> (= x y) if len y >= len x entailed",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-contains-leq-len-eq",
+    "arith-string-pred-entail"
+   ],
+   "guard_comparison": "Identical condition.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_LEN_INEQ_NSTRICT_sym.smt2",
+    "probes/strings/CTN_SUBSTR_sym.smt2"
+   ],
+   "probe_result": "CTN_LEN_INEQ_NSTRICT_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; CTN_SUBSTR_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule; ethos-checked."
+  },
+  {
+   "id": "Rewrite::CTN_SUBSTR",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3030",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains, node[0] is (str.substr x n (str.len y)), node[1]=y",
+   "summary": "(str.contains (str.substr x n (str.len y)) y) --> (= (str.substr x n (str.len y)) y)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-contains-leq-len-eq"
+   ],
+   "guard_comparison": "Shadowed by CTN_LEN_INEQ_NSTRICT (len(substr(x,n,len y)) <= len y is always entailed); never fired in probes or fuzzing. If reached, str-contains-leq-len-eq covers it.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_SUBSTR_sym.smt2"
+   ],
+   "probe_result": "CTN_SUBSTR_sym: cvc5=unsat z3=unsat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Effectively unreachable (shadowed by an earlier rule with the same result)."
+  },
+  {
+   "id": "Rewrite::CTN_REPL_TO_CTN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3041",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains",
+   "summary": "(str.contains (str.replace x y x) y) --> (str.contains x y)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-contains-repl-self"
+   ],
+   "guard_comparison": "Syntactic; identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_REPL_TO_CTN_sym.smt2"
+   ],
+   "probe_result": "CTN_REPL_TO_CTN_sym: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule; spec brute-forced."
+  },
+  {
+   "id": "Rewrite::CTN_REPL_LEN_ONE_TO_CTN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3049",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains",
+   "summary": "(str.contains (str.replace x y x) z) --> (str.contains x z) if len z <= 1",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-contains-repl-self-tgt-char"
+   ],
+   "guard_comparison": "C++ checkLengthOne(z) is NON-strict (len z <= 1); RARE requires (= (str.len w) 1). Needles that are only known to have length <= 1 (e.g. (str.substr z 0 1), str.at) are outside the RARE rule (result still correct: empty needle gives true on both sides).",
+   "guard_gap": "len(z) <= 1 but not provably 1, e.g. (str.contains (str.replace x y x) (str.substr z 0 1)): TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/CTN_REPL_LEN_ONE_TO_CTN_sym.smt2",
+    "probes/strings/CTN_REPL_LEN_ONE_TO_CTN_seq.smt2"
+   ],
+   "probe_result": "CTN_REPL_LEN_ONE_TO_CTN_sym: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; CTN_REPL_LEN_ONE_TO_CTN_seq: cvc5=unsat z3=timeout [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "low",
+   "rationale": "Coverage gap (C++ guard broader than RARE guard); the gap is semantically sound (brute force) but unchecked."
+  },
+  {
+   "id": "Rewrite::CTN_REPL_TO_CTN_DISJ",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3061",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains",
+   "summary": "(str.contains (str.replace x y z) z) --> (or (str.contains x y) (str.contains x z))",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-contains-repl-tgt"
+   ],
+   "guard_comparison": "Syntactic; identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_REPL_TO_CTN_DISJ_sym.smt2"
+   ],
+   "probe_result": "CTN_REPL_TO_CTN_DISJ_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule; spec brute-forced."
+  },
+  {
+   "id": "Rewrite::CTN_ITOS_NON_DIGIT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3070",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains, node[0] is STRING_ITOS, node[1] constant",
+   "summary": "(str.contains (str.from_int n) s) --> false if s is not all digits",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-from-int-no-ctn-nondigit"
+   ],
+   "guard_comparison": "C++ !String::isNumber(s) (empty s excluded earlier by CTN_RHS_EMPTYSTR); RARE (and (not (= s \"\")) (= (str.to_int s) (- 1))) is equivalent. In practice preempted by CTN_STRIP_ENDPT (stripConstantEndpoints has the same ITOS case); never fired.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_ITOS_NON_DIGIT_sym.smt2"
+   ],
+   "probe_result": "CTN_ITOS_NON_DIGIT_sym: cvc5=unsat z3=unsat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Shadowed by CTN_STRIP_ENDPT; if reached, an exact RARE counterpart exists."
+  },
+  {
+   "id": "Rewrite::CTN_REPL",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3081",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains",
+   "summary": "(str.contains x (str.replace y x y)) --> (str.contains x y)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-self-ctn-simp"
+   ],
+   "guard_comparison": "Syntactic; identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_REPL_sym.smt2"
+   ],
+   "probe_result": "CTN_REPL_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule; spec brute-forced."
+  },
+  {
+   "id": "Rewrite::CTN_REPL_EMPTY",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3094",
+   "dispatch": "post-rewrite STRING_CONTAINS via rewriteContains",
+   "summary": "(str.contains x (str.replace \"\" x y)) --> (= \"\" (str.replace \"\" x y))",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-emp-ctn-src"
+   ],
+   "guard_comparison": "Syntactic; identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/CTN_REPL_EMPTY_sym.smt2"
+   ],
+   "probe_result": "CTN_REPL_EMPTY_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule; spec brute-forced."
+  },
+  {
+   "id": "Rewrite::IDOF_NEG",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3115",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof",
+   "summary": "(str.indexof x y n) --> -1 if n is a negative constant",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-indexof-oob2"
+   ],
+   "guard_comparison": "Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/IDOF_NEG_sym.smt2"
+   ],
+   "probe_result": "IDOF_NEG_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::IDOF_MAX",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3135",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof (constant node[0])",
+   "summary": "(str.indexof c t n) --> -1 if n > 2^32-1",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "All-constant, but EVALUATE does not discharge the huge index; no RARE rule fires (str-indexof-oob would need (> n (str.len t)), not found by reconstruction).",
+   "guard_gap": "all inputs: (str.indexof \"aab\" \"a\" 4294967296) leaves TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/IDOF_MAX_const.smt2"
+   ],
+   "probe_result": "IDOF_MAX_const: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "Trivially sound constant case, but leaves trust on both binaries."
+  },
+  {
+   "id": "Rewrite::IDOF_FIND",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3149",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof, first component of node[0], node[1], node[2] constant",
+   "summary": "(str.indexof (str.++ c rest) t k) --> p if t occurs in constant c at position p >= k",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-indexof-contains-pre"
+   ],
+   "guard_comparison": "C++ only looks in the first constant component (Word::find with start; String::find returns npos when start+|t| > |c|, so an empty needle past the head constant is not misreported). RARE requires len s > 0 for the concat-pre step; empty needle at k <= len c was still reconstructed.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/IDOF_FIND_concat.smt2",
+    "probes/strings/IDOF_FIND_start.smt2",
+    "probes/strings/IDOF_FIND_emptypat_atlen.smt2",
+    "probes/strings/IDOF_FIND_emptypat_past.smt2",
+    "probes/strings/IDOF_FIND_emptypat_past_sat.smt2"
+   ],
+   "probe_result": "IDOF_FIND_concat: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; IDOF_FIND_start: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; IDOF_FIND_emptypat_atlen: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; IDOF_FIND_emptypat_past: cvc5=unsat z3=unsat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; IDOF_FIND_emptypat_past_sat: cvc5=sat z3=sat [fired] trust@dc8ad24031=none trust@b08092b502=none n/a(sat)",
+   "confidence": "high",
+   "rationale": "RARE + evaluation; edge cases (empty needle at/after head constant end) agree with z3; ethos-checked."
+  },
+  {
+   "id": "Rewrite::IDOF_NFIND",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3154",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof (all constant)",
+   "summary": "constant indexof not found --> -1",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "Pure evaluation.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/IDOF_NFIND_const.smt2"
+   ],
+   "probe_result": "IDOF_NFIND_const: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation."
+  },
+  {
+   "id": "Rewrite::IDOF_EQ_CST_START",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3167",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof",
+   "summary": "(str.indexof x x 0) --> 0",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "str-indexof-self",
+    "evaluate"
+   ],
+   "guard_comparison": "Normalizes to indexof(\"\",\"\",0) then evaluates.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/IDOF_EQ_CST_START_sym.smt2"
+   ],
+   "probe_result": "IDOF_EQ_CST_START_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "RARE + evaluation, ethos-checked."
+  },
+  {
+   "id": "Rewrite::IDOF_EQ_NSTART",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3174",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof",
+   "summary": "(str.indexof x x n) --> -1 if n > 0 entailed",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "str-indexof-self",
+    "str-indexof-oob"
+   ],
+   "guard_comparison": "Same chain.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/IDOF_EQ_NSTART_sym.smt2"
+   ],
+   "probe_result": "IDOF_EQ_NSTART_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Short RARE chain, ethos-checked."
+  },
+  {
+   "id": "Rewrite::IDOF_EQ_NORM",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3181",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof",
+   "summary": "(str.indexof x x n) --> (str.indexof \"\" \"\" n)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-indexof-self"
+   ],
+   "guard_comparison": "Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/IDOF_EQ_NORM_sym.smt2"
+   ],
+   "probe_result": "IDOF_EQ_NORM_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::IDOF_EMP_IDOF",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3196",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof",
+   "summary": "(str.indexof x \"\" n) --> n if 0 <= n <= len x",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-indexof-find-emp",
+    "arith-string-pred-entail"
+   ],
+   "guard_comparison": "Identical conditions.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/IDOF_EMP_IDOF_sym.smt2"
+   ],
+   "probe_result": "IDOF_EMP_IDOF_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::IDOF_LEN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3205",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof",
+   "summary": "(str.indexof x y n) --> -1 if len y > len x - n",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "str-indexof-no-contains",
+    "str-ctn-multiset-subset"
+   ],
+   "guard_comparison": "No direct RARE length rule; reconstructed via no-contains + multiset theory rewrite (CPC).",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/IDOF_LEN_sym.smt2"
+   ],
+   "probe_result": "IDOF_LEN_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Covered through a CPC theory rewrite rather than a direct RARE rule; ethos-checked."
+  },
+  {
+   "id": "Rewrite::IDOF_DEF_CTN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3237",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof, node[2]=0 and contains(node[0],node[1]) entailed true; componentContains(remainderDir=1)",
+   "summary": "(str.indexof (str.++ x y z) y 0) --> (str.indexof (str.++ x y) y 0): drop components after the first definite occurrence",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "str-indexof-contains-concat-pre",
+    "str-indexof-eq-irr"
+   ],
+   "guard_comparison": "RARE str-indexof-contains-concat-pre needs the needle to be a syntactic component; partial matches inside a constant (e.g. \"aa\" inside \"aaa\") rely on generic reconstruction with str-indexof-eq-irr, which fails for the overlapping case.",
+   "guard_gap": "needle found inside a constant component with leftover, e.g. (str.indexof (str.++ x \"aaa\" y) \"aa\" 0) --> (str.indexof (str.++ x \"aa\") \"aa\" 0): TRUST_THEORY_REWRITE (result correct)",
+   "probes": [
+    "probes/strings/IDOF_DEF_CTN_sym.smt2",
+    "probes/strings/IDOF_DEF_CTN_constsplit.smt2",
+    "probes/strings/IDOF_DEF_CTN_overlap.smt2"
+   ],
+   "probe_result": "IDOF_DEF_CTN_sym: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; IDOF_DEF_CTN_constsplit: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; IDOF_DEF_CTN_overlap: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "Syntactic and some constant-split cases reconstruct; the overlapping-constant case leaves trust on both binaries. Fuzz: no mismatch."
+  },
+  {
+   "id": "Rewrite::IDOF_STRIP_CNST_ENDPTS",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3253",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof, node[2]=0 and contains entailed true; stripConstantEndpoints(dir=1)",
+   "summary": "(str.indexof (str.++ \"AB\" x \"C\") \"C\" 0) --> (+ 2 (str.indexof (str.++ x \"C\") \"C\" 0)); also drops a leading from_int when the needle starts with a non-digit",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "No RARE rule shifts indexof by a stripped prefix; the step is not elaborated. Soundness depends on the entailed-contains guard (without it -1 would become len(nb)-1) and on StringsEntail::stripConstantEndpoints (overlap + ITOS cases).",
+   "guard_gap": "all instances leave TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/IDOF_STRIP_CNST_ENDPTS_sym.smt2",
+    "probes/strings/IDOF_STRIP_CNST_ENDPTS_overlap.smt2",
+    "probes/strings/IDOF_STRIP_CNST_ENDPTS_itos.smt2"
+   ],
+   "probe_result": "IDOF_STRIP_CNST_ENDPTS_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; IDOF_STRIP_CNST_ENDPTS_overlap: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; IDOF_STRIP_CNST_ENDPTS_itos: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "No proof coverage; correctness rests on C++ (fuzzed, no mismatch)."
+  },
+  {
+   "id": "Rewrite::IDOF_STRIP_SYM_LEN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3278",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof, contains(substr(x,n,len x), y) entailed true, 0 <= n <= len x entailed",
+   "summary": "(str.indexof (str.++ p rest) y n) --> (+ (- n r) (str.indexof rest y r)) where p is stripped symbolically from n leaving r",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "No RARE counterpart; depends on stripSymbolicLength (incl. partial constant stripping) and the entailed-contains guard (needed so -1 is not shifted).",
+   "guard_gap": "all instances leave TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/IDOF_STRIP_SYM_LEN_sym.smt2"
+   ],
+   "probe_result": "IDOF_STRIP_SYM_LEN_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "No proof coverage; spec brute-forced and fuzzed, no mismatch."
+  },
+  {
+   "id": "Rewrite::IDOF_NCTN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3286",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof",
+   "summary": "(str.indexof x y n) --> -1 if contains(substr(x,n,len x), y) is false",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-indexof-no-contains"
+   ],
+   "guard_comparison": "Identical condition (re-derived in proof).",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/IDOF_NCTN_sym.smt2",
+    "probes/strings/IDOF_LEN_sym.smt2"
+   ],
+   "probe_result": "IDOF_NCTN_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; IDOF_LEN_sym: cvc5=unsat z3=unsat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule; ethos-checked."
+  },
+  {
+   "id": "Rewrite::IDOF_NORM_PREFIX",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3310",
+   "dispatch": "post-rewrite STRING_INDEXOF via rewriteIndexof, contains undetermined; prefix of length <= n replaced via lengthPreserveRewrite/canonicalStrForSymbolicLength",
+   "summary": "(str.indexof (str.++ \"ABCD\" x) y 3) --> (str.indexof (str.++ \"AAAD\" x) y 3)",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "str-indexof-eq-irr"
+   ],
+   "guard_comparison": "RARE str-indexof-eq-irr would justify it given (= (substr t n len) (substr r n len)), but reconstruction does not find that subproof. canonicalStrForSymbolicLength is string-only for constant lengths (returns null for sequences, so no rewrite there).",
+   "guard_gap": "all observed instances leave TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/IDOF_NORM_PREFIX_const.smt2",
+    "probes/strings/IDOF_NORM_PREFIX_partial.smt2",
+    "probes/strings/IDOF_NORM_PREFIX_sym.smt2",
+    "probes/strings/IDOF_NORM_PREFIX_seq.smt2"
+   ],
+   "probe_result": "IDOF_NORM_PREFIX_const: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; IDOF_NORM_PREFIX_partial: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; IDOF_NORM_PREFIX_sym: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; IDOF_NORM_PREFIX_seq: cvc5=unsat z3=unsat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "low",
+   "rationale": "Trust on both binaries; sound (only characters before the start index change, length preserved); fuzz 43+ hits, no mismatch."
+  },
+  {
+   "id": "Rewrite::RPL_PULL_ENDPT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3323,3513",
+   "dispatch": "post-rewrite STRING_INDEXOF (3323, start 0) and STRING_REPLACE (3513, needle nonempty) via MACRO_STR_STRIP_ENDPOINTS",
+   "summary": "indexof: (str.indexof (str.++ x \"A\") \"B\" 0) --> (str.indexof x \"B\" 0); replace: (str.replace (str.++ \"b\" x \"b\") \"a\" y) --> (str.++ \"b\" (str.replace x \"a\" y) \"b\")",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_STR_STRIP_ENDPOINTS",
+    "STR_OVERLAP_ENDPOINTS_INDEXOF",
+    "STR_OVERLAP_ENDPOINTS_REPLACE"
+   ],
+   "guard_comparison": "Same id from two sites with different logic. Indexof: only the end may be stripped (dir -1), start must be 0. Replace: C++ guard checkNonEmpty(needle) is essential (empty needle prepends); the CPC rule str-overlap-endpoints-replace independently blocks it ($str_has_overlap with an empty d is true for nonempty c). Guard probe with possibly-empty needle: not rewritten (sat).",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/RPL_PULL_ENDPT_idof.smt2",
+    "probes/strings/RPL_PULL_ENDPT_sym.smt2",
+    "probes/strings/RPL_PULL_ENDPT_emptypat_guard.smt2"
+   ],
+   "probe_result": "RPL_PULL_ENDPT_idof: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; RPL_PULL_ENDPT_sym: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; RPL_PULL_ENDPT_emptypat_guard: cvc5=sat z3=sat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none n/a(sat)",
+   "confidence": "medium",
+   "rationale": "Both sites reconstruct through CPC-defined overlap theory rewrites; ethos-checked."
+  },
+  {
+   "id": "Rewrite::INDEXOF_RE_INVALID_INDEX",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3343",
+   "dispatch": "post-rewrite STRING_INDEXOF_RE via rewriteIndexofRe",
+   "summary": "(str.indexof_re s r n) --> -1 if n < 0 or n > len s entailed",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "RARE has only str-indexof-re-none and str-indexof-re-emp-re; no out-of-range rule.",
+   "guard_gap": "all instances: TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/INDEXOF_RE_INVALID_INDEX_sym.smt2",
+    "probes/strings/INDEXOF_RE_INVALID_INDEX_neg.smt2"
+   ],
+   "probe_result": "INDEXOF_RE_INVALID_INDEX_sym: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; INDEXOF_RE_INVALID_INDEX_neg: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "Sound by definition but no proof rule; trust on both binaries. z3 does not support str.indexof_re."
+  },
+  {
+   "id": "Rewrite::INDEXOF_RE_EVAL",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3351",
+   "dispatch": "post-rewrite STRING_INDEXOF_RE via rewriteIndexofRe, constant regex, via rewriteViaStrIndexofReEval (STR_INDEXOF_RE_EVAL)",
+   "summary": "constant indexof_re evaluation",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "STR_INDEXOF_RE_EVAL (str-indexof-re-eval)"
+   ],
+   "guard_comparison": "CPC $str_eval_indexof_re is an independent definition.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/INDEXOF_RE_EVAL_const.smt2"
+   ],
+   "probe_result": "INDEXOF_RE_EVAL_const: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Theory rewrite with independent CPC definition; ethos-checked; no independent solver oracle (z3 lacks indexof_re)."
+  },
+  {
+   "id": "Rewrite::INDEXOF_RE_EMP_RE",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3358",
+   "dispatch": "post-rewrite STRING_INDEXOF_RE via rewriteIndexofRe, constant regex accepting \"\"",
+   "summary": "(str.indexof_re s r n) --> n if \"\" in r and 0 <= n <= len s",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-indexof-re-emp-re",
+    "str-in-re-eval"
+   ],
+   "guard_comparison": "RARE condition (>= n (- 1)) is weaker than the C++ n >= 0 (n = -1 gives -1 either way), so all C++ instances are covered.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/INDEXOF_RE_EMP_RE_sym.smt2",
+    "probes/strings/INDEXOF_RE_EMP_RE_atlen.smt2"
+   ],
+   "probe_result": "INDEXOF_RE_EMP_RE_sym: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; INDEXOF_RE_EMP_RE_atlen: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule; ethos-checked."
+  },
+  {
+   "id": "Rewrite::INDEXOF_RE_NONE",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3364",
+   "dispatch": "post-rewrite STRING_INDEXOF_RE via rewriteIndexofRe",
+   "summary": "(str.indexof_re s re.none n) --> -1",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-indexof-re-none"
+   ],
+   "guard_comparison": "Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/INDEXOF_RE_NONE_sym.smt2"
+   ],
+   "probe_result": "INDEXOF_RE_NONE_sym: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::RPL_CONST_NFIND",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3390",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace (node[0], node[1] constant, not found)",
+   "summary": "(str.replace c t r) --> c",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-no-contains"
+   ],
+   "guard_comparison": "Replacement may be symbolic; RARE condition (not (str.contains t s)) evaluates.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/RPL_CONST_NFIND_const.smt2"
+   ],
+   "probe_result": "RPL_CONST_NFIND_const: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::RPL_CONST_FIND",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3420",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace (first component of node[0] and node[1] constant, found)",
+   "summary": "(str.replace (str.++ \"abab\" x) \"ba\" y) --> (str.++ \"a\" y \"b\" x)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-find-first-concat",
+    "str-replace-find-base",
+    "evaluate"
+   ],
+   "guard_comparison": "C++ searches only the first constant component; RARE str-replace-find-first-concat matches the same shape. Replacement containing the needle probed.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/RPL_CONST_FIND_concat.smt2",
+    "probes/strings/RPL_CONST_FIND_selfrepl.smt2",
+    "probes/strings/RPL_CONST_FIND_emptyrepl_seq.smt2"
+   ],
+   "probe_result": "RPL_CONST_FIND_concat: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; RPL_CONST_FIND_selfrepl: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; RPL_CONST_FIND_emptyrepl_seq: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "high",
+   "rationale": "Exact RARE rule for strings; the sequence-constant probe did not fire this id (trust there came from another rewrite)."
+  },
+  {
+   "id": "Rewrite::RPL_RPL_EMPTY",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3427",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace",
+   "summary": "(str.replace x \"\" y) --> (str.++ y x)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-empty"
+   ],
+   "guard_comparison": "Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/RPL_RPL_EMPTY_sym.smt2"
+   ],
+   "probe_result": "RPL_RPL_EMPTY_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::RPL_ID",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3856",
+   "dispatch": "post-rewrite STRING_REPLACE/STRING_REPLACE_ALL via rewriteReplaceInternal (shared by replace and replace_all)",
+   "summary": "(str.replace x y y) --> x; (str.replace_all x y y) --> x",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-id",
+    "str-replace-all-id"
+   ],
+   "guard_comparison": "replace: str-replace-id. replace_all: str-replace-all-id was added in 7d80d24a0d, AFTER the PATH binary dc8ad24031 (which therefore leaves TRUST_THEORY_REWRITE); the near-HEAD binary b08092b502 reconstructs it.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/RPL_ID_sym.smt2",
+    "probes/strings/RPL_ID_all.smt2"
+   ],
+   "probe_result": "RPL_ID_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; RPL_ID_all: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rules at the analysed revision; ethos-checked with b08092b502."
+  },
+  {
+   "id": "Rewrite::RPL_REPLACE",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3864",
+   "dispatch": "post-rewrite STRING_REPLACE/STRING_REPLACE_ALL via rewriteReplaceInternal",
+   "summary": "(str.replace x x y) --> y; (str.replace_all x x y) --> y only if x nonempty",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-self",
+    "str-replace-all-self"
+   ],
+   "guard_comparison": "replace_all guard checkNonEmpty(x) matches RARE (not (= (str.len t) 0)). Probe with possibly-empty x confirms no rewrite (sat). str-replace-all-self postdates the PATH binary (trust there).",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/RPL_REPLACE_sym.smt2",
+    "probes/strings/RPL_REPLACE_all.smt2",
+    "probes/strings/RPL_REPLACE_all_maybeempty.smt2"
+   ],
+   "probe_result": "RPL_REPLACE_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; RPL_REPLACE_all: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=none ethos=correct; RPL_REPLACE_all_maybeempty: cvc5=sat z3=sat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none n/a(sat)",
+   "confidence": "high",
+   "rationale": "Exact RARE rules at the analysed revision."
+  },
+  {
+   "id": "Rewrite::RPL_RPL_LEN_ID",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3445",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace",
+   "summary": "(str.replace x y x) --> x if len y >= len x",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-repl-repl-len-id",
+    "arith-string-pred-entail"
+   ],
+   "guard_comparison": "Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/RPL_RPL_LEN_ID_sym.smt2",
+    "probes/strings/REPL_REPL2_INV_ID_sym.smt2"
+   ],
+   "probe_result": "RPL_RPL_LEN_ID_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPL_REPL2_INV_ID_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::RPL_CCTN_RPL",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3476",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace, contains entailed; componentContains(remainderDir=1) returns 0 and children0[0]==children1[0]",
+   "summary": "(str.replace (str.++ x \"ab\") (str.++ x \"a\") y) --> (str.++ y \"b\")",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-prefix"
+   ],
+   "guard_comparison": "RARE str-replace-prefix only matches when the needle is the first syntactic component(s) of the haystack with a whole-component remainder; the C++ also handles a needle whose last component is a proper prefix of a constant (remainder split from a constant).",
+   "guard_gap": "needle ending inside a constant, e.g. (str.replace (str.++ x \"ab\") (str.++ x \"a\") y): TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/RPL_CCTN_RPL_sym.smt2",
+    "probes/strings/RPL_CCTN_RPL_multi.smt2",
+    "probes/strings/RPL_CCTN_RPL_notprefix.smt2"
+   ],
+   "probe_result": "RPL_CCTN_RPL_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; RPL_CCTN_RPL_multi: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; RPL_CCTN_RPL_notprefix: cvc5=unsat z3=unsat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "low",
+   "rationale": "Trust on both binaries for the constant-split remainder; correctness rests on componentContains (fuzz: no mismatch)."
+  },
+  {
+   "id": "Rewrite::RPL_CCTN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3492",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace, contains entailed; componentContains(remainderDir=1) with nonempty remainder",
+   "summary": "(str.replace (str.++ x \"ab\") \"a\" y) --> (str.++ (str.replace (str.++ x \"a\") \"a\" y) \"b\")",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-find-pre"
+   ],
+   "guard_comparison": "str-replace-find-pre requires the needle to be a syntactic component; when the needle is found inside a constant with leftover (e.g. \"aa\" in \"aaa\") reconstruction fails.",
+   "guard_gap": "needle inside a constant component with leftover, e.g. (str.replace (str.++ x \"aaa\") \"aa\" y): TRUST_THEORY_REWRITE (result correct)",
+   "probes": [
+    "probes/strings/RPL_CCTN_sym.smt2",
+    "probes/strings/RPL_CCTN_overlap.smt2",
+    "probes/strings/RPL_CCTN_seq.smt2"
+   ],
+   "probe_result": "RPL_CCTN_sym: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; RPL_CCTN_overlap: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; RPL_CCTN_seq: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "low",
+   "rationale": "Syntactic cases reconstruct (strings and sequences); constant-split cases leave trust on both binaries."
+  },
+  {
+   "id": "Rewrite::RPL_NCTN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3499,3843",
+   "dispatch": "post-rewrite STRING_REPLACE (3499) and STRING_REPLACE_ALL (3843)",
+   "summary": "(str.replace[_all] t s r) --> t if contains(t,s) is false",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-no-contains",
+    "str-replace-all-no-contains"
+   ],
+   "guard_comparison": "Two sites, same logic; RARE condition (not (str.contains t s)) re-derived.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/RPL_NCTN_sym.smt2",
+    "probes/strings/RPL_NCTN_all.smt2"
+   ],
+   "probe_result": "RPL_NCTN_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; RPL_NCTN_all: cvc5=unsat z3=unknown [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rules; ethos-checked."
+  },
+  {
+   "id": "Rewrite::REPL_SUBST_IDX",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3553",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace, last needle component is STRING_SUBSTR",
+   "summary": "(str.replace x (str.++ t (str.substr y i j)) z) --> same with j := len x + 1 - len t, if len t + j > len x + 1",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "No RARE rule. Soundness argument: both needles are longer than x unless the substr is short enough that both coincide; also correct when len x + 1 - len t < 0.",
+   "guard_gap": "all instances: TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/REPL_SUBST_IDX_sym.smt2",
+    "probes/strings/REPL_SUBST_IDX_negpart.smt2"
+   ],
+   "probe_result": "REPL_SUBST_IDX_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; REPL_SUBST_IDX_negpart: cvc5=unsat z3=unsat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "low",
+   "rationale": "No proof coverage; fuzz hit once, no mismatch."
+  },
+  {
+   "id": "Rewrite::REPL_REPL_SHORT_CIRCUIT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3600",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace, node[0] = (str.replace y w y), node[1] = y, w and z constants",
+   "summary": "(str.replace (str.replace y w y) y z) --> (str.replace (str.replace y w z) y z) if len w >= len z and w != z",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-repl-repl-lookahead-id-simp"
+   ],
+   "guard_comparison": "RARE rule is more general (w, z need not be constants); C++ adds w.isConst() && z.isConst(). Every C++ instance is an instance of the RARE rule. RARE rule itself brute-forced (|y|<=4, |w|,|z|<=3): valid.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/REPL_REPL_SHORT_CIRCUIT_sym.smt2"
+   ],
+   "probe_result": "REPL_REPL_SHORT_CIRCUIT_sym: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule; ethos-checked."
+  },
+  {
+   "id": "Rewrite::REPL_REPL2_INV_ID",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3613",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace",
+   "summary": "(str.replace x (str.replace x y x) x) --> x",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-repl-repl-dual-self"
+   ],
+   "guard_comparison": "Usually preempted by RPL_RPL_LEN_ID (same result); the RARE rule for this id is unconditional and exact.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/REPL_REPL2_INV_ID_sym.smt2"
+   ],
+   "probe_result": "REPL_REPL2_INV_ID_sym: cvc5=unsat z3=unsat [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Exact RARE rule exists, but no probe isolated the id (shadowed)."
+  },
+  {
+   "id": "Rewrite::REPL_DUAL_REPL_ITE",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3648",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace, node[1] = (str.replace x y z) with node[1][0] = node[0]",
+   "summary": "(str.replace x (str.replace x y z) w) --> (ite (str.contains x y) x w) if !contains(x,z), or !contains(y,z) and !contains(z,y)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-repl-repl-dual-ite1",
+    "str-repl-repl-dual-ite2"
+   ],
+   "guard_comparison": "Two disjuncts of the C++ guard map 1:1 to the two RARE rules.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/REPL_DUAL_REPL_ITE_sym.smt2",
+    "probes/strings/REPL_DUAL_REPL_ITE_ctn2.smt2"
+   ],
+   "probe_result": "REPL_DUAL_REPL_ITE_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPL_DUAL_REPL_ITE_ctn2: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Both branches reconstruct; spec brute-forced."
+  },
+  {
+   "id": "Rewrite::REPL_REPL2_INV",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3684",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace, node[1] is STRING_REPLACE (three branches)",
+   "summary": "(str.replace x (str.replace y x y) w) --> (str.replace x y w); (str.replace x (str.replace y x z) w) --> (str.replace x y w) if !contains(y,z) and w in {x,y}; (str.replace x (str.replace y z w) u) --> (str.replace x y u) if !contains(x,z), !contains(x,w)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-repl-repl-src-self",
+    "str-repl-repl-src-inv-no-ctn1",
+    "str-repl-repl-src-inv-no-ctn2",
+    "str-repl-repl-src-inv-no-ctn3"
+   ],
+   "guard_comparison": "Each C++ branch has a matching RARE rule (no-ctn1 for w=y, no-ctn2 for w=x). All branches brute-forced.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/REPL_REPL2_INV_self.smt2",
+    "probes/strings/REPL_REPL2_INV_noctn1.smt2",
+    "probes/strings/REPL_REPL2_INV_noctn3.smt2"
+   ],
+   "probe_result": "REPL_REPL2_INV_self: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPL_REPL2_INV_noctn1: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPL_REPL2_INV_noctn3: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rules per branch; ethos-checked."
+  },
+  {
+   "id": "Rewrite::REPL_REPL3_INV",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3698",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace, node[2] = (str.replace z x y) with node[2][1] = node[0]",
+   "summary": "(str.replace x w (str.replace z x y)) --> (str.replace x w z) if !contains(z, w)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-repl-repl-src-tgt-no-ctn"
+   ],
+   "guard_comparison": "Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/REPL_REPL3_INV_sym.smt2"
+   ],
+   "probe_result": "REPL_REPL3_INV_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule; spec brute-forced."
+  },
+  {
+   "id": "Rewrite::REPL_REPL3_INV_ID",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3718",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace, node[2] = (str.replace y ..) with node[2][0] = node[1]",
+   "summary": "(str.replace x y (str.replace y x y)) --> x; (str.replace x y (str.replace y z w)) --> x if !contains(x,z)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-repl-repl-tgt-self",
+    "str-repl-repl-tgt-no-ctn"
+   ],
+   "guard_comparison": "Two branches, two exact RARE rules.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/REPL_REPL3_INV_ID_self.smt2",
+    "probes/strings/REPL_REPL3_INV_ID_noctn.smt2"
+   ],
+   "probe_result": "REPL_REPL3_INV_ID_self: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPL_REPL3_INV_ID_noctn: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rules; spec brute-forced."
+  },
+  {
+   "id": "Rewrite::REPL_CHAR_NCONTRIB_FIND",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3768",
+   "dispatch": "post-rewrite STRING_REPLACE via rewriteReplace, len(node[1]) <= 1",
+   "summary": "(str.replace (str.++ P c1..ck) s r) --> (str.++ (str.replace P s r) c1..ck) if each ci is contained in the prefix before it",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-one-pre"
+   ],
+   "guard_comparison": "RARE requires (= (str.len s) 1) and a syntactically repeated component (str.++ ts t ss t). C++ uses checkLengthOne non-strict (len <= 1) and a semantic checkContains(prefix, component) test (e.g. (str.substr x 0 1) contained in x).",
+   "guard_gap": "needle only known to have len <= 1, e.g. (str.replace (str.++ x x) (str.substr w 0 1) z); or trailing component contained but not repeated, e.g. (str.replace (str.++ x \"b\" (str.substr x 0 1)) \"a\" y): TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/REPL_CHAR_NCONTRIB_FIND_sym.smt2",
+    "probes/strings/REPL_CHAR_NCONTRIB_FIND_multi.smt2",
+    "probes/strings/REPL_CHAR_NCONTRIB_FIND_sympat.smt2",
+    "probes/strings/REPL_CHAR_NCONTRIB_FIND_strconst.smt2",
+    "probes/strings/REPL_CHAR_NCONTRIB_FIND_seq.smt2",
+    "probes/strings/REPL_CHAR_NCONTRIB_FIND_constctn.smt2"
+   ],
+   "probe_result": "REPL_CHAR_NCONTRIB_FIND_sym: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPL_CHAR_NCONTRIB_FIND_multi: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPL_CHAR_NCONTRIB_FIND_sympat: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; REPL_CHAR_NCONTRIB_FIND_strconst: cvc5=unsat z3=timeout [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; REPL_CHAR_NCONTRIB_FIND_seq: cvc5=unsat z3=timeout [id-not-fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPL_CHAR_NCONTRIB_FIND_constctn: cvc5=unsat z3=timeout [id-not-fired] trust@dc8ad24031=MACRO_THEORY_REWRITE_RCONS_SIMPLE trust@b08092b502=TRUSTMACRO_THEORY_REWRITE_RCONS_SIMPLE ethos=timeout/crash",
+   "confidence": "low",
+   "rationale": "Syntactic-repeat cases reconstruct; the broader C++ guard leaves trust. Spec (incl. empty needle) brute-forced; fuzz no mismatch."
+  },
+  {
+   "id": "Rewrite::REPLALL_EMPTY_FIND",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3794",
+   "dispatch": "post-rewrite STRING_REPLACE_ALL via rewriteReplaceAll (node[0], node[1] constant, one of them empty)",
+   "summary": "(str.replace_all c \"\" r) --> c; (str.replace_all \"\" t r) --> \"\"",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-all-empty",
+    "str-replace-all-no-contains"
+   ],
+   "guard_comparison": "Empty needle: str-replace-all-empty (len s = 0). The PATH binary left trust for (str.replace_all \"abc\" \"\" x); b08092b502 reconstructs (ethos correct).",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/REPLALL_EMPTY_FIND_sym.smt2",
+    "probes/strings/REPLALL_EMPTY_FIND_emptysrc.smt2"
+   ],
+   "probe_result": "REPLALL_EMPTY_FIND_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=none ethos=correct; REPLALL_EMPTY_FIND_emptysrc: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "RARE rules at the analysed revision; ethos-checked."
+  },
+  {
+   "id": "Rewrite::REPLALL_CONST",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3828",
+   "dispatch": "post-rewrite STRING_REPLACE_ALL via rewriteReplaceAll (node[0], node[1] constant)",
+   "summary": "constant replace_all; replacement may be symbolic (result is a concat)",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate",
+    "seq-eval-op"
+   ],
+   "guard_comparison": "All-constant case is EVALUATE. With a symbolic replacement there is no RARE rule (no replace_all-find rule) and reconstruction fails. Code changed after dc8ad24031 (6ab254bba1: flatten only when node[2] is constant); the binary b08092b502 includes it.",
+   "guard_gap": "symbolic replacement, e.g. (str.replace_all \"abab\" \"b\" x) --> (str.++ \"a\" x \"a\" x): TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/REPLALL_CONST_overlap.smt2",
+    "probes/strings/REPLALL_CONST_selfrepl.smt2",
+    "probes/strings/REPLALL_CONST_symrepl.smt2",
+    "probes/strings/REPLALL_CONST_seq.smt2"
+   ],
+   "probe_result": "REPLALL_CONST_overlap: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPLALL_CONST_selfrepl: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPLALL_CONST_symrepl: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete; REPLALL_CONST_seq: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=none ethos=correct",
+   "confidence": "low",
+   "rationale": "Constant cases are evaluation (n/a); the symbolic-replacement case leaves trust on both binaries. Overlap (\"aa\" in \"aaa\") and needle-in-replacement agree with z3."
+  },
+  {
+   "id": "Rewrite::REPLACE_RE_EVAL",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3884",
+   "dispatch": "post-rewrite STRING_REPLACE_RE via rewriteReplaceRe, constant regex, via rewriteViaStrReplaceReEval (STR_REPLACE_RE_EVAL)",
+   "summary": "constant replace_re evaluation (leftmost, shortest match)",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "STR_REPLACE_RE_EVAL (str-replace-re-eval)"
+   ],
+   "guard_comparison": "CPC definition independent; uses firstMatch in C++.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/REPLACE_RE_EVAL_const.smt2",
+    "probes/strings/REPLACE_RE_EMP_RE_concrete.smt2"
+   ],
+   "probe_result": "REPLACE_RE_EVAL_const: cvc5=unsat z3=unknown [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPLACE_RE_EMP_RE_concrete: cvc5=unsat z3=unknown [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Theory rewrite with independent CPC definition; ethos-checked; z3 returned unknown."
+  },
+  {
+   "id": "Rewrite::REPLACE_RE_EMP_RE",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3891",
+   "dispatch": "post-rewrite STRING_REPLACE_RE via rewriteReplaceRe, constant regex accepting \"\"",
+   "summary": "(str.replace_re x r z) --> (str.++ z x) if \"\" in r",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "No RARE rule for replace_re with a nullable regex.",
+   "guard_gap": "all symbolic instances: TRUST_THEORY_REWRITE",
+   "probes": [
+    "probes/strings/REPLACE_RE_EMP_RE_sym.smt2"
+   ],
+   "probe_result": "REPLACE_RE_EMP_RE_sym: cvc5=unsat z3=unknown [fired] trust@dc8ad24031=TRUST_THEORY_REWRITE trust@b08092b502=TRUST_THEORY_REWRITE ethos=incomplete",
+   "confidence": "low",
+   "rationale": "Matches SMT-LIB semantics (empty leftmost-shortest match at 0) but unchecked; trust on both binaries."
+  },
+  {
+   "id": "Rewrite::REPLACE_RE_NONE",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3895",
+   "dispatch": "post-rewrite STRING_REPLACE_RE via rewriteReplaceRe",
+   "summary": "(str.replace_re x re.none z) --> x",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-re-none"
+   ],
+   "guard_comparison": "Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/REPLACE_RE_NONE_sym.smt2"
+   ],
+   "probe_result": "REPLACE_RE_NONE_sym: cvc5=unsat z3=unknown [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::REPLACE_RE_ALL_EVAL",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3913",
+   "dispatch": "post-rewrite STRING_REPLACE_RE_ALL via rewriteReplaceReAll, via rewriteViaStrReplaceReAllEval (STR_REPLACE_RE_ALL_EVAL)",
+   "summary": "constant replace_re_all evaluation (non-empty matches)",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "STR_REPLACE_RE_ALL_EVAL (str-replace-re-all-eval)"
+   ],
+   "guard_comparison": "CPC definition independent; nullable regex probe shows empty matches skipped.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/REPLACE_RE_ALL_EVAL_const.smt2",
+    "probes/strings/REPLACE_RE_ALL_EVAL_nullable.smt2"
+   ],
+   "probe_result": "REPLACE_RE_ALL_EVAL_const: cvc5=unsat z3=unknown [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; REPLACE_RE_ALL_EVAL_nullable: cvc5=unsat z3=unknown [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "medium",
+   "rationale": "Theory rewrite with independent CPC definition; ethos-checked."
+  },
+  {
+   "id": "Rewrite::REPLACE_RE_ALL_NONE",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3917",
+   "dispatch": "post-rewrite STRING_REPLACE_RE_ALL via rewriteReplaceReAll",
+   "summary": "(str.replace_re_all x re.none z) --> x",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-replace-re-all-none"
+   ],
+   "guard_comparison": "Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/REPLACE_RE_ALL_NONE_sym.smt2"
+   ],
+   "probe_result": "REPLACE_RE_ALL_NONE_sym: cvc5=unsat z3=unknown [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::STR_CONV_CONST",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3973",
+   "dispatch": "post-rewrite STRING_REV via rewriteStrReverse (constant); the same id is also used for to_lower/to_upper constant folding in strings_rewriter.cpp",
+   "summary": "reverse of a constant",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "Pure evaluation.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/STR_CONV_CONST_rev.smt2"
+   ],
+   "probe_result": "STR_CONV_CONST_rev: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation."
+  },
+  {
+   "id": "Rewrite::STR_REV_MINSCOPE_CONCAT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3985",
+   "dispatch": "post-rewrite STRING_REV via rewriteStrReverse",
+   "summary": "(str.rev (str.++ x1 .. xn)) --> (str.++ (str.rev xn) .. (str.rev x1))",
+   "coverage": "rare",
+   "proof_rules": [
+    "seq-rev-concat"
+   ],
+   "guard_comparison": "n-ary fixed-point RARE rule.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/STR_REV_MINSCOPE_CONCAT_sym.smt2"
+   ],
+   "probe_result": "STR_REV_MINSCOPE_CONCAT_sym: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "RARE rule; ethos-checked."
+  },
+  {
+   "id": "Rewrite::STR_REV_IDEM",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3991",
+   "dispatch": "post-rewrite STRING_REV via rewriteStrReverse",
+   "summary": "(str.rev (str.rev x)) --> x",
+   "coverage": "rare",
+   "proof_rules": [
+    "seq-rev-rev"
+   ],
+   "guard_comparison": "Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/STR_REV_IDEM_sym.smt2"
+   ],
+   "probe_result": "STR_REV_IDEM_sym: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "Rewrite::STR_REV_UNIT",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:3996",
+   "dispatch": "post-rewrite STRING_REV via rewriteStrReverse",
+   "summary": "(str.rev (seq.unit x)) / (str.rev (str.unit x)) --> argument",
+   "coverage": "rare",
+   "proof_rules": [
+    "seq-rev-unit"
+   ],
+   "guard_comparison": "RARE covers seq.unit; STRING_UNIT (internal str.unit) has no RARE rule but is not user-visible.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/STR_REV_UNIT_seq.smt2"
+   ],
+   "probe_result": "STR_REV_UNIT_seq: cvc5=unsat z3=unsupported [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rule for seq.unit (the user-reachable case)."
+  },
+  {
+   "id": "Rewrite::SUF_PREFIX_EQ",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:4009",
+   "dispatch": "post-rewrite STRING_PREFIX/STRING_SUFFIX via rewritePrefixSuffix",
+   "summary": "(str.prefixof x x) --> true",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "str-prefixof-elim",
+    "str-substr-full-eq"
+   ],
+   "guard_comparison": "Via elimination to substr.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SUF_PREFIX_EQ_sym.smt2"
+   ],
+   "probe_result": "SUF_PREFIX_EQ_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Short RARE chain."
+  },
+  {
+   "id": "Rewrite::SUF_PREFIX_EMPTY_CONST",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:4016",
+   "dispatch": "post-rewrite STRING_PREFIX/STRING_SUFFIX via rewritePrefixSuffix",
+   "summary": "(str.suffixof \"\" x) --> true",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "str-suffixof-elim",
+    "str-substr-empty-range"
+   ],
+   "guard_comparison": "Via elimination.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SUF_PREFIX_EMPTY_CONST_sym.smt2"
+   ],
+   "probe_result": "SUF_PREFIX_EMPTY_CONST_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Short RARE chain."
+  },
+  {
+   "id": "Rewrite::SUF_PREFIX_CONST",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:4036",
+   "dispatch": "post-rewrite STRING_PREFIX/STRING_SUFFIX via rewritePrefixSuffix (both constant)",
+   "summary": "constant prefixof/suffixof",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "Pure evaluation.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SUF_PREFIX_CONST_suffix.smt2",
+    "probes/strings/SUF_PREFIX_CONST_prefix_false.smt2"
+   ],
+   "probe_result": "SUF_PREFIX_CONST_suffix: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; SUF_PREFIX_CONST_prefix_false: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation."
+  },
+  {
+   "id": "Rewrite::SUF_PREFIX_EMPTY",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:4041",
+   "dispatch": "post-rewrite STRING_PREFIX/STRING_SUFFIX via rewritePrefixSuffix",
+   "summary": "(str.prefixof x \"\") --> (= x \"\")",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "str-prefixof-elim",
+    "str-substr-empty-str"
+   ],
+   "guard_comparison": "Via elimination.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SUF_PREFIX_EMPTY_sym.smt2"
+   ],
+   "probe_result": "SUF_PREFIX_EMPTY_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Short RARE chain."
+  },
+  {
+   "id": "Rewrite::SUF_PREFIX_CTN",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:4048",
+   "dispatch": "post-rewrite STRING_PREFIX/STRING_SUFFIX via rewritePrefixSuffix",
+   "summary": "(str.prefixof x \"A\") --> (str.contains \"A\" x) (same for suffix)",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-prefixof-one",
+    "str-suffixof-one"
+   ],
+   "guard_comparison": "Constant of length exactly 1; RARE (= (str.len t) 1). Identical; sequences covered.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SUF_PREFIX_CTN_sym.smt2",
+    "probes/strings/SUF_PREFIX_CTN_seq.smt2"
+   ],
+   "probe_result": "SUF_PREFIX_CTN_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; SUF_PREFIX_CTN_seq: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rules."
+  },
+  {
+   "id": "Rewrite::SUF_PREFIX_TO_EQS",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:4059",
+   "dispatch": "post-rewrite STRING_PREFIX/STRING_SUFFIX via rewritePrefixSuffix",
+   "summary": "(str.prefixof s t) --> (= s t) if len s >= len t",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-prefixof-eq",
+    "str-suffixof-eq"
+   ],
+   "guard_comparison": "Identical.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SUF_PREFIX_TO_EQS_sym.smt2"
+   ],
+   "probe_result": "SUF_PREFIX_TO_EQS_sym: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rules."
+  },
+  {
+   "id": "Rewrite::SUF_PREFIX_ELIM",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:4076",
+   "dispatch": "post-rewrite STRING_PREFIX/STRING_SUFFIX via rewritePrefixSuffix",
+   "summary": "(str.prefixof s t) --> (= s (str.substr t 0 (str.len s))); suffix uses start (- (str.len t) (str.len s))",
+   "coverage": "rare",
+   "proof_rules": [
+    "str-prefixof-elim",
+    "str-suffixof-elim"
+   ],
+   "guard_comparison": "Identical, both directions and sequences.",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SUF_PREFIX_ELIM_prefix.smt2",
+    "probes/strings/SUF_PREFIX_ELIM_suffix.smt2",
+    "probes/strings/SUF_PREFIX_ELIM_seq.smt2"
+   ],
+   "probe_result": "SUF_PREFIX_ELIM_prefix: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; SUF_PREFIX_ELIM_suffix: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct; SUF_PREFIX_ELIM_seq: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "high",
+   "rationale": "Exact RARE rules."
+  },
+  {
+   "id": "Rewrite::SEQ_UNIT_EVAL",
+   "theory": "strings",
+   "location": "src/theory/strings/sequences_rewriter.cpp:4169",
+   "dispatch": "post-rewrite SEQ_UNIT via rewriteSeqUnit",
+   "summary": "(seq.unit c) --> constant sequence",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "SEQ_EVAL_OP (seq-eval-op)"
+   ],
+   "guard_comparison": "Constant evaluation for sequences, justified by SEQ_EVAL_OP (CPC-defined).",
+   "guard_gap": null,
+   "probes": [
+    "probes/strings/SEQ_UNIT_EVAL_seq.smt2"
+   ],
+   "probe_result": "SEQ_UNIT_EVAL_seq: cvc5=unsat z3=unsat [fired] trust@dc8ad24031=none trust@b08092b502=none ethos=correct",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation."
+  }
+ ]
+}

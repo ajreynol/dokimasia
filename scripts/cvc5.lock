@@ -8,7 +8,9 @@
   },
   "unpinned_measurements": {
     "_comment": "Numbers that could NOT be taken at the pinned commit, each with why. A runtime measurement needs a *build*, and we have no upstream build -- so these are the claims a reader cannot re-check by fetching the pin alone. Keep this list short; an entry here is a debt, not a licence. 8ead214f23 was dropped on 2026-09-19 when the document quoting it stopped naming it; the corpus binary 95bef9bc44 is still quoted and still a debt.",
-    "95bef9bc44": "ajreynol/CVC4 branch with local modifications; the cvc5 binary that produced the corpus numbers. Re-run on a clean upstream build before quoting these upstream -- TODO t-2"
+    "95bef9bc44": "ajreynol/CVC4 branch with local modifications; the cvc5 binary that produced the corpus numbers. Re-run on a clean upstream build before quoting these upstream -- TODO t-2",
+    "b08092b502": "Local build of cvc5 main (ancestor of the pin, 193 commits behind); runs the rewriter_report/ probe sweep (runs/b08092b502.json) quoted in rewriter_report/README.md. No build at the pin exists -- re-run the sweep on one before quoting upstream.",
+    "dc8ad24031": "cvc5 on PATH (ancestor of the pin, 478 commits behind); second rewriter_report/ probe sweep (runs/dc8ad24031.json). Superseded by b08092b502 wherever they differ."
   },
   "historical": {
     "_comment": "Commits referenced only in retraction and history text, never as the basis of a published number. Each maps to the ONE document allowed to mention it, so the exemption cannot silently spread to a document that is quoting it as a measurement. Empty since 2026-09-19: the corrections that quoted a fork commit are no longer tracked in prose, so nothing needs the exemption. An entry is added only when a document genuinely has to name a commit that is not the pin."

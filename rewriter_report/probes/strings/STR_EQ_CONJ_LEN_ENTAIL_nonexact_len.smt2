@@ -1,0 +1,10 @@
+; substr(w,0,1) = z++a++u <=> substr(w,0,1) = a and z="" and u="" (len(lhs) <= 1 not syntactically equal)
+; EXPECT: unsat
+(set-logic QF_SLIA)
+(declare-const x String)
+(declare-const y String)
+(declare-const z String)
+(declare-const w String)
+(declare-const u String)
+(assert (not (= (= (str.substr w 0 1) (str.++ z "a" u)) (and (= (str.substr w 0 1) "a") (= z "") (= u "")))))
+(check-sat)

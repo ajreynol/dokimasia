@@ -87,6 +87,11 @@ reports file and line counts, the share of `src/`, and a subsystem breakdown.
 `#include` closure: compile-time dependencies, not runtime reachability.
 Generated headers are omitted; no cvc5 build is needed.
 
+The [rewriter faithfulness report](rewriter_report/README.md) asks whether each
+hand-written BV and strings rewrite matches a proof rule exactly, after
+cvc5#13039. It gives each rule a confidence level. Unlike the rest of
+Dokimasia, its probes run a cvc5 binary, z3 and ethos.
+
 ## Reading the results
 
 **Browse the [recorded observations](bug_db/bugs.md)** for the accumulated

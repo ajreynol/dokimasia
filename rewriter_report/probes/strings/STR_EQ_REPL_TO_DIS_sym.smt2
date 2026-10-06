@@ -1,0 +1,10 @@
+; replace(x,u++a,b++u) = b++u <=> x=u++a or x=b++u (symbolic equal length)
+; EXPECT: unsat
+(set-logic QF_SLIA)
+(declare-const x String)
+(declare-const y String)
+(declare-const z String)
+(declare-const w String)
+(declare-const u String)
+(assert (not (= (= (str.replace x (str.++ u "a") (str.++ "b" u)) (str.++ "b" u)) (or (= x (str.++ u "a")) (= x (str.++ "b" u))))))
+(check-sat)

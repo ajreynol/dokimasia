@@ -1,0 +1,1679 @@
+{
+  "unit": "strings-a",
+  "source_rev": "40a4bb7e43",
+  "binary": "cvc5 version 1.3.2.dev+main@dc8ad24031 [git dc8ad24031 on branch main]",
+  "rules": [
+    {
+      "id": "Rewrite::EQ_REFL",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:267",
+      "dispatch": "post-rewrite EQUAL over strings/sequences, rewriteEquality (via postRewrite, line ~2333)",
+      "summary": "(= t t) ---> true",
+      "coverage": "rare",
+      "proof_rules": [
+        "eq-refl"
+      ],
+      "guard_comparison": "No guard beyond syntactic identity; eq-refl is exactly this.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/EQ_CONST_FALSE_unicode.smt2",
+        "probes/strings/EQ_SYM_proof.smt2"
+      ],
+      "probe_result": "EQ_CONST_FALSE_unicode: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | EQ_SYM_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Single builtin RARE rule matches every instance; probes reconstruct with no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::EQ_CONST_FALSE",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:271",
+      "dispatch": "post-rewrite EQUAL over strings/sequences, rewriteEquality (via postRewrite, line ~2333)",
+      "summary": "(= c1 c2) ---> false for distinct constants",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Constant evaluation. Distinct const nodes are distinct values for strings/sequences (canonical constants).",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/EQ_CONST_FALSE_escape_diff.smt2",
+        "probes/strings/EQ_CONST_FALSE_unicode.smt2"
+      ],
+      "probe_result": "EQ_CONST_FALSE_escape_diff: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | EQ_CONST_FALSE_unicode: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation, justified by EVALUATE (out of scope). The \\u escape probes agree with z3.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::EQ_SYM",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:277",
+      "dispatch": "post-rewrite EQUAL over strings/sequences, rewriteEquality (via postRewrite, line ~2333)",
+      "summary": "(= a b) ---> (= b a) when a > b in node order",
+      "coverage": "rare",
+      "proof_rules": [
+        "eq-symm"
+      ],
+      "guard_comparison": "Unconditional symmetry; eq-symm covers every orientation.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/EQ_SYM_proof.smt2"
+      ],
+      "probe_result": "EQ_SYM_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Single RARE rule covers it; the proof shows eq-symm and no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::EQ_NCTN",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:337",
+      "dispatch": "rewriteStrEqualityExt (extended equality rewrite). rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= s t) ---> false if rewriteContains(contains(s,t)) or contains(t,s) (applied up to twice) gives false",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "str-eq-ctn-false",
+        "str-eq-ctn-full-false1",
+        "str-eq-ctn-full-false2",
+        "str-ctn-multiset-subset"
+      ],
+      "guard_comparison": "The C++ decides via rewriteContains on contains(node[r],node[1-r]) for both r. The RARE rules str-eq-ctn-full-false1/2 cover both orientations and str-eq-ctn-false a component of a concat. Their side condition (= (str.contains ..) false) is re-derived by proof reconstruction of the contains rewrite, which is covered by the strings contains reviewer. Entailment: whatever rewriteContains uses (StringsEntail::componentContains, checkMultisetSubset, ArithEntail length checks). The proofs re-derive it via str-ctn-multiset-subset and the other contains rules.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/EQ_NCTN_len.smt2",
+        "probes/strings/EQ_NCTN_sat_edge.smt2",
+        "probes/strings/EQ_NCTN_seq.smt2"
+      ],
+      "probe_result": "EQ_NCTN_len: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | EQ_NCTN_sat_edge: cvc5=sat z3=sat | EQ_NCTN_seq: cvc5=unsat z3=unsat; no trust; ethos correct (probe.py read an ethos stderr warning as the verdict; a direct run prints 'correct'); eager-check ok",
+      "confidence": "high",
+      "rationale": "Both orientations are covered by RARE rules whose condition is re-proven. Probes for strings and sequences reconstruct with no trust, and a sat edge case (x++\"ab\" = \"ab\") is not falsified.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::EQ_NFIX",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:375",
+      "dispatch": "rewriteStrEqualityExt. rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= (s1++..) (t1++..)) ---> false if, after skipping syntactically equal leading (or trailing) components, the first constant components disagree on their common prefix (or suffix)",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "str-concat-clash",
+        "str-concat-clash-rev",
+        "str-concat-clash2",
+        "str-concat-clash2-rev",
+        "str-concat-unify",
+        "str-concat-unify-rev"
+      ],
+      "guard_comparison": "The C++ loops r in {prefix, suffix} with index arithmetic (size-1-i) bounded by minsize and stops at the first non-identical pair. It compares Word::strncmp / rstrncmp over min(len) chars. The RARE clash rules require equal lengths, so reconstruction first splits the longer constant and unifies common components (str-concat-unify(-rev)). Probes cover unequal lengths on the suffix side, a clash after a common component, code points \\u{2ffff} vs \\u{2fffe}, and sequences. Two sat probes check the guard does not fire on a same-prefix or same-suffix pair of unequal length.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/EQ_NFIX_after_common.smt2",
+        "probes/strings/EQ_NFIX_prefix.smt2",
+        "probes/strings/EQ_NFIX_sat_overlap.smt2",
+        "probes/strings/EQ_NFIX_sat_suffix.smt2",
+        "probes/strings/EQ_NFIX_seq.smt2",
+        "probes/strings/EQ_NFIX_suffix_difflen.smt2",
+        "probes/strings/EQ_NFIX_unicode.smt2"
+      ],
+      "probe_result": "EQ_NFIX_after_common: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | EQ_NFIX_prefix: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | EQ_NFIX_sat_overlap: cvc5=sat z3=sat | EQ_NFIX_sat_suffix: cvc5=sat z3=sat | EQ_NFIX_seq: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | EQ_NFIX_suffix_difflen: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | EQ_NFIX_unicode: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Every probe reconstructs to clash/unify RARE rules with no trust. The sat edge cases agree with z3.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::STR_EQ_UNIFY",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:438",
+      "dispatch": "rewriteStrEqualityExt. rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "strip identical trailing/leading components of both sides and splice a shorter constant off a longer one at each end, e.g. abc++x++de = ab++y++e ---> c++x++d = y",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "str-concat-unify",
+        "str-concat-unify-rev",
+        "str-concat-unify-base",
+        "str-concat-unify-base-rev"
+      ],
+      "guard_comparison": "The C++ runs two passes, suffix then prefix after a reverse. The splice tests suffix(larger, |smaller|) on pass 0 and prefix(...) on pass 1, and keeps prefix/suffix(larger, sizeDiff) respectively. Reversal is undone by a second reverse; the components themselves are never reversed. I checked that the direction-specific prefix/suffix choices are consistent. A splice with sizeDiff=0 cannot occur, since equal constants are popped by the while loop. RARE: the unify rules work on identical first/last components; the constant splitting is done by evaluate/aci_norm. Emptying one side yields (= \"\" ...) through the unify-base rules.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_EQ_UNIFY_common_var.smt2",
+        "probes/strings/STR_EQ_UNIFY_seq.smt2",
+        "probes/strings/STR_EQ_UNIFY_splice_both.smt2",
+        "probes/strings/STR_EQ_UNIFY_to_empty.smt2",
+        "probes/strings/STR_EQ_UNIFY_unicode.smt2"
+      ],
+      "probe_result": "STR_EQ_UNIFY_common_var: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_UNIFY_seq: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_UNIFY_splice_both: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_UNIFY_to_empty: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_UNIFY_unicode: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Prefix+suffix splicing, emptying, unicode and sequence probes all reconstruct with no trust and agree with z3.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::STR_EMP_REPL_X_Y_X",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:455",
+      "dispatch": "rewriteStrEqualityExt. rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= \"\" (str.replace x y x)) ---> (= x \"\")",
+      "coverage": "rare",
+      "proof_rules": [
+        "str-eq-repl-self-emp"
+      ],
+      "guard_comparison": "The C++ checks node[i] == empty for both i and ne[0]==ne[2]. The RARE rule has the replace on the left, so the other orientation goes through eq-symm.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_EMP_REPL_X_Y_X_proof.smt2"
+      ],
+      "probe_result": "STR_EMP_REPL_X_Y_X_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE counterpart; the probe reconstructs with no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::STR_EMP_REPL_EMP",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:465 and src/theory/strings/sequences_rewriter.cpp:472",
+      "dispatch": "rewriteStrEqualityExt (two sites, same id). rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "site 1: (= \"\" (str.replace x y z)) ---> (and (= x \"\") (not (= y \"\"))) if z non-empty; site 2: (= \"\" (str.replace x y \"\")) ---> (str.prefixof x y) if len(y)=1",
+      "coverage": "rare",
+      "proof_rules": [
+        "str-eq-repl-emp-tgt-nemp",
+        "str-eq-repl-len-one-emp-prefix"
+      ],
+      "guard_comparison": "Site 1: StringsEntail::checkNonEmpty(z) (ArithEntail len(z)>0) corresponds to the RARE condition (not (= z emp)), which is re-proven. Site 2: checkLengthOne(y, strict=true), i.e. ArithEntail 1>=len(y) and len(y)>0, matches the RARE condition (= (str.len y) 1). The C++ would also be sound for len(y)<=1, but it requires strict, so the guards agree. Probes cover a constant and a symbolic non-empty target (z++\"a\"), and a symbolic length-one sequence pattern (seq.unit n). In the latter the equality was rewritten earlier by other rewrites, so STR_EMP_REPL_EMP did not fire for that case.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_EMP_REPL_EMP_len_one_seq.smt2",
+        "probes/strings/STR_EMP_REPL_EMP_len_one.smt2",
+        "probes/strings/STR_EMP_REPL_EMP_nonempty_tgt_seq.smt2",
+        "probes/strings/STR_EMP_REPL_EMP_nonempty_tgt.smt2",
+        "probes/strings/STR_EMP_REPL_EMP_nonempty_tgt_sym.smt2"
+      ],
+      "probe_result": "STR_EMP_REPL_EMP_len_one_seq: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EMP_REPL_EMP_len_one: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EMP_REPL_EMP_nonempty_tgt_seq: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EMP_REPL_EMP_nonempty_tgt: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EMP_REPL_EMP_nonempty_tgt_sym: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Both sites have exact RARE counterparts with conditions implied by the C++ guards. The string and sequence probes reconstruct with no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::STR_EMP_SUBSTR_LEQ_LEN",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:486 and src/theory/strings/sequences_rewriter.cpp:493",
+      "dispatch": "rewriteStrEqualityExt (two outputs). rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= \"\" (str.substr x n m)) with n>=0, m>0 entailed ---> (= x \"\") if n is 0, else (<= (str.len x) n)",
+      "coverage": "rare",
+      "proof_rules": [
+        "str-substr-eq-empty",
+        "str-substr-eq-empty-leq-len",
+        "arith-string-pred-entail"
+      ],
+      "guard_comparison": "The C++ guard is ArithEntail::check(n,false) (n>=0) and check(m,true) (m>0). The RARE conditions are (>= n 0) (> m 0) for the general case and (= n 0) (> m n) for the zero case, re-proven by arith-string-pred-entail. A negative-start sat probe confirms the rewrite does not fire when n<0.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_EMP_SUBSTR_LEQ_LEN_pos.smt2",
+        "probes/strings/STR_EMP_SUBSTR_LEQ_LEN_sym.smt2",
+        "probes/strings/STR_EMP_SUBSTR_LEQ_LEN_zero.smt2",
+        "probes/strings/STR_EMP_SUBSTR_negidx_sat.smt2"
+      ],
+      "probe_result": "STR_EMP_SUBSTR_LEQ_LEN_pos: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EMP_SUBSTR_LEQ_LEN_sym: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EMP_SUBSTR_LEQ_LEN_zero: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EMP_SUBSTR_negidx_sat: cvc5=sat z3=sat",
+      "confidence": "high",
+      "rationale": "Exact RARE counterparts. The symbolic-index probe (n=len y, m=len z+1) re-derives the entailment in the proof; there is no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::STR_EMP_SUBSTR_LEQ_Z",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:500",
+      "dispatch": "rewriteStrEqualityExt. rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= \"\" (str.substr s 0 m)) with s non-empty ---> (<= m 0)",
+      "coverage": "rare",
+      "proof_rules": [
+        "str-substr-z-eq-empty-leq"
+      ],
+      "guard_comparison": "checkNonEmpty(s) and n syntactically 0 match the RARE condition (not (= (str.len s) 0)).",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_EMP_SUBSTR_LEQ_Z_const.smt2",
+        "probes/strings/STR_EMP_SUBSTR_LEQ_Z_sym.smt2"
+      ],
+      "probe_result": "STR_EMP_SUBSTR_LEQ_Z_const: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EMP_SUBSTR_LEQ_Z_sym: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE counterpart; constant and symbolic (\"a\"++x) probes reconstruct with no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::STR_EQ_REPL_EMP",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:519",
+      "dispatch": "rewriteStrEqualityExt. rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= x (str.replace \"\" y z)) with x non-empty ---> (and (= y \"\") (= z x))",
+      "coverage": "rare",
+      "proof_rules": [
+        "str-eq-repl-nemp-src-emp"
+      ],
+      "guard_comparison": "The C++ tries both sides as the replace and uses checkNonEmpty(x). The RARE condition is (not (= x emp)), and the orientation goes through eq-symm. The output conjunct order and orientation match.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_EQ_REPL_EMP_proof.smt2",
+        "probes/strings/STR_EQ_REPL_EMP_sym.smt2"
+      ],
+      "probe_result": "STR_EQ_REPL_EMP_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_REPL_EMP_sym: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE counterpart; constant and symbolic probes reconstruct with no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::STR_EQ_REPL_TO_EQ",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:526",
+      "dispatch": "rewriteStrEqualityExt. rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= x (str.replace y x y)) ---> (= x y)",
+      "coverage": "rare",
+      "proof_rules": [
+        "str-eq-repl-self-src"
+      ],
+      "guard_comparison": "Unconditional, and the RARE rule matches the shape. I checked semantic validity by hand, including x=\"\".",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_EQ_REPL_TO_EQ_proof.smt2"
+      ],
+      "probe_result": "STR_EQ_REPL_TO_EQ_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE counterpart; the probe reconstructs with no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::STR_EQ_REPL_NOT_CTN",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:537",
+      "dispatch": "rewriteStrEqualityExt. rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= x (str.replace x y z)) ---> (not (str.contains x y)) when rewriteEquality(y=z) is false (y, z distinct constants)",
+      "coverage": "rare",
+      "proof_rules": [
+        "str-eq-repl-no-change"
+      ],
+      "guard_comparison": "The C++ guard (y and z distinct constants) implies the RARE condition (not (= y z)). Edge cases y=\"\" (the result is false, since replace prepends z) and z=\"\" were probed, as was the sequence version.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_EQ_REPL_NOT_CTN_emp_pat.smt2",
+        "probes/strings/STR_EQ_REPL_NOT_CTN_emp_rep.smt2",
+        "probes/strings/STR_EQ_REPL_NOT_CTN_proof.smt2",
+        "probes/strings/STR_EQ_REPL_NOT_CTN_seq.smt2"
+      ],
+      "probe_result": "STR_EQ_REPL_NOT_CTN_emp_pat: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_REPL_NOT_CTN_emp_rep: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_REPL_NOT_CTN_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_REPL_NOT_CTN_seq: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "The guard is stronger than the RARE condition. All probes reconstruct with no trust and agree with z3.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::STR_EQ_REPL_TO_DIS",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:552",
+      "dispatch": "rewriteStrEqualityExt. rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= (str.replace x y z) z) with len(y)=len(z) entailed ---> (or (= x y) (= x z))",
+      "coverage": "rare",
+      "proof_rules": [
+        "str-eq-repl-tgt-eq-len"
+      ],
+      "guard_comparison": "The C++ uses ArithEntail::checkEq(len y, len z); the RARE condition (= (str.len y) (str.len z)) is re-proven by length rewriting. I probed constants, symbolic equal-length u++\"a\" / \"b\"++u, and sequences.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_EQ_REPL_TO_DIS_const.smt2",
+        "probes/strings/STR_EQ_REPL_TO_DIS_seq.smt2",
+        "probes/strings/STR_EQ_REPL_TO_DIS_sym.smt2"
+      ],
+      "probe_result": "STR_EQ_REPL_TO_DIS_const: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_REPL_TO_DIS_seq: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_REPL_TO_DIS_sym: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE counterpart; the symbolic-length probe re-derives the condition with no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::STR_EQ_CONJ_LEN_ENTAIL",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:569",
+      "dispatch": "rewriteStrEqualityExt via rewriteViaStrEqLenUnifyPrefix (line 1235); also ProofRewriteRule MACRO_STR_EQ_LEN_UNIFY_PREFIX (POST_DSL). rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= x (y1++..++yn)) where len(x) <= len(y') for a sub-concat y' ---> (and (= x y') (= yk \"\")...)",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_STR_EQ_LEN_UNIFY_PREFIX",
+        "arith_poly_norm",
+        "str-len-eq-zero-concat-rec",
+        "str-len-eq-zero-base"
+      ],
+      "guard_comparison": "The C++ uses StringsEntail::inferEqsFromContains, which relies on ArithEntail::inferZerosInSumGeq. It tries both orientations and flips the first conjunct back when i==1. The elaboration (macro_rewrite_elaborator.cpp:543) re-derives it from len(x)=len(y) via length intro + ARITH_POLY_NORM, and leaves one MACRO_THEORY_REWRITE_RCONS subgoal ((= len(concat zs) 0) <=> and(zs=\"\")). Elaboration assumes len(y)-len(x) poly-normalizes exactly to sum len(zk). Probes include a non-syntactic case (lhs substr(w,0,1) or str.at), duplicate children, flipped orientation and sequences, and all closed with no trust. When len(x)<len(y') strictly, the C++ ordering runs EQ_NCTN first.",
+      "guard_gap": "When len(x) <= len(y') holds only by entailment and not syntactically (e.g. x = (str.substr w 0 1) or (str.++ (str.at w n) ..)), the rewrite is still sound. The elaboration then emits an INVALID step, (step :rule arith_poly_norm :args ((= (+ (str.len z) (str.len u)) (+ 1 (* -1 (str.len (str.substr w 0 1))) (str.len z) (str.len u))))). The guard `if (!cdfwd.addStep(pnEq, ARITH_POLY_NORM ..)) return false` (macro_rewrite_elaborator.cpp ~640) does not check the step unless --proof-check=eager is on. Neither ethos nor eager checking accepts the proof. Default --check-proofs (also at dsl-rewrite granularity) still answers unsat with no error.",
+      "probes": [
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_dup_child.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_flip.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_multi.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_proof.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_seq.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_substr.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_nonexact_len2.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_nonexact_len.smt2"
+      ],
+      "probe_result": "STR_EQ_CONJ_LEN_ENTAIL_dup_child: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_CONJ_LEN_ENTAIL_flip: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_CONJ_LEN_ENTAIL_multi: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_CONJ_LEN_ENTAIL_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_CONJ_LEN_ENTAIL_seq: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_CONJ_LEN_ENTAIL_substr: cvc5=unsat z3=unsat; no trust; ethos rejected: invalid arith_poly_norm step from MACRO_STR_EQ_LEN_UNIFY_PREFIX elaboration; eager-check FAIL | STR_EQ_CONJ_LEN_ENTAIL_nonexact_len2: cvc5=unsat z3=unsat; no trust; ethos rejected: invalid arith_poly_norm step from MACRO_STR_EQ_LEN_UNIFY_PREFIX elaboration; eager-check FAIL | STR_EQ_CONJ_LEN_ENTAIL_nonexact_len: cvc5=unsat z3=unsat; no trust; ethos rejected: invalid arith_poly_norm step from MACRO_STR_EQ_LEN_UNIFY_PREFIX elaboration; eager-check FAIL",
+      "confidence": "low",
+      "rationale": "The rewrite itself is sound: z3 agrees on all probes. For the non-syntactic-length input class, however, the proof contains an invalid ARITH_POLY_NORM step that ethos and --proof-check=eager reject. Soundness there rests on the C++ alone, and the shipped proof is wrong. Exact-length cases (4 probes) reconstruct with no trust and pass ethos/eager checks.",
+      "witness": "(assert (not (= (= (str.substr w 0 1) (str.++ z \"a\" u)) (and (= (str.substr w 0 1) \"a\") (= z \"\") (= u \"\"))))): cvc5 and z3 both answer unsat (rewrite is correct). The dsl-rewrite proof contains arith_poly_norm (= (+ len z len u) (+ 1 (* -1 (str.len (str.substr w 0 1))) len z len u)), which is false for w=\"\". `cvc5 --check-proofs --proof-check=eager --proof-granularity=dsl-rewrite` fails with 'ProofChecker::check: failed ... ARITH_POLY_NORM', and ethos reports 'Evaluation failed'. Probes: STR_EQ_CONJ_LEN_ENTAIL_nonexact_len, _nonexact_len2, _substr."
+    },
+    {
+      "id": "Rewrite::SPLIT_EQ",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1283 (returned at 586 via `rule`)",
+      "dispatch": "rewriteStrEqualityExt via rewriteViaStrEqLenUnify; ProofRewriteRule MACRO_STR_EQ_LEN_UNIFY (POST_DSL). rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= (a++b) (c++d)) with len(a)=len(c) entailed ---> (and (= a c) (= b d))",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_STR_EQ_LEN_UNIFY",
+        "CONCAT_UNIFY",
+        "CONCAT_EQ",
+        "str-len-concat-rec"
+      ],
+      "guard_comparison": "rewriteViaStrEqLenUnify (line 1260) enumerates prefix pairs (i,j). SPLIT_EQ fires when ArithEntail::checkEq(len pfx0, len pfx1). STRIP_R/STRIP_L fire when one prefix is strictly longer (ArithEntail::check strict) and StringsEntail::stripSymbolicLength removes exactly the other prefix's length (curr reaches 0). The elaboration (macro_rewrite_elaborator.cpp:747) proves the equivalence with the core rules CONCAT_UNIFY + CONCAT_EQ. Its subgoals are a trusted len(lhs0)=len(rhs0) step and two concat regroupings (MACRO_THEORY_REWRITE_RCONS), all closed by RARE reconstruction in the probes. The length equality is therefore re-derived, not taken from the C++ entailment.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/SPLIT_EQ_proof.smt2"
+      ],
+      "probe_result": "SPLIT_EQ_proof: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok",
+      "confidence": "medium",
+      "rationale": "Sound core rules re-derive the length premise, and the probe has no trust. z3 times out, so there is no differential evidence, and the RCONS subgoals depend on budgeted search.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::SPLIT_EQ_STRIP_R",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1318 (returned at 586)",
+      "dispatch": "rewriteStrEqualityExt via rewriteViaStrEqLenUnify; MACRO_STR_EQ_LEN_UNIFY. rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "(= (A++x++y) (x++AB++z)) ---> (and (= A++x x++A) (= y B++z)) by stripping the longer rhs prefix by len(lhs prefix)",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_STR_EQ_LEN_UNIFY",
+        "CONCAT_UNIFY",
+        "CONCAT_EQ"
+      ],
+      "guard_comparison": "rewriteViaStrEqLenUnify (line 1260) enumerates prefix pairs (i,j). SPLIT_EQ fires when ArithEntail::checkEq(len pfx0, len pfx1). STRIP_R/STRIP_L fire when one prefix is strictly longer (ArithEntail::check strict) and StringsEntail::stripSymbolicLength removes exactly the other prefix's length (curr reaches 0). The elaboration (macro_rewrite_elaborator.cpp:747) proves the equivalence with the core rules CONCAT_UNIFY + CONCAT_EQ. Its subgoals are a trusted len(lhs0)=len(rhs0) step and two concat regroupings (MACRO_THEORY_REWRITE_RCONS), all closed by RARE reconstruction in the probes. The length equality is therefore re-derived, not taken from the C++ entailment. Probes cover multi-char constants split mid-constant, a unicode \\u{10000}\\u{5c} split, a symbolic middle component, and sequences.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/SPLIT_EQ_STRIP_R_multichar.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_R_multi_var.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_R_proof.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_R_seq.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_R_unicode.smt2"
+      ],
+      "probe_result": "SPLIT_EQ_STRIP_R_multichar: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | SPLIT_EQ_STRIP_R_multi_var: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | SPLIT_EQ_STRIP_R_proof: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | SPLIT_EQ_STRIP_R_seq: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | SPLIT_EQ_STRIP_R_unicode: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok",
+      "confidence": "medium",
+      "rationale": "Elaborated to core rules with re-derived lengths, and every probe has no trust. z3 times out on all of them (no differential), and the RCONS subgoals depend on search.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::SPLIT_EQ_STRIP_L",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1348 (returned at 586)",
+      "dispatch": "rewriteStrEqualityExt via rewriteViaStrEqLenUnify; MACRO_STR_EQ_LEN_UNIFY. rewriteStrEqualityExt is not part of the standard post-rewrite. It is reached through TheoryStrings::ppStaticRewrite (TrustId STRINGS_PP_STATIC_REWRITE), ExtfSolver::checkExtfInference and the extended rewriter. Proofs justify it as MACRO_REWRITE/RW_REWRITE_EQ_EXT, then TRUST_THEORY_REWRITE, then RARE reconstruction at dsl-rewrite granularity.",
+      "summary": "mirror of STRIP_R with the lhs prefix strictly longer",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_STR_EQ_LEN_UNIFY",
+        "CONCAT_UNIFY",
+        "CONCAT_EQ"
+      ],
+      "guard_comparison": "rewriteViaStrEqLenUnify (line 1260) enumerates prefix pairs (i,j). SPLIT_EQ fires when ArithEntail::checkEq(len pfx0, len pfx1). STRIP_R/STRIP_L fire when one prefix is strictly longer (ArithEntail::check strict) and StringsEntail::stripSymbolicLength removes exactly the other prefix's length (curr reaches 0). The elaboration (macro_rewrite_elaborator.cpp:747) proves the equivalence with the core rules CONCAT_UNIFY + CONCAT_EQ. Its subgoals are a trusted len(lhs0)=len(rhs0) step and two concat regroupings (MACRO_THEORY_REWRITE_RCONS), all closed by RARE reconstruction in the probes. The length equality is therefore re-derived, not taken from the C++ entailment. A sat probe checks the satisfiable side is preserved.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/SPLIT_EQ_STRIP_L_proof.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_L_sat_check.smt2"
+      ],
+      "probe_result": "SPLIT_EQ_STRIP_L_proof: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | SPLIT_EQ_STRIP_L_sat_check: cvc5=sat z3=sat",
+      "confidence": "medium",
+      "rationale": "Same as STRIP_R. The proof probe has no trust, z3 times out, and the sat probe agrees.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::LEN_EVAL",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:611",
+      "dispatch": "post-rewrite STRING_LENGTH, rewriteLength",
+      "summary": "(str.len c) ---> |c|",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Constant evaluation; \\u{..} escapes count as one char.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/LEN_EVAL_escape.smt2"
+      ],
+      "probe_result": "LEN_EVAL_escape: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::LEN_CONCAT",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:633",
+      "dispatch": "post-rewrite STRING_LENGTH, rewriteLength",
+      "summary": "(str.len (s1++..++sn)) ---> (+ len(s1) .. len(sn)), constants evaluated",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "str-len-concat-rec",
+        "evaluate"
+      ],
+      "guard_comparison": "The fixed-point rule str-len-concat-rec plus evaluation of constant lengths.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/LEN_CONCAT_proof.smt2"
+      ],
+      "probe_result": "LEN_CONCAT_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "RARE fixed-point rule; the probe reconstructs with no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::LEN_REPL_INV",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:644",
+      "dispatch": "post-rewrite STRING_LENGTH, rewriteLength (both STRING_REPLACE and STRING_REPLACE_ALL)",
+      "summary": "(str.len (str.replace[_all] x y z)) ---> (str.len x) if len(y)=len(z) entailed",
+      "coverage": "rare",
+      "proof_rules": [
+        "str-len-replace-inv",
+        "str-len-replace-all-inv"
+      ],
+      "guard_comparison": "The C++ uses ArithEntail::checkEq for both kinds. Each kind has its own RARE rule with condition (= (str.len s) (str.len r)), re-proven by length rewriting. Probes: constant and symbolic equal-length cases for both kinds, plus a sat probe with unequal lengths.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/LEN_REPL_INV_all.smt2",
+        "probes/strings/LEN_REPL_INV_all_sym.smt2",
+        "probes/strings/LEN_REPL_INV_const.smt2",
+        "probes/strings/LEN_REPL_INV_sat_neq.smt2",
+        "probes/strings/LEN_REPL_INV_sym.smt2"
+      ],
+      "probe_result": "LEN_REPL_INV_all: cvc5=unsat z3=unknown; no trust; ethos correct; eager-check ok | LEN_REPL_INV_all_sym: cvc5=unsat z3=unknown; no trust; ethos correct; eager-check ok | LEN_REPL_INV_const: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | LEN_REPL_INV_sat_neq: cvc5=sat z3=sat | LEN_REPL_INV_sym: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE counterparts for both kinds; no trust. z3 is unknown on replace_all.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::LEN_CONV_INV",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:653",
+      "dispatch": "post-rewrite STRING_LENGTH, rewriteLength for STRING_TO_LOWER, STRING_TO_UPPER, STRING_REV, STRING_UPDATE",
+      "summary": "(str.len (f x ...)) ---> (str.len x)",
+      "coverage": "rare",
+      "proof_rules": [
+        "str-to-lower-len",
+        "str-to-upper-len",
+        "seq-len-rev",
+        "str-len-update-inv"
+      ],
+      "guard_comparison": "There are four kinds in one branch, each with its own RARE rule. seq-len-rev and str-len-update-inv are ?Seq-typed and also cover sequences.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/LEN_CONV_INV_lower.smt2",
+        "probes/strings/LEN_CONV_INV_rev.smt2",
+        "probes/strings/LEN_CONV_INV_seq_rev.smt2",
+        "probes/strings/LEN_CONV_INV_seq_update.smt2",
+        "probes/strings/LEN_CONV_INV_update.smt2",
+        "probes/strings/LEN_CONV_INV_upper.smt2"
+      ],
+      "probe_result": "LEN_CONV_INV_lower: cvc5=unsat z3=error; no trust; ethos correct; eager-check ok | LEN_CONV_INV_rev: cvc5=unsat z3=error; no trust; ethos correct; eager-check ok | LEN_CONV_INV_seq_rev: cvc5=unsat z3=error; no trust; ethos correct; eager-check ok | LEN_CONV_INV_seq_update: cvc5=unsat z3=error; no trust; ethos correct; eager-check ok | LEN_CONV_INV_update: cvc5=unsat z3=error; no trust; ethos correct; eager-check ok | LEN_CONV_INV_upper: cvc5=unsat z3=error; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Every kind has an exact RARE rule; all 6 probes reconstruct with no trust and pass ethos and eager checks. z3 4.13 supports none of these operators (it errors), so there is no differential.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::LEN_SEQ_UNIT",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:658",
+      "dispatch": "post-rewrite STRING_LENGTH, rewriteLength for SEQ_UNIT and STRING_UNIT",
+      "summary": "(str.len (seq.unit t)) / (str.len (STRING_UNIT n)) ---> 1",
+      "coverage": "rare",
+      "proof_rules": [
+        "seq-len-unit"
+      ],
+      "guard_comparison": "seq-len-unit covers SEQ_UNIT. STRING_UNIT is an internal kind (utils::mkUnit, no SMT-LIB or CPC symbol) with no RARE rule. Its kinds.toml semantics ('arbitrary string of length one' for invalid code points) makes len=1 correct.",
+      "guard_gap": "STRING_UNIT case: no proof rule (internal kind, not expressible in CPC); sound by kind definition",
+      "probes": [
+        "probes/strings/LEN_SEQ_UNIT_proof.smt2"
+      ],
+      "probe_result": "LEN_SEQ_UNIT_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "medium",
+      "rationale": "The SEQ_UNIT case is exactly seq-len-unit and the probe has no trust. The internal STRING_UNIT case has no proof counterpart.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::CONCAT_NORM",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:743",
+      "dispatch": "post-rewrite STRING_CONCAT, rewriteConcat",
+      "summary": "flatten nested str.++, merge adjacent constants (Word::mkWordFlatten), drop empty constants",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "aci_norm",
+        "evaluate",
+        "str-concat-unify"
+      ],
+      "guard_comparison": "Pure normalization. Flattening and empty-removal are ACI_NORM (str.++ with nil \"\"), and constant merging is evaluate. Probes cover the \\u{10000} and \\u{5c}+\"u\" boundary (no accidental escape formation) and sequences of units.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/CONCAT_NORM_proof.smt2",
+        "probes/strings/CONCAT_NORM_seq.smt2",
+        "probes/strings/CONCAT_NORM_unicode.smt2"
+      ],
+      "probe_result": "CONCAT_NORM_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | CONCAT_NORM_seq: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | CONCAT_NORM_unicode: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Normalization covered by ACI_NORM/evaluate; all probes reconstruct with no trust and agree with z3.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_ALL_ELIM",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:754",
+      "dispatch": "post-rewrite REGEXP_ALL, rewriteAllRegExp",
+      "summary": "re.all ---> (re.* re.allchar)",
+      "coverage": "rare",
+      "proof_rules": [
+        "re-all-elim"
+      ],
+      "guard_comparison": "Unconditional.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_ALL_ELIM_proof.smt2"
+      ],
+      "probe_result": "RE_ALL_ELIM_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE rule; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_CONCAT_EMPTY",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:801",
+      "dispatch": "post-rewrite REGEXP_CONCAT, rewriteConcatRegExp",
+      "summary": "(re.++ .. re.none ..) ---> re.none",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "ABSORB"
+      ],
+      "guard_comparison": "Zero-element absorption, justified by ABSORB.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_CONCAT_EMPTY_proof.smt2"
+      ],
+      "probe_result": "RE_CONCAT_EMPTY_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Covered by ABSORB; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_CONCAT_FLATTEN",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:822",
+      "dispatch": "post-rewrite REGEXP_CONCAT, rewriteConcatRegExp",
+      "summary": "flatten nested re.++ and drop (str.to_re \"\"); all-empty ---> (str.to_re \"\")",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "aci_norm"
+      ],
+      "guard_comparison": "ACI normalization with nil (str.to_re \"\"). The all-empty case returns the saved emptyRe node; probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_CONCAT_FLATTEN_all_empty.smt2",
+        "probes/strings/RE_CONCAT_FLATTEN_proof.smt2"
+      ],
+      "probe_result": "RE_CONCAT_FLATTEN_all_empty: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_CONCAT_FLATTEN_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "ACI_NORM covers it; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_CONCAT",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:903",
+      "dispatch": "post-rewrite REGEXP_CONCAT, rewriteConcatRegExp (second loop)",
+      "summary": "merge consecutive str.to_re (also non-constant strings); drop constant nullable components adjacent to (re.* re.allchar); collapse identical adjacent stars",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "re-concat-merge",
+        "re-concat-star-repeat",
+        "re-concat-star-nullable1",
+        "re-concat-star-nullable2"
+      ],
+      "guard_comparison": "Sub-case merge: re-concat-merge (fixed point) and probed with a non-constant string. Sub-case identical stars: re-concat-star-repeat (r may be allchar). Sub-case nullable drop: C++ requires isConstRegExp(R) and testConstStringInRegExp(\"\",R). At HEAD the RARE rules re-concat-star-nullable1/2 (condition (str.in_re \"\" r), proven by evaluation for constant R) cover drops on both sides, but they are not fixed-point rules, so several drops need repeated application. The binary (dc8ad24031) predates them: it only has re-concat-star-subsume1/2 for (re.* r), so the nullable-drop probes leave TRUST_THEORY_REWRITE there. A sat probe checks that a non-nullable component is kept.",
+      "guard_gap": "In the probed binary only: dropping a non-star nullable constant regexp next to _* is not reconstructed. At HEAD it is covered by re-concat-star-nullable1/2 (unverified, no HEAD build).",
+      "probes": [
+        "probes/strings/RE_CONCAT_allstar_allstar.smt2",
+        "probes/strings/RE_CONCAT_merge_strings.smt2",
+        "probes/strings/RE_CONCAT_nonnullable_kept_sat.smt2",
+        "probes/strings/RE_CONCAT_nullable_after_allstar.smt2",
+        "probes/strings/RE_CONCAT_nullable_before_allstar.smt2",
+        "probes/strings/RE_CONCAT_star_repeat.smt2"
+      ],
+      "probe_result": "RE_CONCAT_allstar_allstar: cvc5=unsat z3=unsat; no trust; ethos rejected: rule re-concat-star-subsume2 absent at HEAD signature (binary/HEAD skew); eager-check ok | RE_CONCAT_merge_strings: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_CONCAT_nonnullable_kept_sat: cvc5=sat z3=sat | RE_CONCAT_nullable_after_allstar: cvc5=unsat z3=unsat; trust TRUST_THEORY_REWRITE; ethos incomplete; eager-check ok | RE_CONCAT_nullable_before_allstar: cvc5=unsat z3=unsat; trust TRUST_THEORY_REWRITE; ethos incomplete; eager-check ok | RE_CONCAT_star_repeat: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "medium",
+      "rationale": "Every sub-case has a RARE counterpart at HEAD with conditions implied by the C++ guards. The nullable-drop case can only be checked against the older binary, which leaves trust (rules added later), so reconstruction at HEAD is unconfirmed.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_CONCAT_OPT",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:920",
+      "dispatch": "post-rewrite REGEXP_CONCAT, rewriteConcatRegExp (third loop)",
+      "summary": "(re.* r) ++ r ---> r ++ (re.* r), single left-to-right pass (moves a star right past a run of r)",
+      "coverage": "rare",
+      "proof_rules": [
+        "re-concat-star-swap"
+      ],
+      "guard_comparison": "The C++ swaps in one pass, so a chain (re.* r) r r becomes r r (re.* r). At HEAD re-concat-star-swap is define-rule* (fixed point), matching that pass; the binary has the non-* version but probes still reconstruct. Probed with a chain and with a range body.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_CONCAT_OPT_chain.smt2",
+        "probes/strings/RE_CONCAT_OPT_proof.smt2",
+        "probes/strings/RE_CONCAT_OPT_range.smt2"
+      ],
+      "probe_result": "RE_CONCAT_OPT_chain: cvc5=unsat z3=timeout; no trust; ethos rejected at a re_unfold_pos/process_scope step (binary/HEAD skew, be30d2772a), not the rewrite step; eager-check ok | RE_CONCAT_OPT_proof: cvc5=unsat z3=unsat; no trust; ethos rejected at a re_unfold_pos/process_scope step (binary/HEAD skew, be30d2772a), not the rewrite step; eager-check ok | RE_CONCAT_OPT_range: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE rule; all probes reconstruct with no trust and pass eager checks. Ethos rejects two of them at an unrelated re_unfold_pos/process_scope step, a binary/HEAD skew from be30d2772a. The range probe, which isolates the step, passes ethos.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_STAR_NESTED_STAR",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:933",
+      "dispatch": "post-rewrite REGEXP_STAR, rewriteStarRegExp",
+      "summary": "((R)*)* ---> R*",
+      "coverage": "rare",
+      "proof_rules": [
+        "re-star-star"
+      ],
+      "guard_comparison": "Unconditional.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_STAR_NESTED_STAR_proof.smt2"
+      ],
+      "probe_result": "RE_STAR_NESTED_STAR_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE rule; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_STAR_EMPTY_STRING",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:939",
+      "dispatch": "post-rewrite REGEXP_STAR",
+      "summary": "(\"\")* ---> \"\"",
+      "coverage": "rare",
+      "proof_rules": [
+        "re-star-emp"
+      ],
+      "guard_comparison": "Unconditional.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_STAR_EMPTY_STRING_proof.smt2"
+      ],
+      "probe_result": "RE_STAR_EMPTY_STRING_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE rule; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_STAR_EMPTY",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:945",
+      "dispatch": "post-rewrite REGEXP_STAR",
+      "summary": "(re.none)* ---> \"\"",
+      "coverage": "rare",
+      "proof_rules": [
+        "re-star-none"
+      ],
+      "guard_comparison": "Unconditional.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_STAR_EMPTY_proof.smt2",
+        "probes/strings/RE_STAR_EMPTY_STRING_proof.smt2"
+      ],
+      "probe_result": "RE_STAR_EMPTY_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_STAR_EMPTY_STRING_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE rule; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_STAR_UNION_CHAR",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:955",
+      "dispatch": "post-rewrite REGEXP_STAR",
+      "summary": "(re.* (re.union .. re.allchar ..)) ---> (re.* re.allchar)",
+      "coverage": "rare",
+      "proof_rules": [
+        "re-star-union-char"
+      ],
+      "guard_comparison": "The C++ checks any union child of kind REGEXP_ALLCHAR. The RARE rule (re.* (re.union x re.allchar y)) with list x, y matches exactly at HEAD. The rule was added after the binary (04e95aee6f), so the binary probe leaves TRUST_THEORY_REWRITE.",
+      "guard_gap": "binary only: no RARE rule (trust); covered at HEAD",
+      "probes": [
+        "probes/strings/RE_STAR_UNION_CHAR_proof.smt2"
+      ],
+      "probe_result": "RE_STAR_UNION_CHAR_proof: cvc5=unsat z3=unsat; trust TRUST_THEORY_REWRITE; ethos incomplete; eager-check ok",
+      "confidence": "medium",
+      "rationale": "There is an exact RARE counterpart at HEAD, but reconstruction could only be tested on an older binary that lacks the rule.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_STAR_UNION",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:984",
+      "dispatch": "post-rewrite REGEXP_STAR",
+      "summary": "(re.* (re.union \"\" R1 ..)) ---> (re.* (re.union R1 ..))",
+      "coverage": "rare",
+      "proof_rules": [
+        "re-star-union-drop-emp"
+      ],
+      "guard_comparison": "The C++ drops every (str.to_re \"\") child under hasEpsilonNode. A union of only \"\" children cannot reach here, because bottom-up union dedup leaves a single child, so the empty-union construction is unreachable. The single-remaining-child case is probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_STAR_UNION_proof.smt2",
+        "probes/strings/RE_STAR_UNION_single.smt2"
+      ],
+      "probe_result": "RE_STAR_UNION_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_STAR_UNION_single: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE rule; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_AND_EMPTY",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1116",
+      "dispatch": "post-rewrite REGEXP_UNION / REGEXP_INTER, rewriteAndOrRegExp",
+      "summary": "(re.inter .. re.none ..) ---> re.none",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "ABSORB"
+      ],
+      "guard_comparison": "Zero absorption.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_AND_EMPTY_proof.smt2"
+      ],
+      "probe_result": "RE_AND_EMPTY_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "ABSORB; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_OR_ALL",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1126",
+      "dispatch": "post-rewrite REGEXP_UNION / REGEXP_INTER, rewriteAndOrRegExp",
+      "summary": "(re.union .. (re.* re.allchar) ..) ---> (re.* re.allchar)",
+      "coverage": "rare",
+      "proof_rules": [
+        "re-union-all"
+      ],
+      "guard_comparison": "Unconditional. In the probe, the membership was decided via sigma-star; no trust.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_OR_ALL_proof.smt2"
+      ],
+      "probe_result": "RE_OR_ALL_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "RARE rule re-union-all/absorb; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_INTER_CONST_CONST_CONFLICT",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1144",
+      "dispatch": "post-rewrite REGEXP_UNION / REGEXP_INTER, rewriteAndOrRegExp",
+      "summary": "(re.inter .. (str.to_re c1) .. (str.to_re c2) ..) ---> re.none for distinct constants",
+      "coverage": "rare",
+      "proof_rules": [
+        "re-inter-cstring-neg",
+        "str-in-re-eval"
+      ],
+      "guard_comparison": "The C++ relies on node distinctness of constant str.to_re children (dedup first). Children coming from a flattened nested inter are not added to constStrRe, which only makes it incomplete. re-inter-cstring-neg's condition (not (str.in_re c1 (re.inter (str.to_re c1) ..))) is proven by STR_IN_RE_EVAL. Probed with \\u{10000} vs \\u{ffff}.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_INTER_CONST_CONST_CONFLICT_proof.smt2",
+        "probes/strings/RE_INTER_CONST_CONST_CONFLICT_unicode.smt2"
+      ],
+      "probe_result": "RE_INTER_CONST_CONST_CONFLICT_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_INTER_CONST_CONST_CONFLICT_unicode: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "RARE rule with an evaluable condition; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_ANDOR_FLATTEN",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1183",
+      "dispatch": "post-rewrite REGEXP_UNION / REGEXP_INTER, rewriteAndOrRegExp",
+      "summary": "flatten same-kind children, dedup, drop re.none from union / _* from inter; empty ---> neutral element",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "aci_norm",
+        "re-inter-all"
+      ],
+      "guard_comparison": "ACI_NORM with nil re.none / (re.* re.allchar) and idempotence.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_ANDOR_FLATTEN_inter_only_all.smt2",
+        "probes/strings/RE_ANDOR_FLATTEN_inter.smt2",
+        "probes/strings/RE_ANDOR_FLATTEN_union.smt2"
+      ],
+      "probe_result": "RE_ANDOR_FLATTEN_inter_only_all: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_ANDOR_FLATTEN_inter: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_ANDOR_FLATTEN_union: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "ACI normalization; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_ANDOR_CONST_REMOVE",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1191",
+      "dispatch": "post-rewrite REGEXP_UNION / REGEXP_INTER, rewriteAndOrRegExp; delegates to rewriteViaMacroReInterUnionConstElim (MACRO_RE_INTER_UNION_CONST_ELIM)",
+      "summary": "remove/resolve constant str.to_re children via membership tests against other children",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_RE_INTER_UNION_CONST_ELIM",
+        "re-union-const-elim",
+        "re-inter-cstring-neg",
+        "str-in-re-eval"
+      ],
+      "guard_comparison": "The same code as the ProofRewriteRule MACRO_RE_INTER_UNION_CONST_ELIM (reviewed in its own record).",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_ANDOR_CONST_REMOVE_inter.smt2",
+        "probes/strings/RE_ANDOR_CONST_REMOVE_union.smt2"
+      ],
+      "probe_result": "RE_ANDOR_CONST_REMOVE_inter: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_ANDOR_CONST_REMOVE_union: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Elaborated into RARE rules with evaluable conditions; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_ANDOR_INC_CONFLICT",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1198",
+      "dispatch": "post-rewrite REGEXP_UNION / REGEXP_INTER, rewriteAndOrRegExp; delegates to rewriteViaMacroReInterUnionInclusion (MACRO_RE_INTER_UNION_INCLUSION)",
+      "summary": "(re.inter (re.comp R1) R2 ..) ---> re.none / (re.union R1 (re.comp R2) ..) ---> _* when R1 includes R2",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_RE_INTER_UNION_INCLUSION",
+        "re-inter-inclusion",
+        "re-union-inclusion"
+      ],
+      "guard_comparison": "See MACRO_RE_INTER_UNION_INCLUSION. Probed binary inter and union, inter with an extra child, and a sat non-inclusion case.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_ANDOR_INC_CONFLICT_inter_extra.smt2",
+        "probes/strings/RE_ANDOR_INC_CONFLICT_inter.smt2",
+        "probes/strings/RE_ANDOR_INC_CONFLICT_sat_noninc.smt2",
+        "probes/strings/RE_ANDOR_INC_CONFLICT_union.smt2"
+      ],
+      "probe_result": "RE_ANDOR_INC_CONFLICT_inter_extra: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_ANDOR_INC_CONFLICT_inter: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_ANDOR_INC_CONFLICT_sat_noninc: cvc5=sat z3=sat | RE_ANDOR_INC_CONFLICT_union: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Elaborated to independently checked inclusion rules; no trust; the sat case agrees.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_LOOP_NONE",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1219",
+      "dispatch": "post-rewrite REGEXP_LOOP, rewriteLoopRegExp",
+      "summary": "((_ re.loop l u) r) ---> re.none if u<l",
+      "coverage": "rare",
+      "proof_rules": [
+        "re-loop-neg"
+      ],
+      "guard_comparison": "The guard u<l is exactly (> n m).",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_LOOP_NONE_proof.smt2"
+      ],
+      "probe_result": "RE_LOOP_NONE_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Exact RARE rule; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_LOOP_ZERO",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1224",
+      "dispatch": "post-rewrite REGEXP_LOOP, rewriteLoopRegExp",
+      "summary": "((_ re.loop 0 0) r) ---> (str.to_re \"\")",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "re-loop-elim"
+      ],
+      "guard_comparison": "Instance of RE_LOOP_ELIM with l=u=0, whose CPC definition is independent.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_LOOP_ZERO_proof.smt2"
+      ],
+      "probe_result": "RE_LOOP_ZERO_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Covered by re-loop-elim; no trust.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_LOOP_STAR",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1228",
+      "dispatch": "post-rewrite REGEXP_LOOP, rewriteLoopRegExp",
+      "summary": "((_ re.loop l u) (re.* r)) ---> (re.* r) when l<=u and u>=1",
+      "coverage": "rare",
+      "proof_rules": [
+        "re-loop-star"
+      ],
+      "guard_comparison": "The C++ reaches here only when !(u<l) and u!=0. That equals the RARE condition (and (>= m n) (>= m 1)) at HEAD. re-loop-star was added after the binary, so the binary probes leave TRUST_THEORY_REWRITE.",
+      "guard_gap": "binary only: no RARE rule (trust); covered at HEAD",
+      "probes": [
+        "probes/strings/RE_LOOP_STAR_proof.smt2",
+        "probes/strings/RE_LOOP_STAR_zero_lower.smt2"
+      ],
+      "probe_result": "RE_LOOP_STAR_proof: cvc5=unsat z3=timeout; trust TRUST_THEORY_REWRITE; ethos incomplete; eager-check ok | RE_LOOP_STAR_zero_lower: cvc5=unsat z3=timeout; trust TRUST_THEORY_REWRITE; ethos incomplete; eager-check ok",
+      "confidence": "medium",
+      "rationale": "There is an exact RARE counterpart at HEAD, but it is not verifiable on the probed binary; z3 times out on the probes.",
+      "witness": null
+    },
+    {
+      "id": "Rewrite::RE_LOOP",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1232",
+      "dispatch": "post-rewrite REGEXP_LOOP, rewriteLoopRegExp; calls rewriteViaReLoopElim (RE_LOOP_ELIM)",
+      "summary": "loop elimination to concat/union of repetitions",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "re-loop-elim"
+      ],
+      "guard_comparison": "The same function as the ProofRewriteRule RE_LOOP_ELIM, whose CPC definition is independent ($str_mk_re_loop_elim).",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_LOOP_exact.smt2",
+        "probes/strings/RE_LOOP_proof.smt2"
+      ],
+      "probe_result": "RE_LOOP_exact: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_LOOP_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "An independent Eunoia definition checks it; probes have no trust.",
+      "witness": null
+    },
+    {
+      "id": "MACRO_RE_INTER_UNION_INCLUSION",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:991",
+      "dispatch": "rewriteViaRule dispatch (line 99); registered PRE_DSL; also Rewrite::RE_ANDOR_INC_CONFLICT",
+      "summary": "(re.inter (re.comp R1) R2 rest) ---> (re.inter re.none rest...) or re.none; union dual ---> _*",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "RE_INTER_INCLUSION",
+        "RE_UNION_INCLUSION",
+        "aci_norm"
+      ],
+      "guard_comparison": "The elaboration (macro_rewrite_elaborator.cpp:278) isolates the two involved children by diffing eq[0] against eq[1] and orders the non-complement child first. It proves them with RE_INTER/UNION_INCLUSION (independent CPC), and regroups the rest with ACI_NORM and congruence. The residual subgoal (re.inter re.none rest) = re.none is an RCONS step closed by absorb. The C++ pairs any complement child with any positive child; the m1/m2 order matches each CPC rule's includes direction.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_ANDOR_INC_CONFLICT_inter_extra.smt2",
+        "probes/strings/RE_ANDOR_INC_CONFLICT_inter.smt2",
+        "probes/strings/RE_ANDOR_INC_CONFLICT_sat_noninc.smt2",
+        "probes/strings/RE_ANDOR_INC_CONFLICT_union.smt2"
+      ],
+      "probe_result": "RE_ANDOR_INC_CONFLICT_inter_extra: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_ANDOR_INC_CONFLICT_inter: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_ANDOR_INC_CONFLICT_sat_noninc: cvc5=sat z3=sat | RE_ANDOR_INC_CONFLICT_union: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Core inclusion is checked by independent Eunoia; the remaining steps are ACI/absorb. All probes have no trust.",
+      "witness": null
+    },
+    {
+      "id": "RE_INTER_INCLUSION",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1060",
+      "dispatch": "rewriteViaRule dispatch (line 99); not registered for DSL; produced by the MACRO_RE_INTER_UNION_INCLUSION elaboration",
+      "summary": "(re.inter R2 (re.comp R1)) ---> re.none when R1 includes R2",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "re-inter-inclusion"
+      ],
+      "guard_comparison": "The C++ requires 2 children with n[1] a complement and regExpIncludes(n[1][0], n[0]). CPC re-inter-inclusion requires ($str_re_includes (flat r2) (flat r1)) with the same direction. $str_re_includes was rewritten as a verified Eunoia version (42e75fdb2d), independent of RegExpEntail::regExpIncludes.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_ANDOR_INC_CONFLICT_inter_extra.smt2",
+        "probes/strings/RE_ANDOR_INC_CONFLICT_inter.smt2"
+      ],
+      "probe_result": "RE_ANDOR_INC_CONFLICT_inter_extra: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | RE_ANDOR_INC_CONFLICT_inter: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "There is an independent CPC definition, and the probes use re-inter-inclusion with no trust.",
+      "witness": null
+    },
+    {
+      "id": "RE_UNION_INCLUSION",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1060",
+      "dispatch": "rewriteViaRule dispatch (line 99); produced by the MACRO_RE_INTER_UNION_INCLUSION elaboration",
+      "summary": "(re.union R1 (re.comp R2)) ---> (re.* re.allchar) when R1 includes R2",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "re-union-inclusion"
+      ],
+      "guard_comparison": "The C++ uses regExpIncludes(n[0], n[1][0]); CPC uses $str_re_includes(flat r1, flat r2). Same direction, independent implementation.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_ANDOR_INC_CONFLICT_union.smt2"
+      ],
+      "probe_result": "RE_ANDOR_INC_CONFLICT_union: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Independent CPC definition; the probe has no trust.",
+      "witness": null
+    },
+    {
+      "id": "STR_CTN_MULTISET_SUBSET",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:129",
+      "dispatch": "rewriteViaRule dispatch (line 99) (inline); registered DSL_SUBCALL",
+      "summary": "(str.contains t s) ---> false when s's multiset of components/chars is not included in t's over-approximation (not both constant)",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-ctn-multiset-subset"
+      ],
+      "guard_comparison": "The C++ calls StringsEntail::checkMultisetSubset(n[0], n[1]) (entailment reviewed elsewhere). CPC str-ctn-multiset-subset recomputes it independently with $str_is_multiset_subset_strict over $str_to_flat_form s and $str_multiset_overapprox t.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/EQ_NCTN_seq.smt2",
+        "probes/strings/SPLIT_EQ_proof.smt2",
+        "probes/strings/STR_CTN_MULTISET_SUBSET_proof.smt2",
+        "probes/strings/STR_CTN_MULTISET_SUBSET_sat_edge.smt2",
+        "probes/strings/STR_CTN_MULTISET_SUBSET_seq.smt2"
+      ],
+      "probe_result": "EQ_NCTN_seq: cvc5=unsat z3=unsat; no trust; ethos correct (probe.py read an ethos stderr warning as the verdict; a direct run prints 'correct'); eager-check ok | SPLIT_EQ_proof: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | STR_CTN_MULTISET_SUBSET_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_CTN_MULTISET_SUBSET_sat_edge: cvc5=sat z3=sat | STR_CTN_MULTISET_SUBSET_seq: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Independent Eunoia definition. String and sequence probes use the rule with no trust, and a sat edge case agrees.",
+      "witness": null
+    },
+    {
+      "id": "MACRO_STR_EQ_LEN_UNIFY_PREFIX",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1235",
+      "dispatch": "rewriteViaRule dispatch (line 99); registered POST_DSL; also Rewrite::STR_EQ_CONJ_LEN_ENTAIL",
+      "summary": "see Rewrite::STR_EQ_CONJ_LEN_ENTAIL",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "arith_poly_norm",
+        "str-len-eq-zero-concat-rec",
+        "str-len-eq-zero-base"
+      ],
+      "guard_comparison": "In the elaboration (macro_rewrite_elaborator.cpp:543), the forward direction derives len(z..)=0 from the length equality with ARITH_POLY_NORM and one RCONS subgoal. The reverse direction substitutes the empties (cong + ACI_NORM). The elaboration assumes len(y)-len(x) poly-normalizes to exactly sum len(zk). inferEqsFromContains only guarantees len(x) <= len(y') via ArithEntail::inferZerosInSumGeq. When that inequality is not syntactic, `cdfwd.addStep(pnEq, ARITH_POLY_NORM)` adds a false step: CDProof::addStep does not check without --proof-check=eager, so the intended `return false` fallback never fires.",
+      "guard_gap": "Inputs where len(x) <= len(y') holds only by entailment (e.g. x = (str.substr w 0 1) against z++\"a\"++u). The elaboration emits an invalid arith_poly_norm step instead of failing.",
+      "probes": [
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_dup_child.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_flip.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_multi.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_proof.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_seq.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_substr.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_nonexact_len2.smt2",
+        "probes/strings/STR_EQ_CONJ_LEN_ENTAIL_nonexact_len.smt2"
+      ],
+      "probe_result": "STR_EQ_CONJ_LEN_ENTAIL_dup_child: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_CONJ_LEN_ENTAIL_flip: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_CONJ_LEN_ENTAIL_multi: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_CONJ_LEN_ENTAIL_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_CONJ_LEN_ENTAIL_seq: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | STR_EQ_CONJ_LEN_ENTAIL_substr: cvc5=unsat z3=unsat; no trust; ethos rejected: invalid arith_poly_norm step from MACRO_STR_EQ_LEN_UNIFY_PREFIX elaboration; eager-check FAIL | STR_EQ_CONJ_LEN_ENTAIL_nonexact_len2: cvc5=unsat z3=unsat; no trust; ethos rejected: invalid arith_poly_norm step from MACRO_STR_EQ_LEN_UNIFY_PREFIX elaboration; eager-check FAIL | STR_EQ_CONJ_LEN_ENTAIL_nonexact_len: cvc5=unsat z3=unsat; no trust; ethos rejected: invalid arith_poly_norm step from MACRO_STR_EQ_LEN_UNIFY_PREFIX elaboration; eager-check FAIL",
+      "confidence": "low",
+      "rationale": "Exact-length cases are re-derived from sound core steps. For non-syntactic lengths the elaborated proof contains an invalid ARITH_POLY_NORM step (ethos and eager checking reject it), so correctness there rests on the C++ (inferEqsFromContains) alone.",
+      "witness": "See Rewrite::STR_EQ_CONJ_LEN_ENTAIL: probes/strings/STR_EQ_CONJ_LEN_ENTAIL_nonexact_len.smt2. The rewrite result is correct (cvc5/z3 unsat), but `cvc5 --check-proofs --proof-check=eager --proof-granularity=dsl-rewrite` aborts at ARITH_POLY_NORM (= (+ len z len u) (+ 1 (* -1 (str.len (str.substr w 0 1))) len z len u))."
+    },
+    {
+      "id": "MACRO_STR_EQ_LEN_UNIFY",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1260",
+      "dispatch": "rewriteViaRule dispatch (line 99); registered POST_DSL; also Rewrite::SPLIT_EQ / SPLIT_EQ_STRIP_L / SPLIT_EQ_STRIP_R",
+      "summary": "see Rewrite::SPLIT_EQ*",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "CONCAT_UNIFY",
+        "CONCAT_EQ",
+        "AND_INTRO",
+        "AND_ELIM"
+      ],
+      "guard_comparison": "rewriteViaStrEqLenUnify (line 1260) enumerates prefix pairs (i,j). SPLIT_EQ fires when ArithEntail::checkEq(len pfx0, len pfx1). STRIP_R/STRIP_L fire when one prefix is strictly longer (ArithEntail::check strict) and StringsEntail::stripSymbolicLength removes exactly the other prefix's length (curr reaches 0). The elaboration (macro_rewrite_elaborator.cpp:747) proves the equivalence with the core rules CONCAT_UNIFY + CONCAT_EQ. Its subgoals are a trusted len(lhs0)=len(rhs0) step and two concat regroupings (MACRO_THEORY_REWRITE_RCONS), all closed by RARE reconstruction in the probes. The length equality is therefore re-derived, not taken from the C++ entailment.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/SPLIT_EQ_proof.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_L_proof.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_L_sat_check.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_R_multichar.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_R_multi_var.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_R_proof.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_R_seq.smt2",
+        "probes/strings/SPLIT_EQ_STRIP_R_unicode.smt2"
+      ],
+      "probe_result": "SPLIT_EQ_proof: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | SPLIT_EQ_STRIP_L_proof: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | SPLIT_EQ_STRIP_L_sat_check: cvc5=sat z3=sat | SPLIT_EQ_STRIP_R_multichar: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | SPLIT_EQ_STRIP_R_multi_var: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | SPLIT_EQ_STRIP_R_proof: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | SPLIT_EQ_STRIP_R_seq: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok | SPLIT_EQ_STRIP_R_unicode: cvc5=unsat z3=timeout; no trust; ethos correct; eager-check ok",
+      "confidence": "medium",
+      "rationale": "Sound core rules with re-derived (RCONS) length and regrouping subgoals. Probes have no trust, but z3 cannot give differential evidence.",
+      "witness": null
+    },
+    {
+      "id": "MACRO_STR_CONST_NCTN_CONCAT",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:166",
+      "dispatch": "rewriteViaRule dispatch (line 99) (inline); registered DSL_SUBCALL; also via rewriteContains (Rewrite::CTN_NCONST_CTN_CONCAT)",
+      "summary": "(str.contains c t) ---> false when c is constant and c does not match (_* ++ gen(t) ++ _*), where gen(t) is t's generalized constant regexp",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "STRING_EAGER_REDUCTION",
+        "re_concat",
+        "STR_IN_RE_EVAL",
+        "ite-true-cond"
+      ],
+      "guard_comparison": "The elaboration (macro_rewrite_elaborator.cpp:1060) uses eager reduction contains(c,t) => c = k1++t++k2, proves membership of k1++t++k2 in a general regex (proveGeneralReMembership/RE_CONCAT), and evaluates it with STR_IN_RE_EVAL, which has an independent CPC derivative evaluator. The only RCONS_SIMPLE subgoal is ite-true-cond. Probes: a basic case, a unicode \\u{10000} case, and sat overlap cases (\"abab\" vs ab++x++ab, \"aba\" vs a++x++a).",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/EQ_NCTN_len.smt2",
+        "probes/strings/MACRO_STR_CONST_NCTN_CONCAT_proof.smt2",
+        "probes/strings/MACRO_STR_CONST_NCTN_CONCAT_sat_overlap2.smt2",
+        "probes/strings/MACRO_STR_CONST_NCTN_CONCAT_sat_overlap.smt2",
+        "probes/strings/MACRO_STR_CONST_NCTN_CONCAT_unicode.smt2"
+      ],
+      "probe_result": "EQ_NCTN_len: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | MACRO_STR_CONST_NCTN_CONCAT_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | MACRO_STR_CONST_NCTN_CONCAT_sat_overlap2: cvc5=sat z3=sat | MACRO_STR_CONST_NCTN_CONCAT_sat_overlap: cvc5=sat z3=sat | MACRO_STR_CONST_NCTN_CONCAT_unicode: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "high",
+      "rationale": "Re-derived through sound core rules and independent evaluation; no trust, and the sat cases agree.",
+      "witness": null
+    },
+    {
+      "id": "MACRO_STR_COMPONENT_CTN",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:220",
+      "dispatch": "rewriteViaRule dispatch (line 99) (inline); registered POST_DSL; also via rewriteContains (Rewrite::CTN_COMPONENT)",
+      "summary": "(str.contains (s1++..++sn) (t1++..++tm)) ---> true when StringsEntail::componentContains (non-extended) succeeds",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "str-contains-concat-find",
+        "str-contains-refl",
+        "str-concat-unify"
+      ],
+      "guard_comparison": "The elaboration (macro_rewrite_elaborator.cpp:1011) recomputes componentContains with computeRemainder=true to get the prefix/middle/suffix partition. It leaves two MACRO_THEORY_REWRITE_RCONS_SIMPLE subgoals: regrouping s as rb++mid++re, and contains(rb++mid++re, t)=true. Both were closed by RARE reconstruction (str-contains-concat-find / refl) in the probes. The C++ applies the non-extended version in rewriteViaRule; rewriteContains also uses the extended version (other reviewer).",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/MACRO_STR_COMPONENT_CTN_proof.smt2",
+        "probes/strings/MACRO_STR_COMPONENT_CTN_sat_edge.smt2",
+        "probes/strings/MACRO_STR_COMPONENT_CTN_suffix.smt2"
+      ],
+      "probe_result": "MACRO_STR_COMPONENT_CTN_proof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | MACRO_STR_COMPONENT_CTN_sat_edge: cvc5=sat z3=sat | MACRO_STR_COMPONENT_CTN_suffix: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok",
+      "confidence": "medium",
+      "rationale": "The core containment step rests on an RCONS_SIMPLE subgoal closed by RARE search. Probes have no trust and the sat edge case agrees.",
+      "witness": null
+    },
+    {
+      "id": "SEQ_EVAL_OP",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:232",
+      "dispatch": "rewriteViaRule dispatch (line 99) (inline); registered DSL_SUBCALL",
+      "summary": "evaluate an operator on all-constant sequence arguments by calling postRewrite, accepted only if the result is a constant",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "seq-eval-op"
+      ],
+      "guard_comparison": "Circular internally (calls postRewrite). CPC seq-eval-op checks ($seq_eval t) = u with an independent Eunoia evaluator (fixed in 2a9a81443d, after the binary). Probes cover extract with a negative start and an overlong length, at out of bounds, indexof with a negative start, an empty pattern past the end, replace with an empty pattern, replace_all, and update at -1, at len and with overlong replacement. In the binary, constant seq.replace_all evaluated to a non-flattened, non-constant concat (REPLALL_CONST; changed at HEAD by 2a9a81443d/6ab254bba1 to mkWordFlatten). SEQ_EVAL_OP therefore did not apply and the probe leaves TRUST_THEORY_REWRITE in the binary.",
+      "guard_gap": "seq.update: rewriteViaRule accepts any all-constant sequence operator, including SEQ_UPDATE (UPD_EVAL / UPD_CONST_INDEX_NEG / UPD_CONST_INDEX_OOB), but CPC $seq_eval (rules/Strings.eo:1045) has no seq.update case. Every seq-eval-op step on seq.update is therefore rejected by ethos ('A step of rule seq-eval-op failed to check'), while the circular internal checker accepts it. Separately, in the binary only, constant seq.replace_all produced a non-constant result, so the step stayed trust; this is fixed at HEAD.",
+      "probes": [
+        "probes/strings/SEQ_EVAL_OP_at_oob.smt2",
+        "probes/strings/SEQ_EVAL_OP_contains_prefix.smt2",
+        "probes/strings/SEQ_EVAL_OP_extract_neg.smt2",
+        "probes/strings/SEQ_EVAL_OP_extract_overlong.smt2",
+        "probes/strings/SEQ_EVAL_OP_indexof.smt2",
+        "probes/strings/SEQ_EVAL_OP_replace.smt2",
+        "probes/strings/SEQ_EVAL_OP_update.smt2",
+        "probes/strings/SEQ_EVAL_OP_update_inrange.smt2"
+      ],
+      "probe_result": "SEQ_EVAL_OP_at_oob: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | SEQ_EVAL_OP_contains_prefix: cvc5=unsat z3=error; no trust; ethos correct; eager-check ok | SEQ_EVAL_OP_extract_neg: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | SEQ_EVAL_OP_extract_overlong: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | SEQ_EVAL_OP_indexof: cvc5=unsat z3=unsat; no trust; ethos correct; eager-check ok | SEQ_EVAL_OP_replace: cvc5=unsat z3=error; trust TRUST_THEORY_REWRITE; ethos incomplete; eager-check ok | SEQ_EVAL_OP_update: cvc5=unsat z3=error; no trust; ethos rejected: seq-eval-op step on seq.update (CPC $seq_eval has no seq.update case); eager-check ok | SEQ_EVAL_OP_update_inrange: cvc5=unsat z3=error; no trust; ethos rejected: seq-eval-op step on seq.update (CPC $seq_eval has no seq.update case); eager-check ok",
+      "confidence": "low",
+      "rationale": "For most operators (extract/at/indexof/replace/contains/prefix/suffix/rev/nth/len) an independent Eunoia evaluator checks the result, and the probes agree with z3 where z3 supports the operator. For seq.update the only check is the circular internal one, and ethos rejects the step, so correctness of constant seq.update evaluation rests on the C++ alone.",
+      "witness": "(assert (not (= (seq.update (seq.++ (seq.unit 1) (seq.unit 2) (seq.unit 3)) 1 (seq.unit 7)) (seq.++ (seq.unit 1) (seq.unit 7) (seq.unit 3))))): cvc5 unsat (the value is correct). The dsl-rewrite proof uses seq-eval-op on the seq.update term, and ethos (HEAD signature) reports 'A step of rule seq-eval-op failed to check'. This is a CPC coverage gap that fails closed; it is not a wrong rewrite. Probes: SEQ_EVAL_OP_update_inrange, SEQ_EVAL_OP_update."
+    },
+    {
+      "id": "RE_LOOP_ELIM",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1375",
+      "dispatch": "rewriteViaRule; registered PRE_DSL; also called from rewriteLoopRegExp (Rewrite::RE_LOOP, line 1230)",
+      "summary": "((_ re.loop l u) r) -> r^l if l=u, else (re.union r^l ... r^u); r^0 = (str.to_re \"\")",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "re-loop-elim"
+      ],
+      "guard_comparison": "C++ returns null when u<l; builds union r^l..r^u with mkConcat. CPC re-loop-elim requires (u-l) non-negative and compares RHS against $str_mk_re_loop_elim (programs/Strings.eo:1022), an independent structural Eunoia construction (list_repeat + union terminated by re.none, singleton-elim). Same order of union children and same r^0/r^1 conventions.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_LOOP_ELIM_sa_union_1_3.smt2",
+        "probes/strings/RE_LOOP_ELIM_sa_zero_lower.smt2",
+        "probes/strings/RE_LOOP_ELIM_sa_zero_lower_unsat.smt2"
+      ],
+      "probe_result": "all agree with z3; proofs use re-loop-elim, no trust; ethos accepts proofs against HEAD CPC signature (union_1_3, zero_lower_unsat)",
+      "confidence": "high",
+      "rationale": "Independent Eunoia definition of loop elimination, probes reconstruct with no trust and check in ethos.",
+      "witness": null
+    },
+    {
+      "id": "RE_EQ_ELIM",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1422",
+      "dispatch": "rewriteViaRule; registered PRE_DSL; used directly by TheoryStrings::ppStaticRewrite (theory_strings.cpp:1253) and TermRegistry (term_registry.cpp:200) for regex equalities",
+      "summary": "(= R1 R2) -> (forall ((v String)) (= (str.in_re v R1) (str.in_re v R2)))",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "re-eq-elim"
+      ],
+      "guard_comparison": "No guards beyond kind/type. CPC re-eq-elim requires the equality closed and the RHS to be exactly the extensional forall over @var.re_eq; this is the definition of regex equality, no C++ logic to diverge.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/RE_EQ_ELIM_sa_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat, re-eq-elim in proof, no trust. ethos rejects this proof at a later process_scope/re_unfold_pos step (binary dc8ad24031 vs HEAD signature: re_unfold_pos changed in be30d2772a), unrelated to re-eq-elim",
+      "confidence": "high",
+      "rationale": "Definitional (extensionality) rewrite with an exact CPC pattern; nothing C++-specific to get wrong.",
+      "witness": null
+    },
+    {
+      "id": "STR_IN_RE_EVAL",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1436",
+      "dispatch": "rewriteViaRule; registered DSL_SUBCALL; also called from rewriteMembership (line 2122)",
+      "summary": "(str.in_re c R) with constant c and constant R -> true/false via RegExpEntail::testConstStringInRegExp",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-in-re-eval"
+      ],
+      "guard_comparison": "C++ uses testConstStringInRegExp (backtracking matcher). CPC str-in-re-eval uses $str_eval_str_in_re: flat form + Brzozowski derivatives + nullability (programs/Strings.eo:271-283,1129), an algorithmically independent evaluator. Unicode boundary (\\u{2ffff}, ranges) checked.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_IN_RE_EVAL_sa_proof.smt2",
+        "probes/strings/STR_IN_RE_EVAL_sa_unicode.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat for both; str-in-re-eval steps, no trust; ethos accepts",
+      "confidence": "high",
+      "rationale": "Independent derivative-based CPC evaluator; probes reconstruct and check.",
+      "witness": null
+    },
+    {
+      "id": "STR_IN_RE_CONSUME",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:2064",
+      "dispatch": "rewriteViaRule; registered PRE_DSL; called from rewriteMembership (line 2302)",
+      "summary": "(str.in_re (str.++ ..) (re.++ ..)) -> false or membership with consumed constant prefix/suffix (for re.*, consumes through the star body, dir 0 then 1)",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-in-re-consume"
+      ],
+      "guard_comparison": "C++ delegates to RegExpEntail::simpleRegexpConsume (another reviewer's unit), with two passes for star bodies and a revert to the original star RE. CPC str-in-re-consume recomputes the whole result with $str_re_consume (programs/Strings.eo:1993, the 'verified' version from 42e75fdb2d) and requires syntactic equality with the RHS, so any C++ deviation fails the check rather than being trusted. Tested suffix consumption, star with union bodies (ab|a)*, (ab|b)*, nested star (a b*)*, unicode range endpoint.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_IN_RE_CONSUME_sa_proof.smt2",
+        "probes/strings/STR_IN_RE_CONSUME_sa_star.smt2",
+        "probes/strings/STR_IN_RE_CONSUME_sa_suffix.smt2",
+        "probes/strings/STR_IN_RE_CONSUME_sa_star_sat.smt2",
+        "probes/strings/STR_IN_RE_CONSUME_sa_star_union.smt2",
+        "probes/strings/STR_IN_RE_CONSUME_sa_star_union_unsat.smt2",
+        "probes/strings/STR_IN_RE_CONSUME_sa_star_nested.smt2",
+        "probes/strings/STR_IN_RE_CONSUME_sa_star_boundary.smt2",
+        "probes/strings/STR_IN_RE_CONSUME_sa_range_unicode.smt2"
+      ],
+      "probe_result": "all agree with z3 (sat/unsat as expected); unsat proofs use str-in-re-consume with no trust; ethos accepts proof/star/suffix/range_unicode",
+      "confidence": "high",
+      "rationale": "CPC recomputes consumption independently and demands exact match; edge probes agree with z3.",
+      "witness": null
+    },
+    {
+      "id": "STR_IN_RE_CONCAT_STAR_CHAR",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1449",
+      "dispatch": "rewriteViaRule; registered PRE_DSL (proof-side; the C++ membership rewriter does the equivalent inline)",
+      "summary": "(str.in_re (str.++ s1..sn) (re.* R)) with R of fixed length 1 -> (and (str.in_re s1 (re.* R)) ...)",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-in-re-concat-star-char"
+      ],
+      "guard_comparison": "C++ guard: RegExpEntail::getFixedLengthForRegexp(R) == 1. CPC requires $str_fixed_len_re r = 1 (programs/Strings.eo:129, independent structural definition) and builds the conjunction with $str_mk_str_in_re_concat_star_char. Sound for any language of words of length exactly 1 (including empty language). Non-fixed body (a|bc)* correctly not split (differential sat).",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_IN_RE_CONCAT_STAR_CHAR_sa_proof.smt2",
+        "probes/strings/STR_IN_RE_CONCAT_STAR_CHAR_sa_nonfixed.smt2"
+      ],
+      "probe_result": "proof: cvc5=unsat (z3 timeout), str-in-re-concat-star-char, no trust, ethos accepts; nonfixed: sat/sat",
+      "confidence": "high",
+      "rationale": "Independent CPC fixed-length check and construction; probe reconstructs and checks.",
+      "witness": null
+    },
+    {
+      "id": "STR_IN_RE_SIGMA",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1477",
+      "dispatch": "rewriteViaRule; registered PRE_DSL (C++ inline counterpart Rewrite::RE_IN_SIGMA at line 2131)",
+      "summary": "x in re.++ of only re.allchar / (re.* re.allchar) -> (= (str.len x) k) if no star else (>= (str.len x) k)",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-in-re-sigma"
+      ],
+      "guard_comparison": "C++ returns null on any other child; counts allchar children; EQUAL iff no star. CPC $str_mk_str_in_re_sigma_rec (programs/Strings.eo) walks the re.++ list with the same three cases, independently.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_IN_RE_SIGMA_sa_proof.smt2",
+        "probes/strings/STR_IN_RE_SIGMA_sa_strict.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; str-in-re-sigma, no trust; ethos accepts",
+      "confidence": "high",
+      "rationale": "Exact independent CPC computation; probes reconstruct and check.",
+      "witness": null
+    },
+    {
+      "id": "STR_IN_RE_SIGMA_STAR",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1509",
+      "dispatch": "rewriteViaRule; registered PRE_DSL",
+      "summary": "x in (re.* (re.++ _ ... _)) with n allchars -> (= (mod (str.len x) n) 0)",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-in-re-sigma-star"
+      ],
+      "guard_comparison": "C++ requires body REGEXP_CONCAT of only allchar (>=2 children). CPC requires same and n != 0. Matches.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_IN_RE_SIGMA_STAR_sa_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat (z3 timeout); str-in-re-sigma-star, no trust; ethos accepts",
+      "confidence": "high",
+      "rationale": "Independent CPC definition matches the C++ guard exactly.",
+      "witness": null
+    },
+    {
+      "id": "MACRO_SUBSTR_STRIP_SYM_LENGTH",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1533 (body src/theory/strings/strings_entail.cpp:1030)",
+      "dispatch": "rewriteViaRule (fresh ArithEntail/StringsEntail without rewriter); registered POST_DSL; called from rewriteSubstr (line 2669)",
+      "summary": "(str.substr (str.++ ..) n m) -> substr with components stripped by symbolic length (SS_STRIP_START_PT / SS_STRIP_END_PT)",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_SUBSTR_STRIP_SYM_LENGTH",
+        "aci_norm",
+        "str-substr-concat1",
+        "str-substr-concat2",
+        "str-substr-len-include-pre",
+        "arith-string-pred-entail",
+        "MACRO_THEORY_REWRITE_RCONS (subgoal)"
+      ],
+      "guard_comparison": "Elaboration (macro_rewrite_elaborator.cpp:474) recomputes the C++ result, proves regrouping of the concat via ACI_NORM or encode transform, then leaves one MACRO_THEORY_REWRITE_RCONS subgoal (substr(cm,n,m) = rhs) for RARE search. Probes show the subgoal closed by str-substr-concat1/2 with arithmetic entailment (arith-string-pred-entail) for the length guards. Negative-start edge (len x + n with n=-1) is not stripped (differential sat agrees). stripSymbolicLength itself belongs to the entailment reviewer.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/MACRO_SUBSTR_STRIP_SYM_LENGTH_sa_proof.smt2",
+        "probes/strings/MACRO_SUBSTR_STRIP_SYM_LENGTH_sa_end.smt2",
+        "probes/strings/MACRO_SUBSTR_STRIP_SYM_LENGTH_sa_three.smt2",
+        "probes/strings/MACRO_SUBSTR_STRIP_SYM_LENGTH_sa_const.smt2",
+        "probes/strings/MACRO_SUBSTR_STRIP_SYM_LENGTH_sa_partial.smt2",
+        "probes/strings/MACRO_SUBSTR_STRIP_SYM_LENGTH_sa_endlen.smt2",
+        "probes/strings/MACRO_SUBSTR_STRIP_SYM_LENGTH_sa_neg.smt2",
+        "probes/strings/MACRO_SUBSTR_STRIP_SYM_LENGTH_sa_negstart.smt2"
+      ],
+      "probe_result": "all agree with z3; unsat proofs no trust (str-substr-concat1/2, arith-string-pred-entail); ethos accepts all 6 unsat proofs",
+      "confidence": "medium",
+      "rationale": "Covered without trust in all probes, but via an RCONS subgoal closed by budgeted RARE search over many stripSymbolicLength cases.",
+      "witness": null
+    },
+    {
+      "id": "STR_INDEXOF_RE_EVAL",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1797",
+      "dispatch": "rewriteViaRule; registered POST_DSL; called from rewriteIndexofRe (line 3348)",
+      "summary": "(str.indexof_re c R n) with constants -> -1 if n<0 or n>|c|, else start of first shortest match in c[n..] (+n) or -1",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-indexof-re-eval"
+      ],
+      "guard_comparison": "C++ uses firstMatch (line 3924: leftmost i with c[i..] in R++_*, then shortest j). CPC $str_eval_indexof_re (rules/Strings.eo:845) has the same out-of-range guards and uses $str_first_match (derivative-based, independent). Edge cases n=|c| with nullable R, n>|c|, n<0, empty c checked.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_INDEXOF_RE_EVAL_sa_abcab.smt2",
+        "probes/strings/STR_INDEXOF_RE_EVAL_sa_edges.smt2"
+      ],
+      "probe_result": "cvc5=unsat; z3 has no str.indexof_re (parse error then 'sat' -> harness reports spurious DISAGREE). abcab: str-indexof-re-eval only, ethos accepts. edges: no trust, but binary's proof also uses RARE str-indexof-re-emp-re at n=-1, which ethos at HEAD rejects because HEAD added the (>= n -1) premise (b243f49892 'Fix two unsound proof rules'); not an issue with this rule",
+      "confidence": "high",
+      "rationale": "Independent CPC evaluator with identical guards; proof reconstructs and checks. z3 gives no evidence here.",
+      "witness": null
+    },
+    {
+      "id": "STR_REPLACE_RE_EVAL",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1823",
+      "dispatch": "rewriteViaRule; registered POST_DSL; called from rewriteReplaceRe (line 3881)",
+      "summary": "(str.replace_re c R t) with constant c,R -> c if no match, else c[0..i) ++ t ++ c[j..] for the leftmost shortest match",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-replace-re-eval"
+      ],
+      "guard_comparison": "C++ firstMatch handles empty c specially (match at 0 iff \"\" in R). CPC $str_eval_replace_re with $str_first_match also tries position |c| (covers empty c). Nullable R gives an empty match at 0 (t prepended) in both, which is SMT-LIB semantics. t may be non-constant in both.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_REPLACE_RE_EVAL_sa_shortest.smt2",
+        "probes/strings/STR_REPLACE_RE_EVAL_sa_nullable.smt2",
+        "probes/strings/STR_REPLACE_RE_EVAL_sa_nomatch.smt2"
+      ],
+      "probe_result": "cvc5=unsat, z3=unknown (z3 4.13.4 does not evaluate str.replace_re); no trust; ethos accepts all three. cvc5 model values checked by hand against SMT-LIB semantics",
+      "confidence": "high",
+      "rationale": "Independent CPC evaluation; probes reconstruct and check (no z3 oracle).",
+      "witness": null
+    },
+    {
+      "id": "STR_REPLACE_RE_ALL_EVAL",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1845",
+      "dispatch": "rewriteViaRule; registered POST_DSL; called from rewriteReplaceReAll (line 3910)",
+      "summary": "(str.replace_re_all c R t) with constant c,R -> replace successive leftmost shortest non-empty matches",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-replace-re-all-eval"
+      ],
+      "guard_comparison": "C++ intersects R with complement of {\"\"} and loops firstMatch on the remainder. CPC $str_eval_replace_re_all_rec (rules/Strings.eo:915) walks the flat form char-by-char with prefix matching on the same non-empty R and a skip counter: a structurally different algorithm. Checked nullable R (a*), empty c, R = (str.to_re \"\").",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_REPLACE_RE_ALL_EVAL_sa_aplus.smt2",
+        "probes/strings/STR_REPLACE_RE_ALL_EVAL_sa_nullable.smt2"
+      ],
+      "probe_result": "cvc5=unsat, z3=unknown; no trust; ethos accepts both",
+      "confidence": "high",
+      "rationale": "Independent CPC algorithm, probes on nullable/empty edges check in ethos.",
+      "witness": null
+    },
+    {
+      "id": "MACRO_STR_IN_RE_INCLUSION",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1546",
+      "dispatch": "rewriteViaRule; registered POST_DSL; called from rewriteMembership (line 2313)",
+      "summary": "(str.in_re s R) -> true when R includes the generalized constant regexp of s",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_STR_IN_RE_INCLUSION",
+        "re-inter-inclusion",
+        "re_inter",
+        "re_concat",
+        "re-in-comp",
+        "re-in-empty",
+        "bool-double-not-elim",
+        "MACRO_THEORY_REWRITE_RCONS (subgoals)"
+      ],
+      "guard_comparison": "Elaboration (macro_rewrite_elaborator.cpp:1145) proves s in G (G = generalized const RE, component memberships as RCONS subgoals + RE_CONCAT), then RE_INTER_INCLUSION on (re.inter G (re.comp R)) = re.none (checked by CPC $str_re_includes, independent), then RCONS subgoals for comp/none/double-negation. Component memberships like (str.in_re x (re.* re.allchar)) are closed by re-in-sigma-star.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/MACRO_STR_IN_RE_INCLUSION_sa_proof.smt2",
+        "probes/strings/MACRO_STR_IN_RE_INCLUSION_sa_neg.smt2"
+      ],
+      "probe_result": "proof: cvc5=unsat z3=unsat, re-inter-inclusion + RARE, no trust, ethos accepts; neg: sat/sat",
+      "confidence": "medium",
+      "rationale": "Core inclusion is independently checked, but the elaboration relies on several RCONS subgoals (component memberships for non-variable components may need search).",
+      "witness": null
+    },
+    {
+      "id": "MACRO_STR_SPLIT_CTN",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1569",
+      "dispatch": "rewriteViaRule; registered POST_DSL; called from rewriteContains (Rewrite::CTN_SPLIT, line 3015)",
+      "summary": "(str.contains (str.++ .. c ..) t) with inner constant c, constant t, no overlap either way -> (or (str.contains pre t) (str.contains post t))",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_STR_SPLIT_CTN",
+        "aci_norm",
+        "str-overlap-split-ctn"
+      ],
+      "guard_comparison": "C++ only inspects inner children (1..n-2), requires t constant non-empty and !hasOverlap(c,t) && !hasOverlap(t,c) (hasOverlap includes containment). Elaboration (ensureProofForOverlap) regroups the concat to (pre c post) via ACI_NORM and applies STR_OVERLAP_SPLIT_CTN, whose CPC rule requires $str_has_overlap false in both directions (programs/Strings.eo:2073, independent). Checked t containing c / c containing t / partial overlaps (differential), sequence version.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/MACRO_STR_SPLIT_CTN_sa_proof.smt2",
+        "probes/strings/MACRO_STR_SPLIT_CTN_sa_overlap.smt2",
+        "probes/strings/MACRO_STR_SPLIT_CTN_sa_inside.smt2",
+        "probes/strings/STR_OVERLAP_SPLIT_CTN_sa_seq.smt2"
+      ],
+      "probe_result": "all agree with z3 where decided; proofs show str-overlap-split-ctn, no trust; ethos accepts",
+      "confidence": "high",
+      "rationale": "ACI regrouping plus an independently checked CPC overlap rule; no residual trust.",
+      "witness": null
+    },
+    {
+      "id": "MACRO_STR_STRIP_ENDPOINTS",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1614",
+      "dispatch": "rewriteViaRule; registered POST_DSL; called via rewriteViaRule from rewriteContains (2944), rewriteIndexof (3318), rewriteReplace (3510)",
+      "summary": "contains/indexof(...,0)/replace: strip first/last components of arg0 that cannot participate in a match of arg1 (StringsEntail::stripConstantEndpoints)",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_STR_STRIP_ENDPOINTS",
+        "str-overlap-endpoints-ctn",
+        "str-overlap-endpoints-indexof",
+        "str-overlap-endpoints-replace",
+        "aci_norm",
+        "MACRO_THEORY_REWRITE_RCONS_SIMPLE (subgoals)"
+      ],
+      "guard_comparison": "Elaboration (ensureProofForOverlap) needs each stripped component to be a constant: it splits the constant via an RCONS_SIMPLE subgoal and then calls STR_OVERLAP_ENDPOINTS_*, whose C++ and CPC forms both require constant c1/c2. stripConstantEndpoints (strings_entail.cpp:516) also strips non-constant components: str.from_int endpoints when the adjacent pattern character is a non-digit (lines 626-657), and str.substr-of-constant chains. For str.from_int the elaboration fails and the step stays trust. Semantically the from_int strip is sound (from_int yields only digits or \"\", so an occurrence starting/ending with a non-digit cannot overlap it), so this is a coverage gap, not a soundness gap. Constant endpoint cases (full and partial strip, one direction at a time for constant patterns) reconstruct.",
+      "guard_gap": "str.from_int(...) endpoint stripped by stripConstantEndpoints (e.g. contains(from_int(n)++x, \"a12\") -> contains(x, \"a12\"); indexof(x++from_int(n), y++\"b\", 0)): no proof rule covers it; the step is trusted",
+      "probes": [
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_ctn.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_replace.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_replace_both.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_indexof.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_partial.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_partial_sat.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_itos.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_itos_end.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_itos_indexof.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_itos_digit.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_itos_sole.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_substr.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_substr_sym.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_substr_chain.smt2"
+      ],
+      "probe_result": "constant-endpoint probes: unsat with no trust (str-overlap-endpoints-*), ethos accepts. itos / itos_end / itos_indexof: cvc5=unsat (z3 timeout), trust macro-str-strip-endpoints on (= (str.contains (str.++ (str.from_int n) x) \"a12\") (str.contains x \"a12\")) etc.; ethos reports 'incomplete'. Differential itos_digit/substr_chain sat agree with z3; sole-component cases are decided by other rules (str-ctn-multiset-subset)",
+      "confidence": "low",
+      "rationale": "Constant endpoints are covered by independent CPC overlap rules, but the str.from_int stripping that C++ also performs has no proof rule and stays trusted (sound by argument; nothing would catch a bug there).",
+      "witness": null
+    },
+    {
+      "id": "MACRO_RE_INTER_UNION_CONST_ELIM",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1700",
+      "dispatch": "rewriteViaRule; registered POST_DSL; called from rewriteAndOrRegExp (Rewrite::RE_ANDOR_CONST_REMOVE, line 1188)",
+      "summary": "inter: (str.to_re c) with c in R removes R, c not in R -> re.none; union: drop (str.to_re c) when c in some constant R",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_RE_INTER_UNION_CONST_ELIM",
+        "re-inter-cstring",
+        "re-inter-cstring-neg",
+        "re-union-const-elim",
+        "str-in-re-eval",
+        "aci_norm",
+        "MACRO_THEORY_REWRITE_RCONS (subgoals)"
+      ],
+      "guard_comparison": "Only constant REs (isConstRegExp) are considered; membership by testConstStringInRegExp. Elaboration (macro_rewrite_elaborator.cpp:379): inter -> ACI_NORM to put the deciding constant first, then RCONS subgoal closed by re-inter-cstring(-neg) whose condition is a membership on a constant, discharged by str-in-re-eval (independent CPC evaluator); union -> one RCONS step per removed constant closed by re-union-const-elim (condition again str-in-re-eval). Inter with an already-removed R skips conflict detection (incomplete, still sound).",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/MACRO_RE_INTER_UNION_CONST_ELIM_sa_union.smt2",
+        "probes/strings/MACRO_RE_INTER_UNION_CONST_ELIM_sa_inter.smt2",
+        "probes/strings/MACRO_RE_INTER_UNION_CONST_ELIM_sa_conflict.smt2"
+      ],
+      "probe_result": "cvc5=unsat (z3 unsat or timeout); RARE re-union-const-elim / re-inter-cstring / re-inter-cstring-neg + str-in-re-eval, no trust; ethos accepts all three",
+      "confidence": "high",
+      "rationale": "Every removal is an instance of a RARE rule whose membership condition is checked by the independent CPC evaluator; probes reconstruct and check.",
+      "witness": null
+    },
+    {
+      "id": "STR_OVERLAP_SPLIT_CTN",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1885",
+      "dispatch": "rewriteViaRule (rewriteViaOverlap); not registered with the rewriter: used only by the MACRO_STR_SPLIT_CTN / MACRO_STR_STRIP_ENDPOINTS elaboration and checked as THEORY_REWRITE",
+      "summary": "(str.contains (t ++ c ++ s) d) with constants c,d and no overlap either way -> (or (str.contains t d) (str.contains s d))",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-overlap-split-ctn"
+      ],
+      "guard_comparison": "C++ checks hasOverlap(c,d,false) and hasOverlap(d,c,false); CPC requires $str_has_overlap c d false = false and d c false = false. $str_has_overlap (programs/Strings.eo:2073) is defined via $str_overlap on flat forms, independent of Word::hasOverlap (which uses find + overlap/roverlap). Hardening note: the C++ rewriteViaOverlap checks only the number of children of n[0] (and n[1]), not that they are str.++; e.g. it would accept a str.replace with three children, so the circular internal THEORY_REWRITE checker would accept a wrong step on (str.contains (str.replace \"c\" \"a\" \"b\") \"b\"). cvc5 never produces such a step (the elaborator always builds str.++), and the CPC pattern requires str.++, so this does not affect soundness.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_OVERLAP_SPLIT_CTN_sa_seq.smt2",
+        "probes/strings/MACRO_STR_SPLIT_CTN_sa_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat with str-overlap-split-ctn in proof, no trust; ethos accepts; differentials agree with z3",
+      "confidence": "high",
+      "rationale": "Independent CPC rule with the same guards; probes reconstruct and check in ethos.",
+      "witness": null
+    },
+    {
+      "id": "STR_OVERLAP_ENDPOINTS_CTN",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1885",
+      "dispatch": "rewriteViaRule (rewriteViaOverlap); not registered with the rewriter: used only by the MACRO_STR_SPLIT_CTN / MACRO_STR_STRIP_ENDPOINTS elaboration and checked as THEORY_REWRITE",
+      "summary": "(str.contains (c1 ++ s ++ c2) (d1 ++ t ++ d2)) -> (str.contains s (d1 ++ t ++ d2)) when c1/d1 have no forward and c2/d2 no reverse overlap",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-overlap-endpoints-ctn"
+      ],
+      "guard_comparison": "C++ checks hasOverlap(c1,d1,false), hasOverlap(c2,d2,true); CPC identical with d1,d2 required to be values. $str_has_overlap (programs/Strings.eo:2073) is defined via $str_overlap on flat forms, independent of Word::hasOverlap (which uses find + overlap/roverlap). Hardening note: the C++ rewriteViaOverlap checks only the number of children of n[0] (and n[1]), not that they are str.++; e.g. it would accept a str.replace with three children, so the circular internal THEORY_REWRITE checker would accept a wrong step on (str.contains (str.replace \"c\" \"a\" \"b\") \"b\"). cvc5 never produces such a step (the elaborator always builds str.++), and the CPC pattern requires str.++, so this does not affect soundness.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_OVERLAP_ENDPOINTS_CTN_sa_proof.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_ctn.smt2"
+      ],
+      "probe_result": "cvc5=unsat with str-overlap-endpoints-ctn in proof, no trust; ethos accepts; differentials agree with z3",
+      "confidence": "high",
+      "rationale": "Independent CPC rule with the same guards; probes reconstruct and check in ethos.",
+      "witness": null
+    },
+    {
+      "id": "STR_OVERLAP_ENDPOINTS_INDEXOF",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1885",
+      "dispatch": "rewriteViaRule (rewriteViaOverlap); not registered with the rewriter: used only by the MACRO_STR_SPLIT_CTN / MACRO_STR_STRIP_ENDPOINTS elaboration and checked as THEORY_REWRITE",
+      "summary": "(str.indexof (s ++ c) (t ++ d) 0) -> (str.indexof s (t ++ d) 0) when c has no reverse overlap with d",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-overlap-endpoints-indexof"
+      ],
+      "guard_comparison": "C++ requires start index constant 0 and hasOverlap(c,d,true) false; CPC pattern fixes the index to 0 and checks the same. Reverse-overlap differential (x++ab, y++a) is sat in both solvers. $str_has_overlap (programs/Strings.eo:2073) is defined via $str_overlap on flat forms, independent of Word::hasOverlap (which uses find + overlap/roverlap). Hardening note: the C++ rewriteViaOverlap checks only the number of children of n[0] (and n[1]), not that they are str.++; e.g. it would accept a str.replace with three children, so the circular internal THEORY_REWRITE checker would accept a wrong step on (str.contains (str.replace \"c\" \"a\" \"b\") \"b\"). cvc5 never produces such a step (the elaborator always builds str.++), and the CPC pattern requires str.++, so this does not affect soundness.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_OVERLAP_ENDPOINTS_INDEXOF_sa_proof.smt2",
+        "probes/strings/STR_OVERLAP_ENDPOINTS_INDEXOF_sa_revoverlap.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_indexof.smt2"
+      ],
+      "probe_result": "cvc5=unsat with str-overlap-endpoints-indexof in proof, no trust; ethos accepts; differentials agree with z3",
+      "confidence": "high",
+      "rationale": "Independent CPC rule with the same guards; probes reconstruct and check in ethos.",
+      "witness": null
+    },
+    {
+      "id": "STR_OVERLAP_ENDPOINTS_REPLACE",
+      "theory": "strings",
+      "location": "src/theory/strings/sequences_rewriter.cpp:1885",
+      "dispatch": "rewriteViaRule (rewriteViaOverlap); not registered with the rewriter: used only by the MACRO_STR_SPLIT_CTN / MACRO_STR_STRIP_ENDPOINTS elaboration and checked as THEORY_REWRITE",
+      "summary": "(str.replace (c1 ++ s ++ c2) (d1 ++ t ++ d2) r) -> (c1 ++ (str.replace s (d1 ++ t ++ d2) r) ++ c2)",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "str-overlap-endpoints-replace"
+      ],
+      "guard_comparison": "Same overlap checks as ENDPOINTS_CTN; CPC identical. $str_has_overlap (programs/Strings.eo:2073) is defined via $str_overlap on flat forms, independent of Word::hasOverlap (which uses find + overlap/roverlap). Hardening note: the C++ rewriteViaOverlap checks only the number of children of n[0] (and n[1]), not that they are str.++; e.g. it would accept a str.replace with three children, so the circular internal THEORY_REWRITE checker would accept a wrong step on (str.contains (str.replace \"c\" \"a\" \"b\") \"b\"). cvc5 never produces such a step (the elaborator always builds str.++), and the CPC pattern requires str.++, so this does not affect soundness.",
+      "guard_gap": null,
+      "probes": [
+        "probes/strings/STR_OVERLAP_ENDPOINTS_REPLACE_sa_proof.smt2",
+        "probes/strings/MACRO_STR_STRIP_ENDPOINTS_sa_replace.smt2"
+      ],
+      "probe_result": "cvc5=unsat with str-overlap-endpoints-replace in proof, no trust; ethos accepts; differentials agree with z3",
+      "confidence": "high",
+      "rationale": "Independent CPC rule with the same guards; probes reconstruct and check in ethos.",
+      "witness": null
+    }
+  ]
+}

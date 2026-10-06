@@ -1,0 +1,1354 @@
+{
+ "unit": "bv-dispatch",
+ "source_rev": "40a4bb7e43",
+ "binary": "cvc5 version 1.3.2.dev+main@dc8ad24031 [git dc8ad24031 on branch main]",
+ "notes": "Binary vs HEAD: HEAD removed FlattenAssocCommut(NoDuplicates) from RewriteAnd/Or/Xor (4e310090c3); HEAD added the xor-constant-result elaboration case (so the macro-bv-xor-simplify trust seen on the binary is an artifact); HEAD added (>= n tn) (>= m an) to bv-mult-slt-mult-1/2 and guards to bv-ashr-by-const-2 and bv-extract-mult-leading-bit (aafcc486e2); the binary's RARE rules lack them. MultSltMult C++ is semantically unchanged.",
+ "rules": [
+  {
+   "id": "RewriteBit",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:185",
+   "dispatch": "pre/post BITVECTOR_BIT (internal bit-blasting kind)",
+   "summary": "BitConst: constant-fold (bit i c)",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "Internal kind, not in SMT-LIB; only constant folding.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "not probed (internal kind)",
+   "confidence": "n/a",
+   "rationale": "Pure constant evaluation on an internal kind."
+  },
+  {
+   "id": "RewriteUlt",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:192",
+   "dispatch": "pre/post BITVECTOR_ULT; LinearRewriteStrategy EvalUlt, UltSelf, UltOne, UltOnes, UltZero, SignExtendUltConst, ZeroExtendUltConst, IneqElimConversion; REWRITE_AGAIN_FULL if changed",
+   "summary": "chain of ult simplifications applied cumulatively to one node",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "evaluate",
+    "bv-ult-self",
+    "bv-ult-one",
+    "bv-ult-ones",
+    "bv-ult-zero-1",
+    "bv-ult-zero-2",
+    "bv-sign-extend-ult-const-1..4",
+    "bv-zero-extend-ult-const-1/2"
+   ],
+   "guard_comparison": "No inline logic. LinearRewriteStrategy feeds each rule the previous rule's output (theory_bv_rewrite_rules.h:569), so later rules see EQUAL/NOT nodes after UltOne/UltOnes; each rule re-checks its own kind, so no rule is misapplied. Dispatch-only record: the whole pre/postRewrite call is one TRUST_THEORY_REWRITE step, so a multi-rule chain must be rebuilt by generic RARE search; member rule bodies are judged in the per-header units.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by per-rule probes in bv-simplification units",
+   "confidence": "medium",
+   "rationale": "Dispatch adds no rewriting of its own; chained rules collapse into one step that needs RARE search."
+  },
+  {
+   "id": "RewriteUltBv",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:211",
+   "dispatch": "pre/post BITVECTOR_ULTBV (internal)",
+   "summary": "EvalUltBv constant folding",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "Internal kind; constant folding only.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "not probed (internal kind)",
+   "confidence": "n/a",
+   "rationale": "Pure evaluation."
+  },
+  {
+   "id": "RewriteSlt",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:220",
+   "dispatch": "pre/post BITVECTOR_SLT; LinearRewriteStrategy EvalSlt, SltSelf, MultSltMult; always REWRITE_DONE",
+   "summary": "constant folding, (bvslt x x)->false, MultSltMult",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "evaluate",
+    "bv-lt-self",
+    "MACRO_BV_MULT_SLT_MULT",
+    "bv-mult-slt-mult-1",
+    "bv-mult-slt-mult-2"
+   ],
+   "guard_comparison": "Dispatch applies MultSltMult with no extra guard and returns REWRITE_DONE even though MultSltMult builds an unrewritten AND (idempotence wart, not soundness). The unsoundness enters through this dispatch; see MACRO_BV_MULT_SLT_MULT.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MultSltMult_issue13039.smt2",
+    "probes/bv/MACRO_BV_MULT_SLT_MULT_rhs_mixed_ext.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=sat on both; trust MACRO_THEORY_REWRITE_RCONS_SIMPLE (attributed to MACRO_BV_MULT_SLT_MULT)",
+   "confidence": "medium",
+   "rationale": "Dispatch itself adds no logic; the suspect rewrite it dispatches is recorded once, under MACRO_BV_MULT_SLT_MULT, to avoid double counting."
+  },
+  {
+   "id": "RewriteSltBv",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:238",
+   "dispatch": "pre/post BITVECTOR_SLTBV (internal)",
+   "summary": "EvalSltBv constant folding",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "Internal kind.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "not probed (internal kind)",
+   "confidence": "n/a",
+   "rationale": "Pure evaluation."
+  },
+  {
+   "id": "RewriteUle",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:246",
+   "dispatch": "pre/post BITVECTOR_ULE; EvalUle, UleMax, ZeroUle, IneqElimConversion, UleZero, UleSelf, UleEliminate; REWRITE_AGAIN if changed",
+   "summary": "ule simplifications, then (bvule x y) -> (not (bvult y x))",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "evaluate",
+    "bv-ule-max",
+    "bv-zero-ule",
+    "bv-ule-zero",
+    "bv-ule-self",
+    "bv-ule-eliminate"
+   ],
+   "guard_comparison": "No inline logic; cumulative chain. Dispatch-only record: the whole pre/postRewrite call is one TRUST_THEORY_REWRITE step, so a multi-rule chain must be rebuilt by generic RARE search; member rule bodies are judged in the per-header units.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by per-rule probes",
+   "confidence": "medium",
+   "rationale": "Chain only; reconstruction of the collapsed step relies on RARE search."
+  },
+  {
+   "id": "RewriteSle",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:261",
+   "dispatch": "pre/post BITVECTOR_SLE; EvalSle, SleEliminate",
+   "summary": "(bvsle x y) -> (not (bvslt y x))",
+   "coverage": "rare",
+   "proof_rules": [
+    "evaluate",
+    "bv-sle-eliminate"
+   ],
+   "guard_comparison": "Single elimination rule after evaluation; direct RARE instance.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by SleEliminate_proof_* (bv-opelim unit)",
+   "confidence": "high",
+   "rationale": "One RARE rule per input."
+  },
+  {
+   "id": "RewriteUgt",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:271",
+   "dispatch": "pre/post BITVECTOR_UGT; UgtUrem, UgtEliminate; always REWRITE_AGAIN",
+   "summary": "(bvugt (bvurem y x) x) special case, else (bvugt x y)->(bvult y x)",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "bv-ugt-urem",
+    "bv-ugt-eliminate"
+   ],
+   "guard_comparison": "If UgtUrem fires its result is an AND, so UgtEliminate does not apply; otherwise one RARE rule. Returns REWRITE_AGAIN even when unchanged (harmless).",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by per-rule probes",
+   "confidence": "high",
+   "rationale": "Each reachable path is a single RARE rule."
+  },
+  {
+   "id": "RewriteSgt",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:281",
+   "dispatch": "pre/post BITVECTOR_SGT; SgtEliminate",
+   "summary": "(bvsgt x y)->(bvslt y x)",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-sgt-eliminate"
+   ],
+   "guard_comparison": "Direct RARE instance.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "bv-sgt-eliminate appears in all MultSltMult probe proofs",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "RewriteUge",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:291",
+   "dispatch": "pre/post BITVECTOR_UGE; UgeEliminate",
+   "summary": "(bvuge x y)->(bvule y x)",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-uge-eliminate"
+   ],
+   "guard_comparison": "Direct RARE instance.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by UgeEliminate_proof_*",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "RewriteSge",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:300",
+   "dispatch": "pre/post BITVECTOR_SGE; SgeEliminate",
+   "summary": "(bvsge x y)->(bvsle y x)",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-sge-eliminate"
+   ],
+   "guard_comparison": "Direct RARE instance.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by SgeEliminate_proof_*",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "RewriteITEBv",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:310",
+   "dispatch": "pre/post BITVECTOR_ITE (internal 1-bit-condition ite); three staged LinearRewriteStrategies with early return",
+   "summary": "stage 1 EvalITEBv/BvIteConstCond/BvIteEqualChildren; stage 2 BvIteConstChildren/BvIteEqualCond; stage 3 BvIteMerge*",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "bv-ite-equal-children",
+    "bv-ite-const-children-1",
+    "bv-ite-const-children-2",
+    "bv-ite-equal-cond-1..3",
+    "bv-ite-merge-then-if",
+    "bv-ite-merge-else-if",
+    "bv-ite-merge-then-else",
+    "bv-ite-merge-else-else"
+   ],
+   "guard_comparison": "Soundness of BvIteConstChildren depends on dispatch order: its applies() (simplification.h:97) accepts any two 1-bit constant branches, including (bvite c #b1 #b1), and apply() would return (bvnot c) there in a production build. Only the stage-1 early return after BvIteEqualChildren keeps that input away. The RARE rules bv-ite-const-children-1/2 cover only 1/0 and 0/1, so a mis-dispatch would show up as trust, not as a checked step. See record RewriteITEBv#inline-staged-ordering.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "not directly probed (BITVECTOR_ITE is not SMT-LIB syntax); peer unit has BvIte* probes",
+   "confidence": "medium",
+   "rationale": "Reachable rewrites are RARE-covered, but one rule is sound only because of the dispatch order."
+  },
+  {
+   "id": "RewriteITEBv#inline-staged-ordering",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:323",
+   "dispatch": "inside RewriteITEBv: early `return REWRITE_AGAIN` after stage 1",
+   "summary": "dispatch-level guard: BvIteConstChildren runs only when BvIteEqualChildren did not fire, i.e. node[1] != node[2]",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-ite-const-children-1",
+    "bv-ite-const-children-2",
+    "bv-ite-equal-children"
+   ],
+   "guard_comparison": "The C++ guard for BvIteConstChildren is split between the rule's applies() (1-bit constant branches) and the dispatcher (branches differ). RARE encodes both in the patterns (bvite c 0 1)/(bvite c 1 0). As dispatched, every input the C++ rewrites matches a RARE pattern.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "not probed (internal kind)",
+   "confidence": "medium",
+   "rationale": "Faithful as dispatched, but the rule body alone is unsound on equal branches; a reordering would be caught only as a trust step."
+  },
+  {
+   "id": "RewriteNot",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:344",
+   "dispatch": "pre/post BITVECTOR_NOT; NotIdemp, EvalNot; REWRITE_DONE",
+   "summary": "(bvnot (bvnot x))->x; constant fold",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-not-idemp",
+    "evaluate"
+   ],
+   "guard_comparison": "Direct RARE plus evaluation.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by NotIdemp_* (peer unit)",
+   "confidence": "high",
+   "rationale": "Single RARE rule or evaluation."
+  },
+  {
+   "id": "RewriteExtract",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:359",
+   "dispatch": "pre/post BITVECTOR_EXTRACT; ExtractConcat | ExtractSignExtend | ExtractNot (each returns REWRITE_AGAIN_FULL); post only: ExtractExtract; then ExtractWhole, ExtractMultLeadingBit, ExtractConstant",
+   "summary": "extract normalization",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "MACRO_BV_EXTRACT_CONCAT",
+    "bv-extract-concat-1..4",
+    "bv-extract-sign-extend-1..3",
+    "bv-extract-not",
+    "bv-extract-extract",
+    "bv-extract-whole",
+    "bv-extract-mult-leading-bit",
+    "evaluate"
+   ],
+   "guard_comparison": "No inline logic. ExtractExtract (core.h:323) collapses an arbitrarily deep nest of extracts in one call, while bv-extract-extract is one level, so deep nests need a RARE chain. ExtractConcat on an n-ary concat goes through MACRO_BV_EXTRACT_CONCAT. Dispatch-only record: the whole pre/postRewrite call is one TRUST_THEORY_REWRITE step, so a multi-rule chain must be rebuilt by generic RARE search; member rule bodies are judged in the per-header units.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_EXTRACT_CONCAT_span3.smt2",
+    "probes/bv/MACRO_BV_EXTRACT_CONCAT_nested.smt2"
+   ],
+   "probe_result": "both cvc5=unsat z3=unsat; no trust; macro-bv-extract-concat expanded, bv-extract-concat-2, bv-extract-whole, aci_norm",
+   "confidence": "medium",
+   "rationale": "All reachable rewrites reconstruct, but via macro elaboration plus RARE search."
+  },
+  {
+   "id": "RewriteConcat",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:402",
+   "dispatch": "pre/post BITVECTOR_CONCAT; TRY ConcatFlatten, TRY ConcatExtractMerge, then ApplyRuleToChildren<CONCAT,ExtractWhole>, ConcatConstantMerge",
+   "summary": "flatten, merge adjacent extracts, drop whole extracts in children, merge constants",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "FLATTEN/aci_norm",
+    "MACRO_BV_CONCAT_EXTRACT_MERGE",
+    "bv-concat-extract-merge",
+    "bv-extract-whole",
+    "MACRO_BV_CONCAT_CONSTANT_MERGE",
+    "bv-concat-merge-const"
+   ],
+   "guard_comparison": "TRY_REWRITE(ConcatExtractMerge) fires on every concat because its applies() is only a kind test (core.h:65), but it returns the node unchanged when nothing merges, and TRY_REWRITE only returns when the node changed. Inline ApplyRuleToChildren record separate.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_CONCAT_EXTRACT_MERGE_three.smt2",
+    "probes/bv/MACRO_BV_CONCAT_CONSTANT_MERGE_runs.smt2",
+    "probes/bv/RewriteConcat_extract_whole_child.smt2"
+   ],
+   "probe_result": "all cvc5=unsat z3=unsat, no trust (bv-concat-extract-merge, bv-concat-merge-const, bv-extract-whole)",
+   "confidence": "high",
+   "rationale": "Every probe reconstructs from RARE rules directly; the macros are a fallback."
+  },
+  {
+   "id": "RewriteConcat#inline-ApplyRuleToChildren-ExtractWhole",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:409",
+   "dispatch": "inside RewriteConcat via ApplyRuleToChildren (theory_bv_rewrite_rules.h:513)",
+   "summary": "rewrite each child (extract n-1 0 x) -> x inside the concat",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "cong",
+    "bv-extract-whole"
+   ],
+   "guard_comparison": "Rewrites below the root inside one rewriter step; reconstruction needs CONG plus bv-extract-whole (condition n >= size-1, implied by ExtractWhole's high==size-1, low==0).",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/RewriteConcat_extract_whole_child.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=unsat; no trust; bv-extract-whole",
+   "confidence": "high",
+   "rationale": "Congruence plus an exact RARE rule; probe clean."
+  },
+  {
+   "id": "RewriteAnd",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:419",
+   "dispatch": "pre/post BITVECTOR_AND; TRY AndSimplify, AndOrXorConcatPullUp; post only BitwiseSlicing; each TRY returns REWRITE_AGAIN_FULL",
+   "summary": "bitwise simplification",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_AND_SIMPLIFY",
+    "bv-and-simplify-1/2",
+    "MACRO_BV_AND_OR_XOR_CONCAT_PULLUP",
+    "bv-and-concat-pullup*",
+    "BV_BITWISE_SLICING"
+   ],
+   "guard_comparison": "No inline logic. HEAD removed FlattenAssocCommut(NoDuplicates) from these three (commit 4e310090c3); the dc8ad24031 binary still flattens first, so probes on the binary go through flattening that HEAD does not do. The *Simplify rules apply to every node of the kind (applies() is a kind test) and return the node unchanged if nothing simplifies.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_AND_SIMPLIFY_two_consts.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=unsat; no trust; macro-bv-and-simplify expanded",
+   "confidence": "medium",
+   "rationale": "Rewrites reach proof rules mostly via macro elaboration whose residue is re-proven by RARE search."
+  },
+  {
+   "id": "RewriteOr",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:430",
+   "dispatch": "pre/post BITVECTOR_OR; TRY OrSimplify, AndOrXorConcatPullUp; post only BitwiseSlicing; each TRY returns REWRITE_AGAIN_FULL",
+   "summary": "bitwise simplification",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_OR_SIMPLIFY",
+    "bv-or-simplify-1/2",
+    "MACRO_BV_AND_OR_XOR_CONCAT_PULLUP",
+    "bv-or-concat-pullup*",
+    "BV_BITWISE_SLICING"
+   ],
+   "guard_comparison": "No inline logic. HEAD removed FlattenAssocCommut(NoDuplicates) from these three (commit 4e310090c3); the dc8ad24031 binary still flattens first, so probes on the binary go through flattening that HEAD does not do. The *Simplify rules apply to every node of the kind (applies() is a kind test) and return the node unchanged if nothing simplifies.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_OR_SIMPLIFY_two_consts.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=unsat; no trust; macro-bv-or-simplify expanded",
+   "confidence": "medium",
+   "rationale": "Rewrites reach proof rules mostly via macro elaboration whose residue is re-proven by RARE search."
+  },
+  {
+   "id": "RewriteXor",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:441",
+   "dispatch": "pre/post BITVECTOR_XOR; TRY XorSimplify, XorZero, AndOrXorConcatPullUp; post only XorOnes, BitwiseSlicing; each TRY returns REWRITE_AGAIN_FULL",
+   "summary": "bitwise simplification",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_XOR_SIMPLIFY",
+    "bv-xor-simplify-1..3",
+    "bv-xor-ones",
+    "MACRO_BV_AND_OR_XOR_CONCAT_PULLUP",
+    "bv-xor-concat-pullup*",
+    "BV_BITWISE_SLICING"
+   ],
+   "guard_comparison": "No inline logic. HEAD removed FlattenAssocCommut(NoDuplicates) from these three (commit 4e310090c3); the dc8ad24031 binary still flattens first, so probes on the binary go through flattening that HEAD does not do. The *Simplify rules apply to every node of the kind (applies() is a kind test) and return the node unchanged if nothing simplifies.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_XOR_SIMPLIFY_two_consts.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=unsat; no trust; macro-bv-xor-simplify expanded",
+   "confidence": "medium",
+   "rationale": "Rewrites reach proof rules mostly via macro elaboration whose residue is re-proven by RARE search."
+  },
+  {
+   "id": "RewriteXnor",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:456",
+   "dispatch": "pre/post BITVECTOR_XNOR; XnorEliminate",
+   "summary": "eliminate to not/and/or/xor",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-xnor-eliminate"
+   ],
+   "guard_comparison": "Direct RARE instance.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by XnorEliminate_proof_* (bv-opelim)",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "RewriteNand",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:465",
+   "dispatch": "pre/post BITVECTOR_NAND; NandEliminate",
+   "summary": "eliminate to not/and/or/xor",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-nand-eliminate"
+   ],
+   "guard_comparison": "Direct RARE instance.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by NandEliminate_proof_* (bv-opelim)",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "RewriteNor",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:474",
+   "dispatch": "pre/post BITVECTOR_NOR; NorEliminate",
+   "summary": "eliminate to not/and/or/xor",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-nor-eliminate"
+   ],
+   "guard_comparison": "Direct RARE instance.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by NorEliminate_proof_* (bv-opelim)",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "RewriteComp",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:483",
+   "dispatch": "pre/post BITVECTOR_COMP; EvalComp, else BvComp (REWRITE_AGAIN)",
+   "summary": "constant fold; bvcomp with a constant side",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "evaluate",
+    "bv-comp-eliminate"
+   ],
+   "guard_comparison": "BvComp only tried when EvalComp did not change the node. No inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by BvComp_* probes (peer unit)",
+   "confidence": "medium",
+   "rationale": "Dispatch only; BvComp coverage judged in peer unit."
+  },
+  {
+   "id": "RewriteConstBvSym",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:497",
+   "dispatch": "pre/post CONST_BITVECTOR_SYMBOLIC",
+   "summary": "EvalConstBvSym",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "Constant evaluation only.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "not probed",
+   "confidence": "n/a",
+   "rationale": "Pure evaluation."
+  },
+  {
+   "id": "RewriteOverflow",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:505",
+   "dispatch": "pre/post BITVECTOR_{U,S}{ADD,SUB,MUL}O; only when all children are constants",
+   "summary": "inline: call eliminateOverflows(node) and return REWRITE_AGAIN_FULL",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "bv-uaddo-eliminate",
+    "bv-saddo-eliminate",
+    "bv-usubo-eliminate",
+    "bv-ssubo-eliminate",
+    "BV_UMULO_ELIM",
+    "BV_SMULO_ELIM",
+    "evaluate"
+   ],
+   "guard_comparison": "All the work is the inline record below.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/RewriteOverflow_inline_consts.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=unsat; no trust",
+   "confidence": "high",
+   "rationale": "See inline record."
+  },
+  {
+   "id": "RewriteOverflow#inline-eliminateOverflows-const",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:521",
+   "dispatch": "inside RewriteOverflow when every child isConst(); eliminateOverflows at :155 tries Uaddo, Saddo, Umulo, Smulo, Usubo, Ssubo Eliminate in order",
+   "summary": "(bvXo c1 c2) -> elimination formula over constants, then evaluated on the next pass",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "bv-uaddo-eliminate",
+    "bv-saddo-eliminate",
+    "bv-usubo-eliminate",
+    "bv-ssubo-eliminate",
+    "BV_UMULO_ELIM",
+    "BV_SMULO_ELIM",
+    "evaluate"
+   ],
+   "guard_comparison": "The inline code adds only the all-constant guard; each kind matches exactly one *Eliminate (kind tests are disjoint). RARE elimination rules have only width-definition conditions; umulo/smulo go through THEORY_REWRITE checked by the Eunoia definitions. NEGO and SDIVO are not routed here (own Rewrite functions).",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/RewriteOverflow_inline_consts.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=unsat; no trust; bv-uaddo/saddo/usubo/ssubo-eliminate, bv-umulo-elim, bv-smulo-elim, evaluate, bv_poly_norm",
+   "confidence": "high",
+   "rationale": "All six overflow kinds at 8 constant inputs reconstruct with no trust and agree with z3."
+  },
+  {
+   "id": "expandDefinition/eliminateOverflows",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:150",
+   "dispatch": "TheoryBVRewriter::expandDefinition, called only from smt/expand_definitions.cpp (model checking / get-value)",
+   "summary": "eliminate overflow predicates with non-constant children",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "Not used on the proof-producing path (ExpandDefs is used by check_models and SolverEngine getValue).",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "n/a",
+   "confidence": "n/a",
+   "rationale": "Not part of proof-producing rewriting."
+  },
+  {
+   "id": "RewriteSize",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:528",
+   "dispatch": "pre/post BITVECTOR_SIZE (@bvsize, internal to RARE)",
+   "summary": "SizeEliminate: @bvsize x -> width",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "Internal kind.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "not probed",
+   "confidence": "n/a",
+   "rationale": "Evaluation of an internal kind."
+  },
+  {
+   "id": "RewriteEagerAtom",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:536",
+   "dispatch": "pre/post BITVECTOR_EAGER_ATOM (internal)",
+   "summary": "EvalEagerAtom",
+   "coverage": "evaluate",
+   "proof_rules": [
+    "evaluate"
+   ],
+   "guard_comparison": "Internal wrapper kind.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "not probed",
+   "confidence": "n/a",
+   "rationale": "Internal."
+  },
+  {
+   "id": "RewriteMult",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:545",
+   "dispatch": "pre/post BITVECTOR_MULT; TRY FlattenAssocCommut, MultSimplify; post only MultPow2, MultDistribConst, MultDistrib",
+   "summary": "flatten/sort, fold constants, power-of-2 to shift, distribute",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "aci_norm/bv_poly_norm",
+    "bv-mult-pow2-1",
+    "bv-mult-pow2-2",
+    "bv-mult-pow2-2b",
+    "bv_poly_norm"
+   ],
+   "guard_comparison": "No inline logic; flatten and distribution steps are justified by ACI_NORM/BV_POLY_NORM in reconstruction. Dispatch-only record: the whole pre/postRewrite call is one TRUST_THEORY_REWRITE step, so a multi-rule chain must be rebuilt by generic RARE search; member rule bodies are judged in the per-header units.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by MultPow2_* probes (peer unit)",
+   "confidence": "medium",
+   "rationale": "Dispatch only; relies on normalization rules."
+  },
+  {
+   "id": "RewriteAdd",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:560",
+   "dispatch": "pre: FlattenAssocCommut only (REWRITE_DONE); post: FlattenAssocCommut, AddCombineLikeTerms (REWRITE_AGAIN_FULL)",
+   "summary": "flatten and combine like terms",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "aci_norm",
+    "bv_poly_norm"
+   ],
+   "guard_comparison": "No inline logic; AddCombineLikeTerms reconstructs via BV_POLY_NORM whose Eunoia definition ($get_bv_poly_norm) is an independent polynomial normalizer.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "bv_poly_norm steps seen in several probes (e.g. MACRO_BV_EQ_SOLVE_const_diff)",
+   "confidence": "medium",
+   "rationale": "Normalization-based coverage."
+  },
+  {
+   "id": "RewriteSub",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:582",
+   "dispatch": "pre/post BITVECTOR_SUB; SubEliminate",
+   "summary": "(bvsub x y)->(bvadd x (bvneg y))",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-sub-eliminate"
+   ],
+   "guard_comparison": "Direct RARE.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by SubEliminate_proof_*",
+   "confidence": "high",
+   "rationale": "Exact RARE rule."
+  },
+  {
+   "id": "RewriteNeg",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:592",
+   "dispatch": "pre/post BITVECTOR_NEG; EvalNeg, NegIdemp, NegSub; then NegAdd (pre+post), NegMult (post only)",
+   "summary": "negation normalization",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "evaluate",
+    "bv_poly_norm"
+   ],
+   "guard_comparison": "Inline wart: NegAdd/NegMult test the original `node`, not the strategy result, and discard the strategy result if they fire. That is harmless because NegAdd/NegMult match (bvneg (bvadd ..))/(bvneg (bvmul ..)), which EvalNeg/NegIdemp/NegSub never change. No unsoundness.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by NegIdemp_* (peer unit)",
+   "confidence": "medium",
+   "rationale": "Dispatch only; neg rules rest on poly-norm reconstruction."
+  },
+  {
+   "id": "RewriteUdiv",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:622",
+   "dispatch": "pre/post BITVECTOR_UDIV; UdivPow2 (REWRITE_AGAIN_FULL), else EvalUdiv, UdivZero, UdivOne",
+   "summary": "udiv simplification",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "bv-udiv-pow2-not-one",
+    "evaluate",
+    "bv-udiv-zero",
+    "bv-udiv-one"
+   ],
+   "guard_comparison": "No inline logic; the first rule returns immediately, the rest is a short linear chain.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Udiv* probes (peer units)",
+   "confidence": "medium",
+   "rationale": "Dispatch only."
+  },
+  {
+   "id": "RewriteUrem",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:640",
+   "dispatch": "pre/post BITVECTOR_UREM; UremPow2 (REWRITE_AGAIN_FULL), else EvalUrem, UremOne, UremSelf",
+   "summary": "urem simplification",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "bv-urem-pow2-not-one",
+    "evaluate",
+    "bv-urem-one",
+    "bv-urem-self"
+   ],
+   "guard_comparison": "No inline logic; the first rule returns immediately, the rest is a short linear chain.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Urem* probes (peer units)",
+   "confidence": "medium",
+   "rationale": "Dispatch only."
+  },
+  {
+   "id": "RewriteShl",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:683",
+   "dispatch": "pre/post BITVECTOR_SHL; ShlByConst, else EvalShl, ShiftZero",
+   "summary": "shl simplification",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "bv-shl-by-const-0..2",
+    "evaluate",
+    "bv-shl-zero"
+   ],
+   "guard_comparison": "No inline logic; the first rule returns immediately, the rest is a short linear chain.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Shl* probes (peer units)",
+   "confidence": "medium",
+   "rationale": "Dispatch only."
+  },
+  {
+   "id": "RewriteLshr",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:699",
+   "dispatch": "pre/post BITVECTOR_LSHR; LshrByConst, else EvalLshr, ShiftZero",
+   "summary": "lshr simplification",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "bv-lshr-by-const-0..2",
+    "evaluate",
+    "bv-lshr-zero"
+   ],
+   "guard_comparison": "No inline logic; the first rule returns immediately, the rest is a short linear chain.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Lshr* probes (peer units)",
+   "confidence": "medium",
+   "rationale": "Dispatch only."
+  },
+  {
+   "id": "RewriteAshr",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:715",
+   "dispatch": "pre/post BITVECTOR_ASHR; AshrByConst, else EvalAshr, ShiftZero",
+   "summary": "ashr simplification",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "bv-ashr-by-const-0..2",
+    "evaluate",
+    "bv-ashr-zero"
+   ],
+   "guard_comparison": "No inline logic; the first rule returns immediately, the rest is a short linear chain.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Ashr* probes (peer units)",
+   "confidence": "medium",
+   "rationale": "Dispatch only."
+  },
+  {
+   "id": "RewriteSmod",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:657",
+   "dispatch": "pre/post; single SmodEliminate",
+   "summary": "operator elimination",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-smod-eliminate"
+   ],
+   "guard_comparison": "Single rule; no inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Smod* probes (bv-opelim)",
+   "confidence": "high",
+   "rationale": "One RARE rule per input."
+  },
+  {
+   "id": "RewriteSdiv",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:666",
+   "dispatch": "pre/post; single SdivEliminate",
+   "summary": "operator elimination",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-sdiv-eliminate"
+   ],
+   "guard_comparison": "Single rule; no inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Sdiv* probes (bv-opelim)",
+   "confidence": "high",
+   "rationale": "One RARE rule per input."
+  },
+  {
+   "id": "RewriteSrem",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:675",
+   "dispatch": "pre/post; single SremEliminate",
+   "summary": "operator elimination",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-srem-eliminate"
+   ],
+   "guard_comparison": "Single rule; no inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Srem* probes (bv-opelim)",
+   "confidence": "high",
+   "rationale": "One RARE rule per input."
+  },
+  {
+   "id": "RewriteZeroExtend",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:740",
+   "dispatch": "pre/post; single ZeroExtendEliminate",
+   "summary": "operator elimination",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-zero-extend-eliminate"
+   ],
+   "guard_comparison": "Single rule; no inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by ZeroExtend* probes (bv-opelim)",
+   "confidence": "high",
+   "rationale": "One RARE rule per input."
+  },
+  {
+   "id": "RewriteRotateRight",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:763",
+   "dispatch": "pre/post; single RotateRightEliminate",
+   "summary": "operator elimination",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-rotate-right-eliminate-1/2"
+   ],
+   "guard_comparison": "Single rule; no inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by RotateRight* probes (bv-opelim)",
+   "confidence": "high",
+   "rationale": "One RARE rule per input."
+  },
+  {
+   "id": "RewriteRotateLeft",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:772",
+   "dispatch": "pre/post; single RotateLeftEliminate",
+   "summary": "operator elimination",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-rotate-left-eliminate-1/2"
+   ],
+   "guard_comparison": "Single rule; no inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by RotateLeft* probes (bv-opelim)",
+   "confidence": "high",
+   "rationale": "One RARE rule per input."
+  },
+  {
+   "id": "RewriteRedor",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:781",
+   "dispatch": "pre/post; single RedorEliminate",
+   "summary": "operator elimination",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-redor-eliminate"
+   ],
+   "guard_comparison": "Single rule; no inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Redor* probes (bv-opelim)",
+   "confidence": "high",
+   "rationale": "One RARE rule per input."
+  },
+  {
+   "id": "RewriteRedand",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:790",
+   "dispatch": "pre/post; single RedandEliminate",
+   "summary": "operator elimination",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-redand-eliminate"
+   ],
+   "guard_comparison": "Single rule; no inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Redand* probes (bv-opelim)",
+   "confidence": "high",
+   "rationale": "One RARE rule per input."
+  },
+  {
+   "id": "RewriteNego",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:820",
+   "dispatch": "pre/post; single NegoEliminate",
+   "summary": "operator elimination",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-nego-eliminate"
+   ],
+   "guard_comparison": "Single rule; no inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Nego* probes (bv-opelim)",
+   "confidence": "high",
+   "rationale": "One RARE rule per input."
+  },
+  {
+   "id": "RewriteSdivo",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:829",
+   "dispatch": "pre/post; single SdivoEliminate",
+   "summary": "operator elimination",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-sdivo-eliminate"
+   ],
+   "guard_comparison": "Single rule; no inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by Sdivo* probes (bv-opelim)",
+   "confidence": "high",
+   "rationale": "One RARE rule per input."
+  },
+  {
+   "id": "RewriteRepeat",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:731",
+   "dispatch": "pre/post BITVECTOR_REPEAT; RepeatEliminate",
+   "summary": "repeat n x -> concat of n copies",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "BV_REPEAT_ELIM"
+   ],
+   "guard_comparison": "See BV_REPEAT_ELIM.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/BV_REPEAT_ELIM_three.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=unsat; no trust; bv-repeat-elim",
+   "confidence": "high",
+   "rationale": "Independent Eunoia definition; probe clean."
+  },
+  {
+   "id": "RewriteSignExtend",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:749",
+   "dispatch": "pre/post BITVECTOR_SIGN_EXTEND; MergeSignExtend, EvalSignExtend",
+   "summary": "merge nested extends; fold",
+   "coverage": "rare",
+   "proof_rules": [
+    "bv-merge-sign-extend-1",
+    "bv-merge-sign-extend-2",
+    "bv-sign-extend-eliminate-0",
+    "evaluate"
+   ],
+   "guard_comparison": "No inline logic.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by MergeSignExtend_* (peer unit)",
+   "confidence": "high",
+   "rationale": "Dispatch only; member rules have RARE counterparts."
+  },
+  {
+   "id": "RewriteEqual",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:799",
+   "dispatch": "EQUAL over BV; pre and post branches are identical: FailEq, SimplifyEq, ReflexivityEq",
+   "summary": "distinct constants -> false; x=x -> true; orient equality",
+   "coverage": "rare-multi",
+   "proof_rules": [
+    "evaluate",
+    "distinct_values",
+    "eq-refl",
+    "eq-symm"
+   ],
+   "guard_comparison": "The if/else has identical bodies, so there is no pre/post difference. No solving (SolveEq/BitwiseEq run only in TheoryBV::ppStaticRewrite, not here), so MACRO_BV_EQ_SOLVE is not produced by this rewriter and is only a reconstruction helper.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "covered by FailEq_consts, ReflexivityEq_swap (peer unit)",
+   "confidence": "high",
+   "rationale": "Evaluation and equality symmetry only."
+  },
+  {
+   "id": "IdentityRewrite(d_rewriteTable default)",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:851",
+   "dispatch": "initializeRewrites fills every kind with IdentityRewrite, then overrides the BV kinds",
+   "summary": "kinds without a handler are returned unchanged (UndefinedRewrite is not used)",
+   "coverage": "none",
+   "proof_rules": [],
+   "guard_comparison": "No rewrite, so nothing to justify.",
+   "guard_gap": null,
+   "probes": [],
+   "probe_result": "n/a",
+   "confidence": "n/a",
+   "rationale": "Does not rewrite."
+  },
+  {
+   "id": "MACRO_BV_MULT_SLT_MULT",
+   "theory": "bv",
+   "location": "src/theory/bv/macro_rewrite_elaborator.cpp:300",
+   "dispatch": "registered POST_DSL (theory_bv_rewriter.cpp:54); rewriteViaRule -> RewriteRule<MultSltMult>; reached when RARE search on the RewriteSlt step fails",
+   "summary": "zext/sext mult < mult -> (and (not t=0) (not a=0) (= (bv[su]lt (x+t) x) (bvsgt a 0)))",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_MULT_SLT_MULT",
+    "bv-zero-extend-eliminate",
+    "bv_poly_norm",
+    "bv-mult-slt-mult-1",
+    "bv-mult-slt-mult-2",
+    "MACRO_THEORY_REWRITE_RCONS_SIMPLE"
+   ],
+   "guard_comparison": "(i) rewriteViaRule = C++ MultSltMult. extract_ext_tuple (simplification.h:1861) returns (zext-inner, sext-inner, false) for a concat/sext pair, but applies() (:1893) then uses the two inners symmetrically: addxt may be ml[0] or ml[1], and `a` may match mr[0] or mr[1]. Correctness needs addxt = the zero-extended inner on the left AND a = the sign-extended inner on the right. (ii) The elaborator (:300-375) adds RCONS_SIMPLE steps for concat-0 -> zero_extend (reconstructed by bv-zero-extend-eliminate) and for operand swaps chosen by a syntactic heuristic (reconstructed by bv_poly_norm). It then ALWAYS adds a trusted step (:371) `normalized-lhs = C++ rhs` and returns true. That residue is re-proved only by RARE with theory rewrites off (proof_post_processor_dsl.cpp:136). When no RARE rule matches, the trust step stays and states the unsound equality verbatim. (iii) No Eunoia definition: the macro exists only via elaboration. (iv) cvc5_proof_rule.h:3613 defines it as 'rewritten by internal rule MultSltMult', which is circular.",
+   "guard_gap": "Two independent operand-role cases are accepted by the C++ and match no RARE rule: (A) #13039, where the add is under sign_extend and a under zero_extend on the left; (B) new, where the left is correct but on the right the shared a is zero-extended and x sign-extended, e.g. (bvslt (bvmul (zext (x+t)) (sext a)) (bvmul (zext a) (sext x))). A fix that pins only the left-hand roles leaves (B) open. Sound but unreconstructed: (C) sext/sext where the shared factor is itself an add; the elaborator's swap heuristic keys on 'sext of ADD', swaps the wrong mult, and leaves an RCONS_SIMPLE trust step (z3 agrees it is valid).",
+   "probes": [
+    "probes/bv/MultSltMult_issue13039.smt2",
+    "probes/bv/MACRO_BV_MULT_SLT_MULT_rhs_mixed_ext.smt2",
+    "probes/bv/MACRO_BV_MULT_SLT_MULT_rhs_mixed_ext_model.smt2",
+    "probes/bv/MACRO_BV_MULT_SLT_MULT_sext_sound.smt2",
+    "probes/bv/MACRO_BV_MULT_SLT_MULT_zext_sound.smt2",
+    "probes/bv/MACRO_BV_MULT_SLT_MULT_zext_operand_order.smt2",
+    "probes/bv/MACRO_BV_MULT_SLT_MULT_add_in_both.smt2"
+   ],
+   "probe_result": "issue13039: cvc5=unsat z3=sat, trust RCONS_SIMPLE; rhs_mixed_ext: cvc5=unsat z3=sat DISAGREE, trust RCONS_SIMPLE; rhs_mixed_ext_model (z3 model fixed): cvc5=unsat z3=sat, trust RCONS_SIMPLE; sext_sound: unsat/unsat, bv-mult-slt-mult-1 directly, no macro; zext_sound and zext_operand_order: unsat/unsat, macro expanded, bv-mult-slt-mult-2, no trust; add_in_both: unsat/unsat but trust RCONS_SIMPLE (sound, unreconstructed). --no-proof-allow-trust and --check-proofs --proof-pedantic=10 both abort on the buggy probes, and pedantic also aborts on add_in_both.",
+   "confidence": "suspect",
+   "rationale": "Confirmed real unsoundness at HEAD (C++ unchanged since dc8ad24031 apart from formatting/node-id fixes). The elaborator turns every unmatched case into a trust step, so default proof output and the internal checker accept it.",
+   "witness": "x=#b11 t=#b11 a=#b01 (2-bit, 4-bit products): (bvslt (bvmul ((_ zero_extend 2) (bvadd x t)) ((_ sign_extend 2) a)) (bvmul ((_ zero_extend 2) a) ((_ sign_extend 2) x))) is false (2 <s -1), but the rewrite gives true; cvc5 says unsat for the model-fixed instance."
+  },
+  {
+   "id": "MACRO_BV_AND_SIMPLIFY",
+   "theory": "bv",
+   "location": "src/theory/bv/macro_rewrite_elaborator.cpp:56",
+   "dispatch": "registered POST_DSL; rewriteViaRule -> AndSimplify; elaboration ensureProofForSimplify",
+   "summary": "dedupe, fold constants, a & ~a -> 0, drop all-ones",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_AND_SIMPLIFY",
+    "aci_norm",
+    "evaluate",
+    "bv-and-simplify-1/2",
+    "absorb",
+    "MACRO_THEORY_REWRITE_RCONS_SIMPLE"
+   ],
+   "guard_comparison": "(ii) The elaborator groups constants by ACI_NORM, folds them through an RCONS_SIMPLE trusted step (:109, always closable by EVALUATE), and sends the rest (dedupe/complement/absorb) as an RCONS_SIMPLE residue (:119) for RARE. When fewer than 2 constants or no non-constants: returns false (:98), leaving THEORY_REWRITE MACRO_BV_AND_SIMPLIFY, which the CPC printer cannot print (eo_printer.cpp isHandledTheoryRewrite), so it prints as trust with id macro-bv-and-simplify. (iii) No Eunoia definition. (iv) Doc is circular ('rewritten by AndSimplify'). findRule (POST_DSL) picks the id by checking rewriteViaRule(id, lhs) == rhs, i.e. by rerunning the same C++; the internal THEORY_REWRITE checker is the same call, so both are circular.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_AND_SIMPLIFY_two_consts.smt2",
+    "probes/bv/MACRO_BV_AND_SIMPLIFY_complement.smt2",
+    "probes/bv/MACRO_BV_AND_SIMPLIFY_ones_consts.smt2"
+   ],
+   "probe_result": "all cvc5=unsat z3=unsat, no trust; two_consts expanded the macro (aci_norm, absorb, evaluate); the others were reconstructed by RARE directly",
+   "confidence": "medium",
+   "rationale": "No gap found and probes are clean, but the semantic content lives in a residue that only RARE search closes; any C++ deviation would surface as trust."
+  },
+  {
+   "id": "MACRO_BV_OR_SIMPLIFY",
+   "theory": "bv",
+   "location": "src/theory/bv/macro_rewrite_elaborator.cpp:56",
+   "dispatch": "registered POST_DSL; rewriteViaRule -> OrSimplify; elaboration ensureProofForSimplify",
+   "summary": "dedupe, fold constants, a | ~a -> ones, drop zero",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_OR_SIMPLIFY",
+    "aci_norm",
+    "evaluate",
+    "bv-or-simplify-1/2",
+    "absorb",
+    "MACRO_THEORY_REWRITE_RCONS_SIMPLE"
+   ],
+   "guard_comparison": "Same elaboration and the same holes as MACRO_BV_AND_SIMPLIFY (:109 constant fold, :119 residue, :98 return false). findRule (POST_DSL) picks the id by checking rewriteViaRule(id, lhs) == rhs, i.e. by rerunning the same C++; the internal THEORY_REWRITE checker is the same call, so both are circular.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_OR_SIMPLIFY_two_consts.smt2",
+    "probes/bv/MACRO_BV_OR_SIMPLIFY_complement_consts.smt2"
+   ],
+   "probe_result": "both cvc5=unsat z3=unsat, no trust (macro expanded for two_consts; bv-or-simplify-2 directly for complement_consts)",
+   "confidence": "medium",
+   "rationale": "Same as AND: clean probes, residue closed by RARE search."
+  },
+  {
+   "id": "MACRO_BV_XOR_SIMPLIFY",
+   "theory": "bv",
+   "location": "src/theory/bv/macro_rewrite_elaborator.cpp:56",
+   "dispatch": "registered POST_DSL; rewriteViaRule -> XorSimplify; elaboration ensureProofForSimplify plus the xor-constant-result corner case (:83-96)",
+   "summary": "parity-cancel duplicates, x ^ ~x -> ones, fold constants",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_XOR_SIMPLIFY",
+    "aci_norm",
+    "evaluate",
+    "bv-xor-simplify-1..3",
+    "bv-xor-ones",
+    "MACRO_THEORY_REWRITE_RCONS_SIMPLE"
+   ],
+   "guard_comparison": "Holes: :109 constant fold, :119 residue, :93 corner case ((xor ... #b0..0) = const sent as RCONS_SIMPLE). The corner case was added after the dc8ad24031 binary, where the elaborator hit `Assert(false)` and returned false. findRule (POST_DSL) picks the id by checking rewriteViaRule(id, lhs) == rhs, i.e. by rerunning the same C++; the internal THEORY_REWRITE checker is the same call, so both are circular.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_XOR_SIMPLIFY_two_consts.smt2",
+    "probes/bv/MACRO_BV_XOR_SIMPLIFY_not_pair.smt2",
+    "probes/bv/MACRO_BV_XOR_SIMPLIFY_mixed_const_result.smt2",
+    "probes/bv/MACRO_BV_XOR_SIMPLIFY_odd_dups.smt2",
+    "probes/bv/MACRO_BV_XOR_SIMPLIFY_consts_cancel.smt2"
+   ],
+   "probe_result": "all cvc5=unsat z3=unsat; not_pair leaves trust id macro-bv-xor-simplify on (= (bvxor (bvnot a) a) #b1111) (old-binary artifact: HEAD elaborates this case); others no trust",
+   "confidence": "medium",
+   "rationale": "Sound on all probes. The one trust is a known pre-fix elaboration failure, not unsoundness."
+  },
+  {
+   "id": "MACRO_BV_EXTRACT_CONCAT",
+   "theory": "bv",
+   "location": "src/theory/bv/macro_rewrite_elaborator.cpp:227",
+   "dispatch": "registered POST_DSL; rewriteViaRule -> ExtractConcat",
+   "summary": "extract over n-ary concat -> concat of extracts of overlapping children",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_EXTRACT_CONCAT",
+    "aci_norm",
+    "bv-extract-concat-1..4",
+    "bv-extract-whole",
+    "MACRO_THEORY_REWRITE_RCONS_SIMPLE"
+   ],
+   "guard_comparison": "The elaborator curries the concat (ACI_NORM), then repeatedly runs the C++ ExtractConcat on a binary concat and records each output as an RCONS_SIMPLE step (:261). Those steps are re-proved by bv-extract-concat-1..4, whose index conditions are evaluated as obligations. The final shape is closed by ACI_NORM, else it returns false (:293). There is no trusted residue beyond the per-step subgoals. (iii) No Eunoia definition. (iv) Doc circular.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_EXTRACT_CONCAT_span3.smt2",
+    "probes/bv/MACRO_BV_EXTRACT_CONCAT_nested.smt2"
+   ],
+   "probe_result": "both cvc5=unsat z3=unsat; macro expanded; no trust (bv-extract-concat-2, bv-extract-whole, aci_norm)",
+   "confidence": "medium",
+   "rationale": "Each sub-step is an independent RARE instance; coverage depends on search succeeding for every binary step."
+  },
+  {
+   "id": "MACRO_BV_CONCAT_EXTRACT_MERGE",
+   "theory": "bv",
+   "location": "src/theory/bv/macro_rewrite_elaborator.cpp:127",
+   "dispatch": "registered POST_DSL; rewriteViaRule -> ConcatExtractMerge",
+   "summary": "merge adjacent (extract k j+1 s)(extract j i s) into (extract k i s)",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_CONCAT_EXTRACT_MERGE",
+    "aci_norm",
+    "bv-concat-extract-merge",
+    "MACRO_THEORY_REWRITE_RCONS_SIMPLE"
+   ],
+   "guard_comparison": "Groups runs by ACI_NORM. Each pairwise merge computed by the C++ ConcatExtractMerge (run<true> on a binary concat) is an RCONS_SIMPLE subgoal (:163) re-proved by bv-concat-extract-merge (condition j1 = j+1 and the same s). The result must equal eq[1] exactly, else it returns false (:223).",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_CONCAT_EXTRACT_MERGE_three.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=unsat; no trust; reconstructed by bv-concat-extract-merge directly (macro not reached)",
+   "confidence": "medium",
+   "rationale": "The probe could not isolate the macro path; the elaboration's subgoals are RARE-checkable."
+  },
+  {
+   "id": "MACRO_BV_CONCAT_CONSTANT_MERGE",
+   "theory": "bv",
+   "location": "src/theory/bv/macro_rewrite_elaborator.cpp:127",
+   "dispatch": "registered POST_DSL; rewriteViaRule -> ConcatConstantMerge",
+   "summary": "merge runs of adjacent constants in a concat",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_CONCAT_CONSTANT_MERGE",
+    "aci_norm",
+    "evaluate",
+    "bv-concat-merge-const"
+   ],
+   "guard_comparison": "Elaboration uses only ACI_NORM grouping and EVALUATE on each constant run (:194); it adds no trusted step. Mismatch returns false.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_CONCAT_CONSTANT_MERGE_runs.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=unsat; no trust; bv-concat-merge-const directly",
+   "confidence": "high",
+   "rationale": "The elaboration is trust-free, and ACI_NORM/EVALUATE are checked independently by Eunoia."
+  },
+  {
+   "id": "MACRO_BV_AND_OR_XOR_CONCAT_PULLUP",
+   "theory": "bv",
+   "location": "src/theory/bv/macro_rewrite_elaborator.cpp:377",
+   "dispatch": "registered POST_DSL; rewriteViaRule -> AndOrXorConcatPullUp",
+   "summary": "x op (concat ys c zs) -> concat of x-slices op parts, for c in {0,1,ones}",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_AND_OR_XOR_CONCAT_PULLUP",
+    "aci_norm",
+    "bv-and/or/xor-concat-pullup",
+    "bv-*-concat-pullup2",
+    "bv-*-concat-pullup3",
+    "MACRO_THEORY_REWRITE_RCONS_SIMPLE"
+   ],
+   "guard_comparison": "The elaborator only handles a constant strictly inside a concat. It groups that concat as (concat pre c post) through an RCONS_SIMPLE step (:410, ACI_NORM-closable), then ALWAYS adds a trusted residue (:431) expected to be bv-*-concat-pullup3. This is the same shape as MultSltMult (normalize, then trust the remainder). If no concat has a middle constant it returns false (:421), leaving THEORY_REWRITE MACRO_* which prints as trust. C++ picks the FIRST concat child (simplification.h:487), while the elaborator groups EVERY concat child with a middle constant, so with two such children the residue's x differs syntactically from the C++ x. The rewrite is sound for any constant (bitwise ops distribute over concat), so a mismatch costs coverage, not soundness.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_AND_OR_XOR_CONCAT_PULLUP_mid.smt2",
+    "probes/bv/MACRO_BV_AND_OR_XOR_CONCAT_PULLUP_xor_ones.smt2",
+    "probes/bv/MACRO_BV_AND_OR_XOR_CONCAT_PULLUP_two_concats.smt2"
+   ],
+   "probe_result": "all cvc5=unsat z3=unsat, no trust; mid expanded the macro (bv-and-concat-pullup3); xor_ones and two_concats were reconstructed by bv-*-concat-pullup3 directly",
+   "confidence": "medium",
+   "rationale": "Structurally the same normalize-then-trust pattern as MultSltMult, but the C++ rewrite is sound and the residue reconstructs on the probes."
+  },
+  {
+   "id": "MACRO_BV_EQ_SOLVE",
+   "theory": "bv",
+   "location": "src/rewriter/basic_rewrite_rcons.cpp:1655",
+   "dispatch": "registered POST_DSL; rewriteViaRule (theory_bv_rewriter.cpp:110) returns true/false when PolyNorm(a-b) is constant. The BV rewriter never produces it; it only helps reconstruct steps from other sources (e.g. the arith/BV equality normalization).",
+   "summary": "(= a b) -> false if a-b normalizes to a nonzero constant, true if zero",
+   "coverage": "macro-elaborated",
+   "proof_rules": [
+    "MACRO_BV_EQ_SOLVE",
+    "bv_poly_norm",
+    "bv_poly_norm_eq",
+    "evaluate"
+   ],
+   "guard_comparison": "Elaboration: ensureProofArithPolyNormRel (BV_POLY_NORM premise plus BV_POLY_NORM_EQ with odd-coefficient checks) and EVALUATE. No trusted step. Both rules have Eunoia definitions (rules/BitVectors.eo:248-275) built on an independent $get_bv_poly_norm. (iv) Doc matches.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/MACRO_BV_EQ_SOLVE_const_diff.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=unsat; macro-bv-eq-solve expanded; bv_poly_norm, bv_poly_norm_eq, evaluate; no trust",
+   "confidence": "high",
+   "rationale": "Fully elaborated into independently checked rules; no trust."
+  },
+  {
+   "id": "BV_UMULO_ELIM",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:139",
+   "dispatch": "registered POST_DSL; rewriteViaRule -> UmuloEliminate; used for constant-argument RewriteOverflow and for bvumulo elimination elsewhere",
+   "summary": "bvumulo a b -> Gok et al. overflow circuit (= (bvor ...) #b1); width 1 -> false",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "BV_UMULO_ELIM",
+    "bv-umulo-elim (Eunoia)"
+   ],
+   "guard_comparison": "(iii) The Eunoia $bv_umulo_elim (rules/BitVectors.eo:108) transliterates the C++ circuit (same uppc accumulation, same extract of the 1-bit-wider product, same width-1 special case), so it checks C++ against a copy of itself, not against bvumulo semantics. Spec correctness rests on differential tests. (iv) Doc ok.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/BV_UMULO_ELIM_vars.smt2",
+    "probes/bv/RewriteOverflow_inline_consts.smt2"
+   ],
+   "probe_result": "both cvc5=unsat z3=unsat; bv-umulo-elim in proof; no trust (peer UmuloEliminate_spec_w1..5 probes test the spec at more widths)",
+   "confidence": "medium",
+   "rationale": "Checked externally, but by a mirrored definition; independent evidence comes only from z3 agreement."
+  },
+  {
+   "id": "BV_SMULO_ELIM",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:140",
+   "dispatch": "registered POST_DSL; rewriteViaRule -> SmuloEliminate",
+   "summary": "bvsmulo a b -> signed overflow circuit; widths 1 and 2 special-cased",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "BV_SMULO_ELIM",
+    "bv-smulo-elim (Eunoia)"
+   ],
+   "guard_comparison": "(iii) $bv_smulo_elim (rules/BitVectors.eo:54) mirrors the C++ including the w=1 and w=2 cases. (iv) The doc header says 'Unsigned multiplication overflow' for the signed rule (copy-paste typo).",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/BV_SMULO_ELIM_vars.smt2",
+    "probes/bv/RewriteOverflow_inline_consts.smt2"
+   ],
+   "probe_result": "both cvc5=unsat z3=unsat; bv-smulo-elim in proof; no trust",
+   "confidence": "medium",
+   "rationale": "Mirrored Eunoia definition; spec evidence is differential only."
+  },
+  {
+   "id": "BV_BITWISE_SLICING",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:141",
+   "dispatch": "registered POST_DSL; rewriteViaRule -> BitwiseSlicing; dispatched post-only from RewriteAnd/Or/Xor",
+   "summary": "(op ... c ...) -> concat of (op c[i:j] rest[i:j]) over maximal runs of equal bits of the first constant c",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "BV_BITWISE_SLICING",
+    "bv-bitwise-slicing (Eunoia)"
+   ],
+   "guard_comparison": "(iii) The Eunoia $bv_mk_bitwise_slicing (rules/BitVectors.eo:180) is written independently: recursion over the constant's bit list. It agrees with the C++ on the first-constant choice, operand order (const slice first) and n-ary rest. C++ refuses all-0/all-1 constants and width 1; Eunoia does not, which is harmless because those slicings are still valid. (iv) The doc only mentions bvand, but the rule also covers bvor and bvxor.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/BV_BITWISE_SLICING_and.smt2",
+    "probes/bv/BV_BITWISE_SLICING_xor_nary.smt2"
+   ],
+   "probe_result": "both cvc5=unsat z3=unsat; bv-bitwise-slicing in proof; no trust",
+   "confidence": "high",
+   "rationale": "Independent Eunoia definition, clean probes."
+  },
+  {
+   "id": "BV_REPEAT_ELIM",
+   "theory": "bv",
+   "location": "src/theory/bv/theory_bv_rewriter.cpp:143",
+   "dispatch": "registered PRE_DSL (tried before RARE); rewriteViaRule -> RepeatEliminate",
+   "summary": "repeat n x -> concat of n copies (n=1 -> x)",
+   "coverage": "theory-rewrite",
+   "proof_rules": [
+    "BV_REPEAT_ELIM",
+    "bv-repeat-elim (Eunoia)"
+   ],
+   "guard_comparison": "Eunoia: (list_singleton_elim concat ($bv_unfold_repeat n a)) via eo::list_repeat. That is an independent and trivially correct spec, and it agrees on n=1.",
+   "guard_gap": null,
+   "probes": [
+    "probes/bv/BV_REPEAT_ELIM_three.smt2"
+   ],
+   "probe_result": "cvc5=unsat z3=unsat; bv-repeat-elim; no trust",
+   "confidence": "high",
+   "rationale": "Independent, simple definition."
+  },
+  {
+   "id": "bv-reconstruction-pipeline",
+   "theory": "bv",
+   "location": "src/smt/proof_post_processor_dsl.cpp:101",
+   "dispatch": "every BV pre/postRewrite call -> one TRUST_THEORY_REWRITE step -> ProofPostprocessDsl::update -> RewriteDbProofCons::prove",
+   "summary": "how a hand-written BV step becomes (or fails to become) a checked proof",
+   "coverage": "none",
+   "proof_rules": [
+    "evaluate",
+    "RARE DSL_REWRITE",
+    "THEORY_REWRITE (PRE_DSL BV_REPEAT_ELIM; POST_DSL MACRO_BV_*, BV_*)",
+    "MACRO_THEORY_REWRITE_RCONS_SIMPLE"
+   ],
+   "guard_comparison": "Order (rewrite_db_proof_cons.cpp:58-140, basic_rewrite_rcons.cpp:67-140): EVALUATE, DISTINCT_VALUES, PRE_DSL theory rewrites, RARE search (recLimit/stepLimit), retry on the converted form, then POST_DSL theory rewrites. A theory rewrite is selected by findRule, which reruns the C++ (rewriteViaRule) and checks the result is the RHS, so it is circular by construction. A MACRO_BV_* hit is then elaborated (ensureProofForTheoryRewrite). Elaboration subgoals tagged MACRO_THEORY_REWRITE_RCONS_SIMPLE are re-proved by RARE with theory rewrites disabled (proof_post_processor_dsl.cpp:136) and nesting depth < 3. RARE conditions ARE enforced: getObligations evaluates side conditions, each obligation must be proved (proveInternalBase evaluates both sides and FAILs on distinct values, else recursive proof), and the proved conditions become premises of DSL_REWRITE, re-checked by Ethos. BV registers no DSL_SUBCALL theory rewrites, so conditions are never discharged by circular THEORY_REWRITE. So a C++ step that violates a RARE condition cannot be justified by that RARE rule. It ends in one of three visible states: (1) trust MACRO_THEORY_REWRITE_RCONS_SIMPLE, an elaborator residue or normalization step that RARE could not close (the #13039 signature: the trust step states the unsound equation verbatim); (2) trust <macro-id> (e.g. macro-bv-xor-simplify), where the elaborator returned false and the THEORY_REWRITE has no CPC definition (eo_printer.cpp:298 handles only BV_UMULO/SMULO/REPEAT/BITWISE_SLICING); (3) trust TRUST_THEORY_REWRITE, where nothing matched. The hole is policy, not logic: by default cvc5 still answers unsat, prints the trust step and passes --check-proofs (TRUST accepted; THEORY_REWRITE checker circular). --no-proof-allow-trust (cpc printer) and --check-proofs --proof-pedantic=10 abort on the buggy probes, but they also abort on sound-but-unreconstructed steps (MACRO_BV_MULT_SLT_MULT_add_in_both), so a trust step does not by itself distinguish a bug from a coverage gap. Two elaborators end with an unconditional trusted residue and return true: MultSltMult (:371) and AndOrXorConcatPullup (:431). Simplify (:119) is similar but only for the non-constant part. Out of unit: TheoryBV::ppStaticRewrite/ppRewrite (theory_bv.cpp:202-260: UltAddOne, SolveEq, BitwiseEq, Sign/ZeroExtendEqConst) feed steps into the same pipeline.",
+   "guard_gap": "Any C++ rewrite whose (normalized) form matches no RARE rule becomes an unflagged trust step under default options.",
+   "probes": [
+    "probes/bv/MultSltMult_issue13039.smt2",
+    "probes/bv/MACRO_BV_MULT_SLT_MULT_rhs_mixed_ext.smt2",
+    "probes/bv/MACRO_BV_MULT_SLT_MULT_add_in_both.smt2",
+    "probes/bv/MACRO_BV_XOR_SIMPLIFY_not_pair.smt2"
+   ],
+   "probe_result": "unsound steps -> trust MACRO_THEORY_REWRITE_RCONS_SIMPLE; sound uncovered -> same trust id; elaboration failure -> trust macro-bv-xor-simplify",
+   "confidence": "low",
+   "rationale": "RARE conditions are enforced, but every uncovered C++ step degrades silently to trust. Unless trust is rejected, soundness of uncovered steps rests on the C++ alone, and trust steps cannot tell bugs from coverage gaps."
+  }
+ ]
+}

@@ -1,0 +1,702 @@
+{
+  "unit": "bv-simplification-a",
+  "source_rev": "40a4bb7e43",
+  "binary": "cvc5 version 1.3.2.dev+main@dc8ad24031 [git dc8ad24031 on branch main]",
+  "rules": [
+    {
+      "id": "BitConst",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:34",
+      "dispatch": "post/pre-rewrite BITVECTOR_BIT via RewriteBit (src/theory/bv/theory_bv_rewriter.cpp:188); no ProofRewriteRule",
+      "summary": "(@bit i c) for constant c -> true/false (bit i of c)",
+      "coverage": "none",
+      "proof_rules": [],
+      "guard_comparison": "Pure constant folding of the internal BITVECTOR_BIT kind. No RARE rule mentions @bit, and the Evaluator (src/theory/evaluator.cpp) has no BITVECTOR_BIT case, so EVALUATE could not justify it either.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed: BITVECTOR_BIT (@bit) cannot be written in SMT-LIB input (no parser entry); it is created only by the bit-blaster (mkBit on non-constant leaves) or the C++ API",
+      "confidence": "n/a",
+      "rationale": "Constant evaluation of an internal-only kind that is not reachable from SMT-LIB input. If it were reached under proofs it would remain a trust step, since neither RARE nor the Evaluator covers BITVECTOR_BIT.",
+      "witness": null
+    },
+    {
+      "id": "BvIteConstCond",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:55",
+      "dispatch": "post/pre-rewrite BITVECTOR_ITE via RewriteITEBv, 2nd in first LinearRewriteStrategy (src/theory/bv/theory_bv_rewriter.cpp:313); no ProofRewriteRule",
+      "summary": "(bvite #b1 t e) -> t ; (bvite #b0 t e) -> e",
+      "coverage": "none",
+      "proof_rules": [],
+      "guard_comparison": "Sound by inspection; no RARE rule matches (bvite <const> t e) (rewrites-simplification has only the equal-children/const-children/equal-cond/merge rules) and EVALUATE does not apply because the branches are not constant.",
+      "guard_gap": "every input: both the #b1 and the #b0 case are uncovered",
+      "probes": [
+        "probes/bv/BvIteConstCond_false.smt2",
+        "probes/bv/BvIteConstCond_true.smt2"
+      ],
+      "probe_result": "BvIteConstCond_true/false: cvc5=unsat (z3=error: bvite is a cvc5 extension); 1 trust step TRUST_THEORY_REWRITE (= (bvite #b1 x y) x); ethos: incomplete",
+      "confidence": "low",
+      "rationale": "The rewrite is trivially sound (z3 schematic check passes), but no proof rule captures it and the proof keeps a TRUST_THEORY_REWRITE step. An unsound version would not be caught.",
+      "witness": null
+    },
+    {
+      "id": "BvIteEqualChildren",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:76",
+      "dispatch": "BITVECTOR_ITE via RewriteITEBv, 3rd in first LinearRewriteStrategy (src/theory/bv/theory_bv_rewriter.cpp:313)",
+      "summary": "(bvite c t t) -> t",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ite-equal-children"
+      ],
+      "guard_comparison": "C++ guard node[1]==node[2] is exactly the RARE pattern (bvite c x x).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/BvIteEqualChildren_basic.smt2"
+      ],
+      "probe_result": "cvc5=unsat, no trust, rare=bv-ite-equal-children; ethos correct",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule; probe reconstructs and the proof checks in ethos.",
+      "witness": null
+    },
+    {
+      "id": "BvIteConstChildren",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:97",
+      "dispatch": "BITVECTOR_ITE via RewriteITEBv, second LinearRewriteStrategy, only after the first strategy (incl. EqualChildren) made no change (src/theory/bv/theory_bv_rewriter.cpp:328)",
+      "summary": "(bvite c #b1 #b0) -> c ; (bvite c #b0 #b1) -> (bvnot c)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ite-const-children-1",
+        "bv-ite-const-children-2"
+      ],
+      "guard_comparison": "The C++ applies() accepts any two 1-bit constants and falls into the bvnot branch under only an Assert, so (bvite c #b1 #b1) would wrongly give (bvnot c). Dispatch avoids this because BvIteEqualChildren runs first and returns. The RARE rules match only the two distinct-constant cases, so a mis-ordered application would not reconstruct.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/BvIteConstChildren_01.smt2",
+        "probes/bv/BvIteConstChildren_10.smt2"
+      ],
+      "probe_result": "_10 / _01: cvc5=unsat, no trust, rare=bv-ite-const-children-2 / -1; ethos correct",
+      "confidence": "high",
+      "rationale": "Both reachable cases are RARE rules exactly. The latent unsound branch is unreachable given dispatch order, and it would be caught because no RARE rule matches it.",
+      "witness": null
+    },
+    {
+      "id": "BvIteEqualCond",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:128",
+      "dispatch": "BITVECTOR_ITE via RewriteITEBv, second LinearRewriteStrategy (src/theory/bv/theory_bv_rewriter.cpp:328)",
+      "summary": "c?(c?t0:e0):e1 / c?t0:(c?t1:e1) / both -> c?t0:e1",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ite-equal-cond-1",
+        "bv-ite-equal-cond-2",
+        "bv-ite-equal-cond-3"
+      ],
+      "guard_comparison": "C++ handles then-nested, else-nested and both-nested with the same condition. These are exactly RARE rules -1, -2 and -3.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/BvIteEqualCond_both.smt2",
+        "probes/bv/BvIteEqualCond_else.smt2",
+        "probes/bv/BvIteEqualCond_then.smt2"
+      ],
+      "probe_result": "_then/_else/_both: cvc5=unsat, no trust, rare=bv-ite-equal-cond-1/2/3; ethos correct",
+      "confidence": "high",
+      "rationale": "All three C++ cases map one-to-one to RARE rules and reconstruct.",
+      "witness": null
+    },
+    {
+      "id": "BvIteMergeThenIf",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:160",
+      "dispatch": "BITVECTOR_ITE via RewriteITEBv, third LinearRewriteStrategy (src/theory/bv/theory_bv_rewriter.cpp:336)",
+      "summary": "c0?(c1?t1:e1):t1 -> (c0&~c1)?e1:t1",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ite-merge-then-if"
+      ],
+      "guard_comparison": "The C++ guard and output match the RARE pattern and RHS exactly, including the order of bvand operands and branches.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/BvIteMergeThenIf_basic.smt2"
+      ],
+      "probe_result": "cvc5=unsat, no trust, rare=bv-ite-merge-then-if; ethos correct; z3 schematic check of the spec (bvite defined via ite) unsat",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule; reconstructs and checks.",
+      "witness": null
+    },
+    {
+      "id": "BvIteMergeElseIf",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:188",
+      "dispatch": "BITVECTOR_ITE via RewriteITEBv, third LinearRewriteStrategy (src/theory/bv/theory_bv_rewriter.cpp:336)",
+      "summary": "c0?(c1?t1:e1):e1 -> (c0&c1)?t1:e1",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ite-merge-else-if"
+      ],
+      "guard_comparison": "The C++ guard and output match the RARE pattern and RHS exactly, including the order of bvand operands and branches.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/BvIteMergeElseIf_basic.smt2"
+      ],
+      "probe_result": "cvc5=unsat, no trust, rare=bv-ite-merge-else-if; ethos correct; z3 schematic check of the spec (bvite defined via ite) unsat",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule; reconstructs and checks.",
+      "witness": null
+    },
+    {
+      "id": "BvIteMergeThenElse",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:213",
+      "dispatch": "BITVECTOR_ITE via RewriteITEBv, third LinearRewriteStrategy (src/theory/bv/theory_bv_rewriter.cpp:336)",
+      "summary": "c0?t0:(c1?t0:e1) -> (~c0&~c1)?e1:t0",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ite-merge-then-else"
+      ],
+      "guard_comparison": "The C++ guard and output match the RARE pattern and RHS exactly, including the order of bvand operands and branches. Between the binary and HEAD the C++ changed only in node-creation order for the bvand children ({...} initializer, deterministic ids), not in semantics.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/BvIteMergeThenElse_basic.smt2"
+      ],
+      "probe_result": "cvc5=unsat, no trust, rare=bv-ite-merge-then-else; ethos correct; z3 schematic check of the spec (bvite defined via ite) unsat",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule; reconstructs and checks.",
+      "witness": null
+    },
+    {
+      "id": "BvIteMergeElseElse",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:241",
+      "dispatch": "BITVECTOR_ITE via RewriteITEBv, third LinearRewriteStrategy (src/theory/bv/theory_bv_rewriter.cpp:336)",
+      "summary": "c0?t0:(c1?t1:t0) -> (~c0&c1)?t1:t0",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ite-merge-else-else"
+      ],
+      "guard_comparison": "The C++ guard and output match the RARE pattern and RHS exactly, including the order of bvand operands and branches.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/BvIteMergeElseElse_basic.smt2"
+      ],
+      "probe_result": "cvc5=unsat, no trust, rare=bv-ite-merge-else-else; ethos correct; z3 schematic check of the spec (bvite defined via ite) unsat",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule; reconstructs and checks.",
+      "witness": null
+    },
+    {
+      "id": "BvComp",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:268",
+      "dispatch": "post/pre-rewrite BITVECTOR_COMP via RewriteComp after EvalComp (src/theory/bv/theory_bv_rewriter.cpp:488)",
+      "summary": "(bvcomp #b0 x)|(bvcomp x #b0) -> (bvnot x); (bvcomp #b1 x)|(bvcomp x #b1) -> x (1-bit)",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "bv-comp-eliminate",
+        "bv-ite-width-one",
+        "bv-ite-width-one-not",
+        "bv-commutative-comp"
+      ],
+      "guard_comparison": "No dedicated RARE rule. Generic reconstruction finds bv-comp-eliminate then bv-ite-width-one(-not), adding bv-commutative-comp when the constant is on the left. All four operand-order/constant combinations were probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/BvComp_one_left.smt2",
+        "probes/bv/BvComp_one_right.smt2",
+        "probes/bv/BvComp_zero_left.smt2",
+        "probes/bv/BvComp_zero_right.smt2"
+      ],
+      "probe_result": "4 probes: cvc5=unsat, no trust; ethos correct",
+      "confidence": "high",
+      "rationale": "Every case (both constants, both sides) reconstructs as a short RARE chain without trust.",
+      "witness": null
+    },
+    {
+      "id": "ShlByConst",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:297",
+      "dispatch": "post/pre-rewrite BITVECTOR_SHL via RewriteShl, first (src/theory/bv/theory_bv_rewriter.cpp:687)",
+      "summary": "x << k: k=0 -> x; k>=w -> 0_w; else concat(x[w-1-k:0], 0_k)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-shl-by-const-0",
+        "bv-shl-by-const-1",
+        "bv-shl-by-const-2"
+      ],
+      "guard_comparison": "The three C++ branches map to RARE -0/-1/-2. The RARE -2 condition (< amount 2^w) always holds for a w-bit amount, and -1 requires amount<n with the same index arithmetic. Probed k=0, 1, w-1, w, 2^w-1 at w=4, and w=1 with k=1.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ShlByConst_diff_sat.smt2",
+        "probes/bv/ShlByConst_max.smt2",
+        "probes/bv/ShlByConst_one.smt2",
+        "probes/bv/ShlByConst_w.smt2",
+        "probes/bv/ShlByConst_w1.smt2",
+        "probes/bv/ShlByConst_wm1.smt2",
+        "probes/bv/ShlByConst_zero.smt2"
+      ],
+      "probe_result": "7 probes: proof probes cvc5=unsat, no trust (bv-shl-by-const-0/1/2); differential sat agrees with z3; ethos correct",
+      "confidence": "high",
+      "rationale": "All branches, including amount>=width and the max amount, reconstruct one-to-one.",
+      "witness": null
+    },
+    {
+      "id": "LshrByConst",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:342",
+      "dispatch": "BITVECTOR_LSHR via RewriteLshr, first (src/theory/bv/theory_bv_rewriter.cpp:703)",
+      "summary": "x >>u k: k=0 -> x; k>=w -> 0_w; else concat(0_k, x[w-1:k])",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-lshr-by-const-0",
+        "bv-lshr-by-const-1",
+        "bv-lshr-by-const-2"
+      ],
+      "guard_comparison": "Same structure as ShlByConst. RARE -2 returns (@bv 0 sz) with sz the amount width, which equals w. Probed k=0, 1, w-1, w, max, and w=1.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/LshrByConst_diff_unsat.smt2",
+        "probes/bv/LshrByConst_max.smt2",
+        "probes/bv/LshrByConst_one.smt2",
+        "probes/bv/LshrByConst_w.smt2",
+        "probes/bv/LshrByConst_w1.smt2",
+        "probes/bv/LshrByConst_wm1.smt2",
+        "probes/bv/LshrByConst_zero.smt2"
+      ],
+      "probe_result": "7 probes: cvc5=unsat, no trust; differential (bvlshr x 8)@w8 unsat agrees; ethos correct",
+      "confidence": "high",
+      "rationale": "All branches reconstruct one-to-one.",
+      "witness": null
+    },
+    {
+      "id": "AshrByConst",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:388",
+      "dispatch": "BITVECTOR_ASHR via RewriteAshr, first (src/theory/bv/theory_bv_rewriter.cpp:719)",
+      "summary": "x >>s k: k=0 -> x; k>=w -> repeat(w, x[w-1]); else concat(repeat(k, x[w-1]), x[w-1:k])",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ashr-by-const-0",
+        "bv-ashr-by-const-1",
+        "bv-ashr-by-const-2",
+        "bv-repeat-elim"
+      ],
+      "guard_comparison": "mkRepeat always builds a repeat node (even for k=1) to match the RARE RHS, so the forms align. Probed k=0, 1 (repeat 1), w-1, w, max, w=1 (k>=w path, repeat 1 of x[0:0]), and negative-x differentials. In the binary (dc8ad24031), bv-ashr-by-const-2 lacks the always-true (< amount 2^w) guard that HEAD added in aafcc486e2.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/AshrByConst_diff_neg_big.smt2",
+        "probes/bv/AshrByConst_diff_sat.smt2",
+        "probes/bv/AshrByConst_max.smt2",
+        "probes/bv/AshrByConst_one.smt2",
+        "probes/bv/AshrByConst_w.smt2",
+        "probes/bv/AshrByConst_w1.smt2",
+        "probes/bv/AshrByConst_wm1.smt2",
+        "probes/bv/AshrByConst_zero.smt2"
+      ],
+      "probe_result": "8 probes: cvc5=unsat, no trust, rare=bv-ashr-by-const-0/1/2 (+bv-repeat-elim from later steps); differentials agree with z3. ethos: _zero/_one/_wm1 correct; _w/_max/_w1/_diff_neg_big abort with an argument-count mismatch because the old binary emits bv-ashr-by-const-2 without HEAD's extra premise (version skew, not a soundness signal)",
+      "confidence": "high",
+      "rationale": "All branches reconstruct as RARE instances. The ethos failures come from the RARE guard added after the binary's revision.",
+      "witness": null
+    },
+    {
+      "id": "AndOrXorConcatPullUp",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:446",
+      "dispatch": "BITVECTOR_AND/OR/XOR via RewriteAnd/Or/Xor after *Simplify (src/theory/bv/theory_bv_rewriter.cpp:422,433,445); ProofRewriteRule MACRO_BV_AND_OR_XOR_CONCAT_PULLUP (POST_DSL; rewriteViaRule src/theory/bv/theory_bv_rewriter.cpp:132)",
+      "summary": "x op concat(y, c, z) with c in {0,1,~0} -> concat(x[..] op y, x[..] op c, x[..] op z)",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_BV_AND_OR_XOR_CONCAT_PULLUP",
+        "bv-and-concat-pullup",
+        "bv-or-concat-pullup",
+        "bv-xor-concat-pullup",
+        "bv-and-concat-pullup2",
+        "bv-or-concat-pullup2",
+        "bv-xor-concat-pullup2",
+        "bv-and-concat-pullup3",
+        "bv-or-concat-pullup3",
+        "bv-xor-concat-pullup3"
+      ],
+      "guard_comparison": "C++ takes the first concat child and splits it at its first const (required to be 0/1/ones), with x = op of all other children in order. RARE pullup (const last) and pullup2 (const first) match directly. A middle const goes through the elaborator, which regroups the concat into (concat pre c post) (trust subgoal, re-proved) and then applies pullup3. The RARE rules are sound for any split, so the 0/1/ones restriction is only a heuristic. Probed each op at each position, multi-child prefix/suffix, n-ary x with the concat between other children, a 1-bit #b1 constant, two concat children (both with middle consts, and end-then-middle). Between the binary and HEAD the C++ is unchanged, but HEAD no longer runs FlattenAssocCommutNoDuplicates on and/or/xor (4e310090c3), so HEAD may see nested ops as x; RARE list patterns treat those as single elements.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/AndOrXorConcatPullUp_and_end.smt2",
+        "probes/bv/AndOrXorConcatPullUp_and_mid.smt2",
+        "probes/bv/AndOrXorConcatPullUp_and_start.smt2",
+        "probes/bv/AndOrXorConcatPullUp_and_two_concats.smt2",
+        "probes/bv/AndOrXorConcatPullUp_and_two_mid.smt2",
+        "probes/bv/AndOrXorConcatPullUp_or_end.smt2",
+        "probes/bv/AndOrXorConcatPullUp_or_end_then_mid.smt2",
+        "probes/bv/AndOrXorConcatPullUp_or_mid.smt2",
+        "probes/bv/AndOrXorConcatPullUp_or_mid_multi.smt2",
+        "probes/bv/AndOrXorConcatPullUp_or_start.smt2",
+        "probes/bv/AndOrXorConcatPullUp_xor_concat_between.smt2",
+        "probes/bv/AndOrXorConcatPullUp_xor_end.smt2",
+        "probes/bv/AndOrXorConcatPullUp_xor_mid.smt2",
+        "probes/bv/AndOrXorConcatPullUp_xor_start.smt2",
+        "probes/bv/AndOrXorConcatPullUp_xor_w1const.smt2"
+      ],
+      "probe_result": "15 probes: all cvc5=unsat with no trust left (elaborator's MACRO_THEORY_REWRITE_RCONS_SIMPLE subgoals discharged); ethos correct on all",
+      "confidence": "high",
+      "rationale": "Every probed shape, including the elaborator's middle-const path and multi-concat inputs, ends in RARE steps that ethos checks. The internal MACRO checker is circular, but the elaboration removes it.",
+      "witness": null
+    },
+    {
+      "id": "XorOnes",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:567",
+      "dispatch": "BITVECTOR_XOR via RewriteXor, post-rewrite only, after XorSimplify/XorZero/PullUp (src/theory/bv/theory_bv_rewriter.cpp:449)",
+      "summary": "(bvxor xs ~0 ys) -> (bvnot (bvxor xs ys)); ~0 occurrences toggle",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-xor-ones"
+      ],
+      "guard_comparison": "RARE bv-xor-ones removes one ones-constant anywhere in an n-ary xor and wraps in bvnot. The C++ parity toggle over several ones constants is unreachable in practice, because XorSimplify folds all constants into one first. Width 1 (#b1 is ones) was probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/XorOnes_binary.smt2",
+        "probes/bv/XorOnes_nary.smt2",
+        "probes/bv/XorOnes_notpair.smt2",
+        "probes/bv/XorOnes_w1.smt2"
+      ],
+      "probe_result": "4 probes (binary, n-ary, w1, x^~x^y): cvc5=unsat, no trust, rare=bv-xor-ones; ethos correct",
+      "confidence": "high",
+      "rationale": "The reachable single-ones case is one RARE rule. The multi-ones case would also be sound, but no RARE rule covers it.",
+      "witness": null
+    },
+    {
+      "id": "XorZero",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:624",
+      "dispatch": "BITVECTOR_XOR via RewriteXor after XorSimplify (src/theory/bv/theory_bv_rewriter.cpp:444)",
+      "summary": "(bvxor ... 0 ...) -> xor of non-zero children",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "ACI_NORM"
+      ],
+      "guard_comparison": "Not a RARE rule. Generic reconstruction proves it with ACI_NORM, since 0 is the nil element of bvxor. Reachable because XorSimplify keeps a folded #b0..0 constant.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/XorZero_binary.smt2",
+        "probes/bv/XorZero_cancel.smt2",
+        "probes/bv/XorZero_nary.smt2"
+      ],
+      "probe_result": "3 probes: cvc5=unsat, no trust (aci_norm, plus bv-xor-simplify-1 for the cancel case); ethos correct",
+      "confidence": "high",
+      "rationale": "Covered by the ACI_NORM built-in rule, which has an independent CPC definition. No trust.",
+      "witness": null
+    },
+    {
+      "id": "NotIdemp",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:671",
+      "dispatch": "BITVECTOR_NOT via RewriteNot (src/theory/bv/theory_bv_rewriter.cpp:350)",
+      "summary": "~~x -> x, looping over nested pairs",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "bv-not-idemp"
+      ],
+      "guard_comparison": "The C++ loop strips pairs of bvnot. Each iteration is one bv-not-idemp instance. Probed 2, 3 and 4 nested nots.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/NotIdemp_double.smt2",
+        "probes/bv/NotIdemp_quad.smt2",
+        "probes/bv/NotIdemp_triple.smt2"
+      ],
+      "probe_result": "3 probes: cvc5=unsat, no trust, rare=bv-not-idemp; ethos correct",
+      "confidence": "high",
+      "rationale": "The loop is a chain of one RARE rule.",
+      "witness": null
+    },
+    {
+      "id": "UltZero",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:703",
+      "dispatch": "BITVECTOR_ULT via RewriteUlt, 5th (src/theory/bv/theory_bv_rewriter.cpp:202)",
+      "summary": "(bvult x 0) -> false ; (bvult 0 x) -> (distinct 0 x)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ult-zero-1",
+        "bv-ult-zero-2",
+        "distinct-elim",
+        "distinct-binary-elim"
+      ],
+      "guard_comparison": "Both directions are RARE rules. The C++ emits DISTINCT where the RARE RHS has (not (= x 0)), bridged by distinct-elim.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UltZero_left.smt2",
+        "probes/bv/UltZero_right.smt2"
+      ],
+      "probe_result": "2 probes: cvc5=unsat, no trust. ethos: _right correct; _left fails a cong step over `distinct` because the old binary prints distinct differently from the HEAD signature's typed-list representation (version skew)",
+      "confidence": "high",
+      "rationale": "Both cases reconstruct with no trust. The ethos failure is a binary/signature representation mismatch, not a rule mismatch.",
+      "witness": null
+    },
+    {
+      "id": "UltOne",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:731",
+      "dispatch": "BITVECTOR_ULT via RewriteUlt, 3rd (src/theory/bv/theory_bv_rewriter.cpp:200)",
+      "summary": "(bvult x 1) -> (= x 0)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ult-one"
+      ],
+      "guard_comparison": "Exact match. At width 1, #b1 is both one and ones. UltOne runs before UltOnes and gives (= x #b0), which is correct, and the RARE rule covers it.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UltOne_basic.smt2",
+        "probes/bv/UltOne_w1.smt2"
+      ],
+      "probe_result": "UltOne_basic/_w1: cvc5=unsat, no trust; ethos correct",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule, including width 1.",
+      "witness": null
+    },
+    {
+      "id": "UltOnes",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:757",
+      "dispatch": "BITVECTOR_ULT via RewriteUlt, 4th (src/theory/bv/theory_bv_rewriter.cpp:201)",
+      "summary": "(bvult x ~0) -> (distinct x ~0) ; (bvult ~0 x) -> false",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "bv-ult-ones",
+        "distinct-elim",
+        "bv-not-ult",
+        "bv-ule-max"
+      ],
+      "guard_comparison": "The right-ones case is bv-ult-ones. No RARE rule targets the left-ones case (bvult ~0 x) -> false, but reconstruction proves it through bv-not-ult and bv-ule-max. Probed at width 4 and width 1 (#b1 on the left).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UltOnes_diff_w1.smt2",
+        "probes/bv/UltOnes_left.smt2",
+        "probes/bv/UltOnes_left_w1.smt2",
+        "probes/bv/UltOnes_right.smt2"
+      ],
+      "probe_result": "4 probes: cvc5=unsat, no trust; left cases ethos correct; _right ethos fails on the same distinct-representation skew as UltZero_left",
+      "confidence": "high",
+      "rationale": "Both directions reconstruct without trust (left via a two-rule chain).",
+      "witness": null
+    },
+    {
+      "id": "UltSelf",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:785",
+      "dispatch": "BITVECTOR_ULT via RewriteUlt, 2nd (src/theory/bv/theory_bv_rewriter.cpp:199)",
+      "summary": "(bvult x x) -> false",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ult-self"
+      ],
+      "guard_comparison": "Exact match.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UltSelf_basic.smt2"
+      ],
+      "probe_result": "cvc5=unsat, no trust, rare=bv-ult-self; ethos correct",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule.",
+      "witness": null
+    },
+    {
+      "id": "UleZero",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:806",
+      "dispatch": "BITVECTOR_ULE via RewriteUle, 5th (src/theory/bv/theory_bv_rewriter.cpp:254)",
+      "summary": "(bvule x 0) -> (= x 0)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ule-zero"
+      ],
+      "guard_comparison": "Exact match. The C++ builds (= node[0] node[1]), which is the RARE RHS orientation.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UleZero_basic.smt2"
+      ],
+      "probe_result": "cvc5=unsat, no trust; ethos correct",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule.",
+      "witness": null
+    },
+    {
+      "id": "UleSelf",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:829",
+      "dispatch": "BITVECTOR_ULE via RewriteUle, 6th (src/theory/bv/theory_bv_rewriter.cpp:255)",
+      "summary": "(bvule x x) -> true",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ule-self"
+      ],
+      "guard_comparison": "Exact match.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UleSelf_basic.smt2"
+      ],
+      "probe_result": "cvc5=unsat, no trust; ethos correct",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule.",
+      "witness": null
+    },
+    {
+      "id": "ZeroUle",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:850",
+      "dispatch": "BITVECTOR_ULE via RewriteUle, 3rd (src/theory/bv/theory_bv_rewriter.cpp:252)",
+      "summary": "(bvule 0 x) -> true",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-zero-ule"
+      ],
+      "guard_comparison": "Exact match.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ZeroUle_basic.smt2"
+      ],
+      "probe_result": "cvc5=unsat, no trust; ethos correct",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule.",
+      "witness": null
+    },
+    {
+      "id": "UleMax",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:873",
+      "dispatch": "BITVECTOR_ULE via RewriteUle, 2nd (src/theory/bv/theory_bv_rewriter.cpp:251)",
+      "summary": "(bvule x ~0) -> true",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ule-max"
+      ],
+      "guard_comparison": "Exact match; the ones constant uses the width of node[0]. Width 1 was probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UleMax_basic.smt2",
+        "probes/bv/UleMax_w1.smt2"
+      ],
+      "probe_result": "UleMax_basic/_w1: cvc5=unsat, no trust; ethos correct",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule.",
+      "witness": null
+    },
+    {
+      "id": "SltSelf",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:901",
+      "dispatch": "BITVECTOR_SLT via RewriteSlt, 2nd (src/theory/bv/theory_bv_rewriter.cpp:225)",
+      "summary": "(bvslt x x) -> false",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-lt-self"
+      ],
+      "guard_comparison": "Exact match.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SltSelf_basic.smt2"
+      ],
+      "probe_result": "cvc5=unsat, no trust, rare=bv-lt-self; ethos correct",
+      "confidence": "high",
+      "rationale": "One-to-one with a RARE rule.",
+      "witness": null
+    },
+    {
+      "id": "MultPow2",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:922",
+      "dispatch": "BITVECTOR_MULT via RewriteMult, post-rewrite only, after FlattenAssocCommut and MultSimplify (src/theory/bv/theory_bv_rewriter.cpp:553)",
+      "summary": "x*...*(+/-2^k) -> concat((+/-x...)[w-k-1:0], 0_k); several pow2 consts sum exponents; exponent>=w -> 0",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-mult-pow2-1",
+        "bv-mult-pow2-2",
+        "bv-mult-pow2-2b"
+      ],
+      "guard_comparison": "The RARE rules cover one +2^k or -2^k constant that follows at least one non-constant child. MultSimplify (which always runs first and returns if it changes the node) folds constants into a single constant at the end, drops 1, and turns ~0 into bvneg. So the C++ only sees one constant c, never 1 or ~0, in last position. The C++ multi-constant, children-empty and exponent>=w branches are therefore unreachable. Probed +4, the msb 8 (positive branch is chosen first, matching -1's int.ispow2), -4, -2, n-ary, n-ary negative, and x*2*2.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/MultPow2_diff_sat.smt2",
+        "probes/bv/MultPow2_msb.smt2",
+        "probes/bv/MultPow2_nary.smt2",
+        "probes/bv/MultPow2_nary_neg.smt2",
+        "probes/bv/MultPow2_neg.smt2",
+        "probes/bv/MultPow2_neg2.smt2",
+        "probes/bv/MultPow2_pos.smt2",
+        "probes/bv/MultPow2_twoconst.smt2"
+      ],
+      "probe_result": "8 probes: cvc5=unsat, no trust, rare=bv-mult-pow2-1/2; differential agrees; ethos correct",
+      "confidence": "high",
+      "rationale": "Every reachable input form is one RARE instance. The unreachable C++ branches have no RARE counterpart, but dispatch never reaches them.",
+      "witness": null
+    },
+    {
+      "id": "ExtractMultLeadingBit",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1004",
+      "dispatch": "BITVECTOR_EXTRACT via RewriteExtract, 2nd in final LinearRewriteStrategy (src/theory/bv/theory_bv_rewriter.cpp:391); no ProofRewriteRule",
+      "summary": "extract[h:l](concat(c1,..)*concat(c2,..)), width>64, with l >= 2n - lz(c1) - lz(c2) -> 0",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-extract-mult-leading-bit"
+      ],
+      "guard_comparison": "The C++ requires both multiplicands to be BITVECTOR_CONCAT whose first child is a constant, and accepts any number of concat children. The RARE pattern is (concat (@bv x1i x1in) x2) with a single x2, so a 3+-child concat only matches binary concats. The leading-zero arithmetic agrees (int1.length() equals 1+log2), as do the k<=low boundary and the >64 guard. In the binary, the RARE rule lacks HEAD's (>= x1i 0)/(< x1i 2^x1in) guards (always true for constants).",
+      "guard_gap": "multiplicand concats with 3 or more children, e.g. extract[71:64]((concat 0_40 x16 w16) * (concat 0_40 y32)): the C++ rewrites it to 0 (correctly), but the binary-concat RARE pattern does not match, leaving TRUST_THEORY_REWRITE",
+      "probes": [
+        "probes/bv/ExtractMultLeadingBit_basic.smt2",
+        "probes/bv/ExtractMultLeadingBit_diff_below.smt2",
+        "probes/bv/ExtractMultLeadingBit_diff_nonzero_const.smt2",
+        "probes/bv/ExtractMultLeadingBit_lowk.smt2",
+        "probes/bv/ExtractMultLeadingBit_nary_concat.smt2",
+        "probes/bv/ExtractMultLeadingBit_nonzero_const.smt2"
+      ],
+      "probe_result": "binary-concat probes (_basic, _lowk boundary l=k=64, _nonzero_const) cvc5=unsat, no trust, rare=bv-extract-mult-leading-bit; differentials below the boundary sat, agree with z3; _nary_concat cvc5=unsat with trust TRUST_THEORY_REWRITE on the extract->0 step (ethos: incomplete); ethos on the binary-concat proofs aborts with an argument-count mismatch (old binary emits fewer premises than HEAD's guarded rule; version skew)",
+      "confidence": "low",
+      "rationale": "The binary-concat case is a RARE rule, but the C++ also accepts n-ary concat multiplicands. That case is not reconstructed and rests on the C++ alone. It is the same shape of gap as #13039, though the rewrite itself is sound.",
+      "witness": null
+    },
+    {
+      "id": "NegIdemp",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1080",
+      "dispatch": "BITVECTOR_NEG via RewriteNeg, 2nd (src/theory/bv/theory_bv_rewriter.cpp:597)",
+      "summary": "-(-x) -> x",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "ARITH_POLY_NORM (bv_poly_norm)"
+      ],
+      "guard_comparison": "No RARE rule. Generic reconstruction proves it with the BV polynomial normalizer (bv_poly_norm), which has an independent CPC definition.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/NegIdemp_double.smt2",
+        "probes/bv/NegIdemp_w1.smt2"
+      ],
+      "probe_result": "NegIdemp_double/_w1: cvc5=unsat, no trust (bv_poly_norm); ethos correct",
+      "confidence": "high",
+      "rationale": "Fully covered by a sound built-in rule with no trust. There is no case split.",
+      "witness": null
+    },
+    {
+      "id": "UdivPow2",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1102",
+      "dispatch": "BITVECTOR_UDIV via RewriteUdiv, first (src/theory/bv/theory_bv_rewriter.cpp:627)",
+      "summary": "x udiv 2^k (positive pow2 only) -> concat(0_k, x[w-1:k]); k=0 -> x",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-udiv-pow2-not-one",
+        "bv-udiv-one"
+      ],
+      "guard_comparison": "applies() rejects negative pow2s, so the isNeg/bvneg branch in apply() is dead. k=0 maps to bv-udiv-one and k>0 to bv-udiv-pow2-not-one with the same index arithmetic. Probed 4, 8 (msb), 1, width 1, and a differential showing #xC (-4) is not treated as a pow2.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UdivPow2_basic.smt2",
+        "probes/bv/UdivPow2_diff_negpow2.smt2",
+        "probes/bv/UdivPow2_msb.smt2",
+        "probes/bv/UdivPow2_one.smt2",
+        "probes/bv/UdivPow2_w1.smt2"
+      ],
+      "probe_result": "5 probes: cvc5=unsat, no trust; differential agrees; ethos correct",
+      "confidence": "high",
+      "rationale": "Both live branches are RARE instances.",
+      "witness": null
+    }
+  ]
+}

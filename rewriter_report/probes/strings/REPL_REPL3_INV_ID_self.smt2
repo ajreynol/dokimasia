@@ -1,0 +1,11 @@
+; replace x y (replace y x y)
+; EXPECT: unsat
+(set-logic ALL)
+(declare-const x String)
+(declare-const y String)
+(declare-const z String)
+(declare-const w String)
+(declare-const n Int)
+(declare-const m Int)
+(assert (not (= (str.replace x y (str.replace y x y)) x)))
+(check-sat)

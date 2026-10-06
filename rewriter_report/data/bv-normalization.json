@@ -1,0 +1,427 @@
+{
+  "unit": "bv-normalization",
+  "source_rev": "40a4bb7e43",
+  "binary": "cvc5 version 1.3.2.dev+main@dc8ad24031 [git dc8ad24031 on branch main]",
+  "rules": [
+    {
+      "id": "ExtractNot",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:39",
+      "dispatch": "pre+post BITVECTOR_EXTRACT via RewriteExtract (src/theory/bv/theory_bv_rewriter.cpp:375), after ExtractConcat/ExtractSignExtend; no ProofRewriteRule",
+      "summary": "((_ extract i j) (bvnot a)) -> (bvnot ((_ extract i j) a))",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-extract-not"
+      ],
+      "guard_comparison": "C++ guard is exactly the RARE LHS shape (extract over bvnot), no side conditions; RHS identical.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ExtractNot_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; rare=bv-extract-not; ethos (HEAD sig) correct. bulk differential (scratch, not a probe): 5676 terms in this rule's fragment, cvc5 (simplify t) checked equivalent to t by z3 (2 z3 timeouts confirmed unsat by yices); 0 mismatches",
+      "confidence": "high",
+      "rationale": "Unconditional one-to-one match with bv-extract-not; reconstructed and checked by ethos.",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "ExtractSignExtend",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:64",
+      "dispatch": "pre+post BITVECTOR_EXTRACT via RewriteExtract (src/theory/bv/theory_bv_rewriter.cpp:369); no ProofRewriteRule",
+      "summary": "extract over sign_extend: high<n -> extract of x; low<n<=high -> sign_extend(high-n+1, extract(n-1,low,x)); low>=n -> repeat(high-low+1, x[n-1])",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-extract-sign-extend-1",
+        "bv-extract-sign-extend-2",
+        "bv-extract-sign-extend-3",
+        "bv-repeat-elim"
+      ],
+      "guard_comparison": "Three C++ branches map exactly to the three RARE conditions: (high<n), (low<n & high>=n, sn=high-n+1, nm1=n-1), (low>=n, rn=high-low+1, nm1=n-1). Index arithmetic identical; unsigned arithmetic cannot underflow since n>=1 and branches imply high>=n-1. k=0 (sign_extend 0) lands in case 1. Swept all n in 1..4, k in 0..3, all (high,low) in bulk differential.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ExtractSignExtend_case1_proof.smt2",
+        "probes/bv/ExtractSignExtend_case2_proof.smt2",
+        "probes/bv/ExtractSignExtend_case3_proof.smt2",
+        "probes/bv/ExtractSignExtend_width1_proof.smt2",
+        "probes/bv/ExtractSignExtend_diff_sat.smt2",
+        "probes/bv/ExtractSignExtend_diff_unsat.smt2"
+      ],
+      "probe_result": "all agree with z3 and EXPECT; proof probes: no trust, rare=bv-extract-sign-extend-1/2/3 (+bv-repeat-elim), ethos correct. bulk differential (scratch, not a probe): 5676 terms in this rule's fragment, cvc5 (simplify t) checked equivalent to t by z3 (2 z3 timeouts confirmed unsat by yices); 0 mismatches",
+      "confidence": "high",
+      "rationale": "Each C++ case is an instance of the corresponding RARE rule with identical index computations; all cases reconstructed and ethos-checked, including width-1 boundaries.",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "FlattenAssocCommut",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:114",
+      "dispatch": "BITVECTOR_ADD pre (LinearRewriteStrategy, src/theory/bv/theory_bv_rewriter.cpp:566) and post (src/theory/bv/theory_bv_rewriter.cpp:571, before AddCombineLikeTerms); BITVECTOR_MULT pre+post (src/theory/bv/theory_bv_rewriter.cpp:547). At HEAD not dispatched for AND/OR/XOR (removed by 4e310090c3); the dc8ad24031 binary still runs it first in RewriteXor.",
+      "summary": "flatten nested same-kind ADD/MULT (and AND/OR/XOR if called) into one n-ary node; ADD/MULT keep order, others sorted; bails out (returns node) beyond MAX_CHILDREN",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "BV_POLY_NORM",
+        "ACI_NORM"
+      ],
+      "guard_comparison": "No RARE rule; rewrite_db_proof_cons proves the step via ACI_NORM (and/or/xor, flatten+sort) or ARITH_POLY_NORM->BV_POLY_NORM (add/mult). Both are independent normal-form checks ($get_bv_poly_norm / $is_aci_norm in proofs/eo/cpc), so any non-equivalent output would fail. MAX_CHILDREN bailout (06a58ba25c, after binary) is a no-op return.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/FlattenAssocCommut_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; rules aci_norm, bv_poly_norm; ethos correct. bulk differential (scratch, not a probe): 5676 terms in this rule's fragment, cvc5 (simplify t) checked equivalent to t by z3 (2 z3 timeouts confirmed unsat by yices); 0 mismatches",
+      "confidence": "high",
+      "rationale": "Covered by independent normalization proof rules (ACI_NORM, BV_POLY_NORM) whose Eunoia definitions recompute normal forms; probe ethos-checked.",
+      "witness": null,
+      "binary_note": "06a58ba25c (MAX_CHILDREN bailout) and 4e310090c3 (no longer called for XOR) are after dc8ad24031."
+    },
+    {
+      "id": "AddCombineLikeTerms",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:313",
+      "dispatch": "post BITVECTOR_ADD via LinearRewriteStrategy after FlattenAssocCommut (src/theory/bv/theory_bv_rewriter.cpp:571); no ProofRewriteRule",
+      "summary": "collect coefficients of like terms (c*t, -t, a-b, constants) in an n-ary bvadd and rebuild; returns node unchanged if no term combined",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "BV_POLY_NORM"
+      ],
+      "guard_comparison": "No RARE rule; step proven by BV_POLY_NORM (generic reconstruction tries ARITH_POLY_NORM on BV equalities). updateCoefMap assumes a mult's constant is last (Assert only); if violated the whole product is kept with coefficient 1, which is still sound and still poly-norm equal.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/AddCombineLikeTerms_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv_poly_norm (+bv-mult-pow2-1 for the 4x result); ethos correct. bulk differential (scratch, not a probe): 5676 terms in this rule's fragment, cvc5 (simplify t) checked equivalent to t by z3 (2 z3 timeouts confirmed unsat by yices); 0 mismatches",
+      "confidence": "high",
+      "rationale": "Linear normalization checked by an independent polynomial normalizer; reconstructed and ethos-checked.",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "MultSimplify",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:367",
+      "dispatch": "pre+post BITVECTOR_MULT via TRY_REWRITE after FlattenAssocCommut (src/theory/bv/theory_bv_rewriter.cpp:548); no ProofRewriteRule",
+      "summary": "multiply constant factors, pull bvneg out of factors, return 0 if constant is 0, sort non-constant factors, append constant (or wrap in bvneg when constant is -1 / negation parity odd, width>1)",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "BV_POLY_NORM"
+      ],
+      "guard_comparison": "No RARE rule; BV_POLY_NORM. Checked the width-1 special case (bvneg dropped since -x=x, and 1 == -1 so constant==noValue branch flips isNeg) and constant==-1 branch; all sound and poly-norm equal.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/MultSimplify_proof.smt2",
+        "probes/bv/MultSimplify_w1_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv_poly_norm; ethos correct. bulk differential (scratch, not a probe): 5676 terms in this rule's fragment, cvc5 (simplify t) checked equivalent to t by z3 (2 z3 timeouts confirmed unsat by yices); 0 mismatches",
+      "confidence": "high",
+      "rationale": "Ring normalization fully checked by BV_POLY_NORM; width-1 edge reconstructed.",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "MultDistribConst",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:441",
+      "dispatch": "post BITVECTOR_MULT via TRY_REWRITE after MultPow2 (src/theory/bv/theory_bv_rewriter.cpp:554); no ProofRewriteRule",
+      "summary": "binary (t * c) with t an add/sub/neg: distribute c over t's children; (-a)*c -> a*(-c)",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "BV_POLY_NORM"
+      ],
+      "guard_comparison": "No RARE rule; BV_POLY_NORM. Guard requires constant at node[1] (Assert node[0] non-const); release builds with constant first just do not fire.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/MultDistribConst_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv_poly_norm; ethos correct.",
+      "confidence": "high",
+      "rationale": "Distribution is a polynomial identity checked by BV_POLY_NORM.",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "MultDistrib",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:488",
+      "dispatch": "post BITVECTOR_MULT via TRY_REWRITE after MultDistribConst (src/theory/bv/theory_bv_rewriter.cpp:555); no ProofRewriteRule",
+      "summary": "binary (s * f) or (f * s) with exactly one of them add/sub: distribute f over s",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "BV_POLY_NORM"
+      ],
+      "guard_comparison": "Both operand orders accepted by C++ (is_rhs_factor swap); no RARE rule exists, BV_POLY_NORM is order-insensitive so both orders are covered (probe tests both).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/MultDistrib_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv_poly_norm; ethos correct. bulk differential (scratch, not a probe): 5676 terms in this rule's fragment, cvc5 (simplify t) checked equivalent to t by z3 (2 z3 timeouts confirmed unsat by yices); 0 mismatches",
+      "confidence": "high",
+      "rationale": "Operand swap is irrelevant to the order-insensitive BV_POLY_NORM check; both orders reconstructed.",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "SolveEq",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:531",
+      "dispatch": "not in the rewriter: TheoryBV::ppStaticRewrite (src/theory/bv/theory_bv.cpp:233), static-rewrite preprocessing pass; recorded as TRUST PP_STATIC_REWRITE with null generator",
+      "summary": "for (= L R) cancel common terms/coefficients between sides of bvadd's, move constants right; (bvnot t)=t -> false; c=0 or 0=c (c!=0) -> false; 0=0 -> true",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "BV_POLY_NORM_EQ",
+        "BV_POLY_NORM",
+        "bv-not-neq",
+        "EVALUATE"
+      ],
+      "guard_comparison": "No dedicated proof rule. The PP_STATIC_REWRITE trust step is handed to RARE reconstruction by ProofPostprocess (proof_post_processor.cpp:1133, all TRUST subproofs), which closes it with ARITH_POLY_NORM_REL -> BV_POLY_NORM_EQ (cancellation keeps the scaling factor 1) or bv-not-neq / evaluate for the false cases. Checked unsigned coefficient compare (coeffLeft > coeffRight) moves the difference to the larger side: sound modulo 2^n.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SolveEq_proof.smt2",
+        "probes/bv/SolveEq_false_proof.smt2",
+        "probes/bv/SolveEq_diff_sat.smt2",
+        "probes/bv/SolveEq_diff_unsat.smt2"
+      ],
+      "probe_result": "all agree with z3/EXPECT; unsat probes: no trust (bv_poly_norm_eq, bv-not-neq), ethos correct.",
+      "confidence": "medium",
+      "rationale": "Sound and in practice reconstructed with independent poly-norm rules, but only because generic reconstruction is applied to an otherwise-trusted PP_STATIC_REWRITE step; coverage depends on that search, not on a registered rule.",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "BitwiseEq",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:768",
+      "dispatch": "TheoryBV::ppStaticRewrite (src/theory/bv/theory_bv.cpp:241) only with expert option --bitwise-eq (default false); TRUST PP_STATIC_REWRITE",
+      "summary": "width-1 (= (op ts) c) for op in and/or/nand/nor/not/comp/neg -> Boolean and/or of (= t_i c') / (= t ~c) / (= a b) / (= t c)",
+      "coverage": "none",
+      "proof_rules": [],
+      "guard_comparison": "No RARE or theory rule; post-processor reconstruction does not close the AND/COMP cases. By case analysis all branches are sound for width 1 (nand/nor are already eliminated by the rewriter before static rewrite, so only and/or/not/comp/neg are reachable).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/BitwiseEq_proof.smt2",
+        "probes/bv/BitwiseEq_diff_sat.smt2"
+      ],
+      "probe_result": "BitwiseEq_proof: cvc5=unsat z3=unsat; trust PP_STATIC_REWRITE on (= (= (bvand x y z) #b1) (and (= x #b1) (= y #b1) (= z #b1))) and (= (= #b0 (bvcomp y z)) (not (= y z))). diff_sat: both sat.",
+      "confidence": "low",
+      "rationale": "Steps remain PP_STATIC_REWRITE trust; soundness rests on C++ (which looks correct). Only reachable under a non-default expert option.",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "NegMult",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:904",
+      "dispatch": "post BITVECTOR_NEG (src/theory/bv/theory_bv_rewriter.cpp:608) but never fires",
+      "summary": "intended: (bvneg (bvmul ... c)) -> (bvmul ... -c)",
+      "coverage": "none",
+      "proof_rules": [],
+      "guard_comparison": "applies() tests node[node.getNumChildren()-1].isConst() where node is the bvneg (one child, a BITVECTOR_MULT), i.e. node[0].isConst(), which is always false; the rule is dead. Confirmed: (simplify (bvneg (bvmul x #b0011))) returns the term unchanged. If the guard were fixed to node[0][last], apply() would be a sound poly-norm identity.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/NegMult_dead.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat (solved by bit-blasting, no rewrite); simplify shows no rewrite.",
+      "confidence": "n/a",
+      "rationale": "Dead code due to the guard indexing the wrong node (latent bug, performance only).",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "NegSub",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:933",
+      "dispatch": "pre+post BITVECTOR_NEG via LinearRewriteStrategy<EvalNeg,NegIdemp,NegSub> (src/theory/bv/theory_bv_rewriter.cpp:596); effectively pre-rewrite only since bvsub is eliminated by SubEliminate",
+      "summary": "(bvneg (bvsub a b)) -> (bvsub b a)",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "BV_POLY_NORM"
+      ],
+      "guard_comparison": "No RARE rule; BV_POLY_NORM proves it (bvsub is in $get_bv_poly_norm_rec).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/NegSub_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv_poly_norm; ethos correct.",
+      "confidence": "high",
+      "rationale": "Polynomial identity checked by BV_POLY_NORM.",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "NegAdd",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:947",
+      "dispatch": "pre+post BITVECTOR_NEG (src/theory/bv/theory_bv_rewriter.cpp:600), checked on the original node after the LinearRewriteStrategy (disjoint guards)",
+      "summary": "(bvneg (bvadd t1..tn)) -> (bvadd (bvneg t1) .. (bvneg tn))",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "BV_POLY_NORM"
+      ],
+      "guard_comparison": "No RARE rule; BV_POLY_NORM.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/NegAdd_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv_poly_norm; ethos correct. bulk differential (scratch, not a probe): 5676 terms in this rule's fragment, cvc5 (simplify t) checked equivalent to t by z3 (2 z3 timeouts confirmed unsat by yices); 0 mismatches",
+      "confidence": "high",
+      "rationale": "Polynomial identity checked by BV_POLY_NORM.",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "AndSimplify",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:997",
+      "dispatch": "pre+post BITVECTOR_AND, first in RewriteAnd (src/theory/bv/theory_bv_rewriter.cpp:421); MACRO_BV_AND_SIMPLIFY (POST_DSL), elaborated by MacroRewriteElaborator::ensureProofForSimplify",
+      "summary": "n-ary bvand: AND all constants, drop duplicates, x & ~x -> 0, constant 0 -> 0, drop all-ones constant, sort",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_BV_AND_SIMPLIFY",
+        "bv-and-simplify-1",
+        "bv-and-simplify-2",
+        "ACI_NORM",
+        "ABSORB",
+        "EVALUATE"
+      ],
+      "guard_comparison": "With <=1 constant the step is proven directly by RARE/ACI_NORM/ABSORB (bv-and-simplify-1/2 match x and ~x in either order with arbitrary context lists); elaborator returns false. With >=2 constants the elaborator groups constants by ACI_NORM, then leaves two MACRO_THEORY_REWRITE_RCONS_SIMPLE subgoals (constant evaluation; final ACI/ABSORB/complement step) for re-reconstruction. No operand-order or arity assumption mismatched: constants may be anywhere, n-ary handled by list variables.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/AndSimplify_proof.smt2",
+        "probes/bv/AndSimplify_compl_proof.smt2",
+        "probes/bv/AndOrSimplify_oneconst_proof.smt2"
+      ],
+      "probe_result": "all unsat, agree with z3; no trust; ethos correct. Bulk proof survey (scratch, ~1250 random terms, about half and/or/xor, old binary): 0 residual trust from AND. bulk differential (scratch, not a probe): 5676 terms in this rule's fragment, cvc5 (simplify t) checked equivalent to t by z3 (2 z3 timeouts confirmed unsat by yices); 0 mismatches",
+      "confidence": "medium",
+      "rationale": "All tested shapes reconstruct to RARE/ACI/ABSORB and pass ethos, but the elaboration still emits RCONS_SIMPLE subgoals that depend on reconstruction search succeeding.",
+      "witness": null,
+      "binary_note": "dc8ad24031 binary also runs FlattenAssocCommutNoDuplicates before AndSimplify (removed at HEAD by 4e310090c3); AndSimplify C++ identical."
+    },
+    {
+      "id": "OrSimplify",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:1130",
+      "dispatch": "pre+post BITVECTOR_OR, first in RewriteOr (src/theory/bv/theory_bv_rewriter.cpp:432); MACRO_BV_OR_SIMPLIFY (POST_DSL), ensureProofForSimplify",
+      "summary": "n-ary bvor: OR all constants, drop duplicates, x | ~x -> ones, constant ones -> ones, drop zero constant, sort",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_BV_OR_SIMPLIFY",
+        "bv-or-simplify-1",
+        "bv-or-simplify-2",
+        "ACI_NORM",
+        "ABSORB",
+        "EVALUATE"
+      ],
+      "guard_comparison": "Dual of AndSimplify; same elaboration and residual RCONS_SIMPLE subgoals. bv-or-simplify-1/2 cover both complement orders.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/OrSimplify_proof.smt2",
+        "probes/bv/OrSimplify_compl_proof.smt2",
+        "probes/bv/AndOrSimplify_oneconst_proof.smt2"
+      ],
+      "probe_result": "all unsat, agree with z3; no trust; ethos correct. Bulk proof survey: 0 residual trust from OR. bulk differential (scratch, not a probe): 5676 terms in this rule's fragment, cvc5 (simplify t) checked equivalent to t by z3 (2 z3 timeouts confirmed unsat by yices); 0 mismatches",
+      "confidence": "medium",
+      "rationale": "Reconstructs in every tested shape, but via elaboration subgoals that rely on search.",
+      "witness": null,
+      "binary_note": "dc8ad24031 binary also runs FlattenAssocCommutNoDuplicates first (removed at HEAD); OrSimplify C++ identical."
+    },
+    {
+      "id": "XorSimplify",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:1212",
+      "dispatch": "pre+post BITVECTOR_XOR, first in RewriteXor (src/theory/bv/theory_bv_rewriter.cpp:443); MACRO_BV_XOR_SIMPLIFY (POST_DSL), ensureProofForSimplify",
+      "summary": "n-ary bvxor: count positive/negated occurrences per atom; keep atom if odd pos only, ~atom if odd neg only, both odd -> contributes ones; fold ones-parity and xor of constants into one constant",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_BV_XOR_SIMPLIFY",
+        "bv-xor-simplify-1",
+        "bv-xor-simplify-2",
+        "bv-xor-simplify-3",
+        "bv-xor-ones",
+        "bv-not-xor",
+        "ACI_NORM",
+        "EVALUATE"
+      ],
+      "guard_comparison": "RARE bv-xor-simplify-2/3 turn a pair x,~x into (bvnot (bvxor rest)), whereas C++ folds the pair into the constant (true_count). When there are <=1 constants and the result is not a constant, the elaborator returns false (no elaboration), and RARE search fails to bridge (bvnot (bvxor ..)) to (bvxor .. c'); with >=2 constants the final equiv3 subgoal (pair -> merged constant) can also stay MACRO_THEORY_REWRITE_RCONS_SIMPLE. Constant-result corner (x ^ ~x) is handled at HEAD by f8abdb954f (after the binary). The C++ parity logic itself was verified correct (bulk differential + hand check: pos3/neg1 -> ones, pos2/neg3 -> ~x).",
+      "guard_gap": "Not a soundness gap; coverage hole: an atom occurring both positively and negated an odd number of times, together with other non-constant terms, and <=1 constant (or >=2 constants in some orders). E.g. (bvxor x y z (bvnot y) #b0101) -> (bvxor x z #b1010); (bvxor x y (bvnot y) #b1111) -> (bvxor x #b0000); (bvxor x y z (bvnot y) (bvnot x)) -> (bvxor z #b0000); (bvxor #b0001 x y (bvnot x) z) -> (bvxor y z #b1110).",
+      "probes": [
+        "probes/bv/XorSimplify_proof.smt2",
+        "probes/bv/XorSimplify_parity_proof.smt2",
+        "probes/bv/XorSimplify_odd3_proof.smt2",
+        "probes/bv/XorSimplify_notself_proof.smt2",
+        "probes/bv/XorSimplify_pair_noconst_proof.smt2",
+        "probes/bv/XorSimplify_pair_oneconst_proof.smt2",
+        "probes/bv/XorSimplify_pair_onesconst_proof.smt2",
+        "probes/bv/XorSimplify_pair_twoconst_proof.smt2",
+        "probes/bv/XorSimplify_pair_twoconst_rcons.smt2",
+        "probes/bv/XorSimplify_pair_constresult_proof.smt2",
+        "probes/bv/XorSimplify_twopairs_noconst_proof.smt2"
+      ],
+      "probe_result": "all agree with z3 (unsat). No trust: _proof, _parity, _odd3, _pair_noconst, _pair_twoconst, _pair_constresult (ethos correct). Trust THEORY_REWRITE macro-bv-xor-simplify: _pair_oneconst, _pair_onesconst, _twopairs_noconst, _notself (the last is the issue-12336 corner, fixed after the binary). Trust MACRO_THEORY_REWRITE_RCONS_SIMPLE: _pair_twoconst_rcons. Bulk proof survey (1250 random terms): 16 trust hits, all XorSimplify steps of this class. bulk differential (scratch, not a probe): 5676 terms in this rule's fragment, cvc5 (simplify t) checked equivalent to t by z3 (2 z3 timeouts confirmed unsat by yices); 0 mismatches",
+      "confidence": "low",
+      "rationale": "A reproducible class of XorSimplify steps (complement pairs folded into the constant) is left as trust, so soundness there rests on the C++ alone (which differential testing found correct). Elaborator code for this class is unchanged at HEAD, so the hole is expected to persist; not re-verified with a HEAD binary.",
+      "witness": null,
+      "binary_note": "f8abdb954f (constant-result corner in the elaborator) and 4e310090c3 (FlattenAssocCommut no longer before XorSimplify) are after dc8ad24031; XorSimplify C++ identical."
+    },
+    {
+      "id": "FlattenAssocCommutNoDuplicates",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:1079",
+      "dispatch": "not dispatched at HEAD (removed from RewriteAnd/RewriteOr by 4e310090c3); still dispatched first in RewriteAnd/RewriteOr in the dc8ad24031 binary",
+      "summary": "flatten nested bvand/bvor, dropping repeated children, sort",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "ACI_NORM"
+      ],
+      "guard_comparison": "When it ran (old binary) the step is ACI_NORM (flatten + idempotence + sort), an independent check.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/AndSimplify_proof.smt2"
+      ],
+      "probe_result": "old binary: nested and/or terms in bulk proof survey reconstruct with aci_norm, no trust.",
+      "confidence": "n/a",
+      "rationale": "Dead at the analyzed revision; when live it is fully covered by ACI_NORM.",
+      "witness": null,
+      "binary_note": "dispatched in binary dc8ad24031 only."
+    },
+    {
+      "id": "BitwiseSlicing",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_normalization.h:1334",
+      "dispatch": "post BITVECTOR_AND/OR/XOR, last in RewriteAnd/Or/Xor (src/theory/bv/theory_bv_rewriter.cpp:425, 436, 450); BV_BITWISE_SLICING (POST_DSL) THEORY_REWRITE",
+      "summary": "(op ... c ...) with width>1 and first constant c not 0/ones -> concat over maximal runs of equal bits of c of (op c[hi:lo] other[hi:lo]), other = remaining children",
+      "coverage": "theory-rewrite",
+      "proof_rules": [
+        "BV_BITWISE_SLICING (bv-bitwise-slicing)"
+      ],
+      "guard_comparison": "Internal checker is circular, but CPC rule bv-bitwise-slicing ($bv_mk_bitwise_slicing, proofs/eo/cpc/rules/BitVectors.eo:180) recomputes the slicing independently from the bit-list of the first constant child, erasing it and rebuilding the rest with list_singleton_elim; argument order (const_extract, other_extract) and run boundaries match the C++ loop. CPC does not require c to be non-trivial, which only widens the rule soundly. Constant run boundaries swept for all constants at widths 1..5 for and/or/xor in bulk differential.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/BitwiseSlicing_and_proof.smt2",
+        "probes/bv/BitwiseSlicing_or_proof.smt2",
+        "probes/bv/BitwiseSlicing_xor_proof.smt2",
+        "probes/bv/BitwiseSlicing_w2_proof.smt2"
+      ],
+      "probe_result": "all unsat, agree with z3; no trust; rule bv-bitwise-slicing used; ethos (HEAD signature) correct on all four. bulk differential (scratch, not a probe): 5676 terms in this rule's fragment, cvc5 (simplify t) checked equivalent to t by z3 (2 z3 timeouts confirmed unsat by yices); 0 mismatches",
+      "confidence": "high",
+      "rationale": "Theory rewrite whose Eunoia definition is an independent re-implementation, verified by ethos on and/or/xor and width-2 edge cases; C++ outputs verified equivalent for every constant at widths 1..5.",
+      "witness": null,
+      "binary_note": "binary dc8ad24031: C++ of this rule identical to HEAD modulo clang-format"
+    },
+    {
+      "id": "ConcatToMult",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules.h:182",
+      "dispatch": "none: enum value and RewriteRule<ConcatToMult> member only; no applies/apply specialization exists",
+      "summary": "(no implementation)",
+      "coverage": "none",
+      "proof_rules": [],
+      "guard_comparison": "n/a",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "n/a",
+      "confidence": "n/a",
+      "rationale": "Declared but never implemented or dispatched.",
+      "witness": null
+    }
+  ]
+}

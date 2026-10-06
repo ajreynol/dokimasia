@@ -1,0 +1,10 @@
+; sat: len(replace(x,a,bc)) != len x is satisfiable (different lengths, must not fire)
+; EXPECT: sat
+(set-logic QF_SLIA)
+(declare-const x String)
+(declare-const y String)
+(declare-const z String)
+(declare-const w String)
+(declare-const u String)
+(assert (not (= (str.len (str.replace x "a" "bc")) (str.len x))))
+(check-sat)

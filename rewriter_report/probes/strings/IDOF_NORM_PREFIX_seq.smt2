@@ -1,0 +1,12 @@
+; sequence indexof prefix normalization (strings only)
+; EXPECT: unsat
+(set-logic ALL)
+(declare-const a (Seq Int))
+(declare-const b (Seq Int))
+(declare-const c (Seq Int))
+(declare-const n Int)
+(declare-const m Int)
+(declare-const e Int)
+(assert (not (= (seq.indexof (seq.++ (seq.unit 1) (seq.unit 2) a) b 1) (seq.indexof (seq.++ (seq.unit 1) (seq.unit 2) a) b 1))))
+(assert (not (= (seq.indexof (seq.++ (seq.unit 1) (seq.unit 2) a) b 1) (seq.indexof (seq.++ (seq.unit 3) (seq.unit 2) a) b 1))))
+(check-sat)

@@ -1,0 +1,349 @@
+{
+  "unit": "bv-simplification-b",
+  "source_rev": "40a4bb7e43",
+  "binary": "cvc5 version 1.3.2.dev+main@dc8ad24031 [git dc8ad24031 on branch main]",
+  "rules": [
+    {
+      "id": "UdivZero",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1150",
+      "dispatch": "pre/post BITVECTOR_UDIV via RewriteUdiv (after UdivPow2, EvalUdiv); no ProofRewriteRule",
+      "summary": "(bvudiv x 0) -> ~0",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-udiv-zero"
+      ],
+      "guard_comparison": "C++ guard node[1]==0_n; RARE pattern (bvudiv x (@bv 0 n)) -> (bvnot (@bv 0 n)); identical, any width incl. 1.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UdivZero_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv-udiv-zero",
+      "confidence": "high",
+      "rationale": "Exact RARE instance; proof probe reconstructs with no trust at widths 1 and 3."
+    },
+    {
+      "id": "UdivOne",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1174",
+      "dispatch": "BITVECTOR_UDIV via RewriteUdiv, but unreachable: UdivPow2 is tried first and fires on divisor 1 (isPow2Const(1)=1, power 0 -> returns a)",
+      "summary": "(bvudiv x 1) -> x",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-udiv-one"
+      ],
+      "guard_comparison": "RARE bv-udiv-one is exact; the same rewrite is actually produced by UdivPow2's power==0 branch and the proof uses bv-udiv-one for it.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UdivOne_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv-udiv-one",
+      "confidence": "n/a",
+      "rationale": "Shadowed by UdivPow2 in RewriteUdiv, so never dispatched; the equivalent UdivPow2 step is reconstructed by bv-udiv-one."
+    },
+    {
+      "id": "UremPow2",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1197",
+      "dispatch": "pre/post BITVECTOR_UREM via RewriteUrem (first, REWRITE_AGAIN_FULL); no ProofRewriteRule",
+      "summary": "(bvurem x 2^k) -> concat(0_(n-k), x[k-1:0]); k=0 -> 0",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-urem-pow2-not-one",
+        "bv-urem-one"
+      ],
+      "guard_comparison": "C++ requires non-negated pow2 constant (isPow2Const, !isNeg). power=k: k=0 -> 0 (covered by bv-urem-one), k>=1 -> concat(0_(n-k), extract(k-1,0)); RARE requires ispow2(v), v>1, nmp=n-k, pm1=k-1. msb constant 2^(n-1) gives isNeg=false and nmp=1, fine. Width 1: #b1 -> power 0 -> 0.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UremPow2_proof.smt2",
+        "probes/bv/UremPow2_width1.smt2"
+      ],
+      "probe_result": "both cvc5=unsat z3=unsat; no trust; bv-urem-pow2-not-one, bv-urem-one",
+      "confidence": "high",
+      "rationale": "Both branches are exact RARE instances; probes at k=0, k=2, k=n-1 and width 1 reconstruct without trust."
+    },
+    {
+      "id": "UremOne",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1239",
+      "dispatch": "BITVECTOR_UREM via RewriteUrem, but unreachable: UremPow2 runs first and handles divisor 1 (power 0 -> 0)",
+      "summary": "(bvurem x 1) -> 0",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-urem-one"
+      ],
+      "guard_comparison": "RARE bv-urem-one exact; the UremPow2 power-0 step is reconstructed with it.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UremOne_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv-urem-one",
+      "confidence": "n/a",
+      "rationale": "Shadowed by UremPow2 in RewriteUrem; the equivalent step is covered by bv-urem-one."
+    },
+    {
+      "id": "UremSelf",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1263",
+      "dispatch": "pre/post BITVECTOR_UREM via RewriteUrem (after UremPow2, EvalUrem, UremOne)",
+      "summary": "(bvurem t t) -> 0",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-urem-self"
+      ],
+      "guard_comparison": "C++ node[0]==node[1]; RARE (bvurem x x) -> (@bv 0 w), w=bvsize x. Identical.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UremSelf_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv-urem-self",
+      "confidence": "high",
+      "rationale": "Exact RARE instance, reconstructed without trust."
+    },
+    {
+      "id": "ShiftZero",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1285",
+      "dispatch": "pre/post BITVECTOR_SHL/LSHR/ASHR via RewriteShl/Lshr/Ashr (after *ByConst, Eval*)",
+      "summary": "(shift 0_n a) -> 0_n for shl, lshr, ashr",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-shl-zero",
+        "bv-lshr-zero",
+        "bv-ashr-zero"
+      ],
+      "guard_comparison": "C++ guard node[0]==0; one RARE rule per kind with the same pattern.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ShiftZero_proof.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv-shl-zero, bv-lshr-zero, bv-ashr-zero",
+      "confidence": "high",
+      "rationale": "Exact RARE instances for all three kinds."
+    },
+    {
+      "id": "UgtUrem",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1315",
+      "dispatch": "pre/post BITVECTOR_UGT via RewriteUgt (first, before UgtEliminate)",
+      "summary": "(bvugt (bvurem T x) x) -> (and (= x 0) (bvugt T 0))",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ugt-urem"
+      ],
+      "guard_comparison": "C++ guard node[0] is UREM with node[0][1]==node[1]; RARE pattern identical, RHS identical (and-conjunct order same).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UgtUrem_proof.smt2",
+        "probes/bv/UgtUrem_diff.smt2"
+      ],
+      "probe_result": "proof: cvc5=unsat z3=unsat, no trust, bv-ugt-urem; diff (width 1, x=0): cvc5=sat z3=sat",
+      "confidence": "high",
+      "rationale": "Exact RARE instance; spec is valid since urem by 0 is the identity."
+    },
+    {
+      "id": "MergeSignExtend",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1339",
+      "dispatch": "pre/post BITVECTOR_SIGN_EXTEND via RewriteSignExtend (first). zext child only seen at pre-rewrite (ZeroExtendEliminate removes zero_extend at post)",
+      "summary": "sext(i,sext(j,x)) -> sext(i+j,x); sext(i,zext(j,x)) -> zext(i+j,x) if j>0, sext(i,x) if j=0",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-merge-sign-extend-1",
+        "bv-merge-sign-extend-2",
+        "bv-zero-extend-eliminate-0",
+        "bv-sign-extend-eliminate-0"
+      ],
+      "guard_comparison": "sext/sext: RARE -1 k=i+j exact. sext/zext j>0: RARE -2 (j>0) exact. j=0 branch (outside -2's guard) is reconstructed as zext(0,x)->x (bv-zero-extend-eliminate-0) under congruence. Amount arithmetic is unsigned sum, no overflow at realistic widths.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/MergeSignExtend_proof.smt2",
+        "probes/bv/MergeSignExtend_zext0.smt2",
+        "probes/bv/MergeSignExtend_diff.smt2"
+      ],
+      "probe_result": "all cvc5=unsat z3=unsat, no trust; bv-merge-sign-extend-1/2, bv-zero-extend-eliminate-0, bv-sign-extend-eliminate-0",
+      "confidence": "high",
+      "rationale": "Main branches are exact RARE instances; the j=0 branch is a 1-step chain; no trust anywhere."
+    },
+    {
+      "id": "ZeroExtendEqConst",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1395",
+      "dispatch": "only TheoryBV::ppStaticRewrite under --bv-rw-extend-eq (TrustNode::mkTrustRewrite without generator); not in the rewriter",
+      "summary": "(= zext(m,x) c) / (= c zext(m,x)) -> (= x c[n-1:0]) if c[n+m-1:n]=0 else false",
+      "coverage": "none",
+      "proof_rules": [
+        "bv-zero-extend-eq-const-1",
+        "bv-zero-extend-eq-const-2"
+      ],
+      "guard_comparison": "C++ c_hi = c[cSize-1:tSize] (m bits), correct. RARE rule defines chi = (extract nmm1 nm1 c) with nm1=n-1, i.e. c[n+m-1:n-1] (m+1 bits), and compares it to (@bv 0 m): ill-typed. ethos confirms the CPC instance for x:3,m=3,c=#b000111 fails type checking ('Has type (BitVec 3), Expected (BitVec 4)'). So no instance of the RARE rule can justify this step; the regression test/regress/cli/regress0/bv/holes/zero-extend-eq-const-*.smt2 is proved via bv-zero-extend-eliminate instead and never uses it. Separately, with --bv-rw-extend-eq, ppStaticRewrite returns mkTrustRewrite(atom, Node::null()) for every BV equality matching neither rule (Node res is left null and res!=atom), which crashes cvc5 (segfault / 'bad kind'); the same code is at HEAD.",
+      "guard_gap": "RARE rule bv-zero-extend-eq-const-1/2 is ill-typed (chi has m+1 bits), so it covers no input; C++ step is unjustified by any proof rule.",
+      "probes": [
+        "probes/bv/ZeroExtendEqConst_proof.smt2",
+        "probes/bv/ZeroExtendEqConst_rcons.smt2",
+        "probes/bv/SignExtendEqConst_rwExtendEq_crash.smt2"
+      ],
+      "probe_result": "ZeroExtendEqConst_proof (--bv-rw-extend-eq): cvc5 segfault, z3 (option stripped)=unsat; ZeroExtendEqConst_rcons (default opts): cvc5=unsat z3=unsat, no trust, uses bv-zero-extend-eliminate not the eq-const rule; crash probe: cvc5 'bad kind' error, z3 (option stripped)=sat",
+      "confidence": "low",
+      "rationale": "C++ itself looks correct, but the only dispatch path is a non-default option that crashes on ordinary inputs, and the matching RARE rule is ill-typed so a proof could never cover this step."
+    },
+    {
+      "id": "SignExtendEqConst",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1445",
+      "dispatch": "only TheoryBV::ppStaticRewrite under --bv-rw-extend-eq (mkTrustRewrite without generator); not in the rewriter",
+      "summary": "(= sext(m,x) c) -> (= x c[n-1:0]) if c[n+m-1:n-1] is all 0 or all 1, else false",
+      "coverage": "none",
+      "proof_rules": [
+        "bv-sign-extend-eq-const-1",
+        "bv-sign-extend-eq-const-2"
+      ],
+      "guard_comparison": "C++ c_hi = c[cSize-1 : n-1] (m+1 bits incl. sign bit), checks 0 or ~0. RARE chi = extract(nm-1, n-1) of width m+1 compared to (@bv 0 mp1)/(bvnot ...), result (and cond (= x clo)) which simplifies to the C++ output. Guards line up; m=0 gives a 1-bit chi which is always 0 or 1, consistent with C++.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SignExtendEqConst_proof.smt2",
+        "probes/bv/SignExtendEqConst_diff.smt2",
+        "probes/bv/SignExtendEqConst_rwExtendEq_crash.smt2"
+      ],
+      "probe_result": "all with --bv-rw-extend-eq: cvc5 error ('bad kind', from mkTrustRewrite(atom, null) in ppStaticRewrite); z3 with option stripped: unsat / sat / sat as expected",
+      "confidence": "low",
+      "rationale": "RARE rule matches the C++ on paper, but the only dispatch is a crashing non-default option, so no probe could observe the step or its proof; as a pp-static trust rewrite it rests on the C++."
+    },
+    {
+      "id": "ZeroExtendUltConst",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1496",
+      "dispatch": "BITVECTOR_ULT via RewriteUlt (after EvalUlt, UltSelf, UltOne, UltOnes, UltZero, SignExtendUltConst); effectively pre-rewrite only, since zero_extend is eliminated at post-rewrite",
+      "summary": "zext(m,x) <u c -> x <u c[n-1:0] (and c <u zext(m,x) -> c[n-1:0] <u x) when c[n+m-1:n]=0",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-zero-extend-ult-const-1",
+        "bv-zero-extend-ult-const-2"
+      ],
+      "guard_comparison": "C++ requires m>0 (tSize!=cSize) and c_hi==0; RARE requires c == zext(m, clo), equivalent (and also allows m=0 harmlessly). Both operand orders have a rule.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ZeroExtendUltConst_proof.smt2",
+        "probes/bv/ZeroExtendUltConst_edges.smt2"
+      ],
+      "probe_result": "proof: cvc5=unsat z3=unsat, no trust, bv-zero-extend-ult-const-1/2; edges (c_hi!=0, width-1 x): cvc5=unsat z3=unsat, no trust",
+      "confidence": "high",
+      "rationale": "Exact RARE instances for both orientations."
+    },
+    {
+      "id": "SignExtendUltConst",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1578",
+      "dispatch": "BITVECTOR_ULT via RewriteUlt (before ZeroExtendUltConst); sign_extend survives rewriting so pre and post",
+      "summary": "sext(m,x) <u c -> x <u c_lo or x[n-1]=0; c <u sext(m,x) -> c_lo <u x or x[n-1]=1, split on c vs 1<<(n-1), ~0<<(n-1)",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-sign-extend-ult-const-1",
+        "bv-sign-extend-ult-const-2",
+        "bv-sign-extend-ult-const-3",
+        "bv-sign-extend-ult-const-4"
+      ],
+      "guard_comparison": "C++ applies() is a tautology (covers every c on both sides). LHS: msb<c<=upper -> msb=0 (RARE -2 guard identical), else x<c_lo (RARE -1: c<=msb or c>=upper). RHS: ~upper<=c<=~msb -> msb=1 (RARE -4 identical), else c_lo<x (RARE -3: c<msb or c>=~msb, which contains the C++ else region c<msb-1 or c>~msb). Overlaps (c=upper) give equivalent results. n=1 and m=0 checked by hand.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/SignExtendUltConst_proof.smt2",
+        "probes/bv/SignExtendUltConst_boundaries.smt2",
+        "probes/bv/SignExtendUltConst_width1.smt2"
+      ],
+      "probe_result": "all cvc5=unsat z3=unsat, no trust; exhaustive 16 constants x both sides at n=2,m=2 use all four RARE rules",
+      "confidence": "high",
+      "rationale": "All four C++ branches map onto RARE rules with matching conditions; exhaustive boundary probe agrees and reconstructs."
+    },
+    {
+      "id": "IneqElimConversion",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1675",
+      "dispatch": "BITVECTOR_ULT via RewriteUlt and BITVECTOR_ULE via RewriteUle; UGT/UGE branches dead (RewriteUgt/Uge eliminate first)",
+      "summary": "bv ineq whose children are all int2bv or constants -> arith ineq over (mod t 2^w) / ubv_to_int c",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "uf-int2bv-bvult-equiv",
+        "uf-int2bv-bvule-equiv",
+        "uf-int2bv-bv2nat",
+        "arith-int-mod-total"
+      ],
+      "guard_comparison": "No dedicated rule; bvult/bvule -> (< / <= ubv_to_int ubv_to_int) by uf-int2bv-bv*-equiv, then (ubv_to_int (int2bv w t)) -> (mod t 2^w) by uf-int2bv-bv2nat; constants evaluated. Chain is short and unconditional.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/IneqElimConversion_proof.smt2",
+        "probes/bv/IneqElimConversion_ule_proof.smt2",
+        "probes/bv/IneqElimConversion_diff.smt2"
+      ],
+      "probe_result": "proofs: cvc5=unsat z3=unsat, no trust; diff (negative i): cvc5=sat z3=sat",
+      "confidence": "high",
+      "rationale": "Short RARE chain reconstructs ULT and ULE cases with no trust; differential with negative integers agrees."
+    },
+    {
+      "id": "MultSlice",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1734",
+      "dispatch": "not dispatched (no reference outside the rule table)",
+      "summary": "a*b (even width) -> split into top/bottom halves",
+      "coverage": "none",
+      "proof_rules": [],
+      "guard_comparison": "Dead code.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed",
+      "confidence": "n/a",
+      "rationale": "Never called by any rewriter or pass."
+    },
+    {
+      "id": "UltAddOne",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1792",
+      "dispatch": "TheoryBV::ppRewrite (mkTrustRewrite, no generator); not in the rewriter",
+      "summary": "x <u (bvadd y 1) -> (and (not (= y ~0)) (not (bvult y x)))",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-ult-add-one"
+      ],
+      "guard_comparison": "C++ requires a binary bvadd with exactly one constant child equal to 1 (either position); RARE matches n-ary (bvadd ys c1 zs) with c1=1 and returns the same formula with (bvadd ys zs) which is y for the binary case.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/UltAddOne_proof.smt2",
+        "probes/bv/UltAddOne_diff.smt2"
+      ],
+      "probe_result": "proof: cvc5=unsat z3=unsat, no trust, bv-ult-add-one; diff width 1: cvc5=sat z3=sat",
+      "confidence": "high",
+      "rationale": "Exact RARE instance; the pp-rewrite step is reconstructed without trust."
+    },
+    {
+      "id": "MultSltMult",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_simplification.h:1893",
+      "dispatch": "post/pre BITVECTOR_SLT via RewriteSlt (after EvalSlt, SltSelf); ProofRewriteRule MACRO_BV_MULT_SLT_MULT elaborated by MacroRewriteElaborator::ensureProofForMultSltMult",
+      "summary": "(bvslt (ext(x+t)*sext(a)) (ext(x)*sext(a))) -> t!=0 & a!=0 & ((x+t <s/<u x) = (a >s 0))",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_BV_MULT_SLT_MULT",
+        "bv-mult-slt-mult-1",
+        "bv-mult-slt-mult-2"
+      ],
+      "guard_comparison": "extract_ext_tuple returns (zext-arg, sext-arg) for the mixed concat/sext case, but applies() then lets the ADD be either ml[0] or ml[1] and lets a match either mr[0] or mr[1], ignoring which operand is zero- vs sign-extended; RARE -2 only covers zext(x+t)*sext(a) vs zext(x)*sext(a). Also concat(0, y, z, ...) with >2 children is treated as zext(y) (dropping z, and the size guard only checks |y|), and the elaborator turns it into an ill-typed (zero_extend |0| y). The final elaboration step is a MACRO_THEORY_REWRITE_RCONS_SIMPLE trust that stays unproved on all mismatched shapes. sext/sext and correctly-ordered mixed forms reconstruct cleanly. Upstream PR #13042 (not in pinned rev 40a4bb7e43) requires 2-child concat, requires the ADD in the zext position (ml[0]) and a in the sext position on the right (mr[1]) in the mixed case: by inspection this closes all three gap classes found here, leaving only the shapes RARE -1/-2 cover. Binary dc8ad24031 additionally predates the (>= n tn) (>= m an) guards on bv-mult-slt-mult-1/2 (aafcc486e2), irrelevant to these witnesses since C++ checks sizes.",
+      "guard_gap": "Mixed zext/sext case where the zero-extended operand is a (not x+t) on either side, or concat with >2 children. Three classes: (1) L zext(a)*sext(x+t), R zext(a)*sext(x) [#13039]; (2) a zero-extended on one side and sign-extended on the other (L zext(x+t)*sext(a), R zext(a)*sext(x); or L zext(a)*sext(x+t), R zext(x)*sext(a)); (3) n-ary concat(0, x+t, z) * sext(a) vs concat(0, x, z2) * sext(a).",
+      "probes": [
+        "probes/bv/MultSltMult_issue13039.smt2",
+        "probes/bv/MultSltMult_cross_roles.smt2",
+        "probes/bv/MultSltMult_cross_roles2.smt2",
+        "probes/bv/MultSltMult_nary_concat.smt2",
+        "probes/bv/MultSltMult_nary_concat_ground.smt2",
+        "probes/bv/MultSltMult_sext_mixed_free.smt2",
+        "probes/bv/MultSltMult_sext_proof.smt2",
+        "probes/bv/MultSltMult_sext_order_proof.smt2",
+        "probes/bv/MultSltMult_zext_proof.smt2",
+        "probes/bv/MultSltMult_zext_order_proof.smt2",
+        "probes/bv/MultSltMult_sext_guard_overflow.smt2"
+      ],
+      "probe_result": "issue13039, cross_roles, cross_roles2, sext_mixed_free: cvc5=unsat z3=sat DISAGREE, trust MACRO_THEORY_REWRITE_RCONS_SIMPLE; nary_concat and nary_concat_ground: cvc5=unsat z3=sat DISAGREE (yices=sat on ground), proof generation aborts with '(error \"expecting comparable bit-vector terms\")'; sext_proof, sext_order_proof, zext_proof, zext_order_proof: unsat/unsat no trust (bv-mult-slt-mult-1/2); sext_guard_overflow: sat/sat (rule correctly not applied)",
+      "confidence": "suspect",
+      "rationale": "Confirmed unsound on three input classes in both the pinned source (same code) and the binary; proofs either keep a trust step or fail to build. Covered shapes reconstruct cleanly.",
+      "witness": "(2) a=#b01,x=#b11: (not (bvslt (bvmul (zext 2 (bvadd x #b01)) (sext 2 a)) (bvmul (zext 2 a) (sext 2 x)))) is true (0 <s -1 false) but cvc5 says unsat; (3) ground (bvslt (bvmul (concat #b00 (bvadd #b01 #b01) #b11) (sext 3 #b011)) (bvmul (concat #b00 #b01 #b00) (sext 3 #b011))) is -31 <s 12 = true, cvc5 says unsat (rule fires at pre-rewrite before constant folding); z3 and yices say sat."
+    }
+  ]
+}

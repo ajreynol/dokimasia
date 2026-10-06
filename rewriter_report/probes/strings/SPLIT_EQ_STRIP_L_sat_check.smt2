@@ -1,0 +1,10 @@
+; sat check: x++AB++z = A++x++y is satisfiable (x="", y = B++z)
+; EXPECT: sat
+(set-logic QF_SLIA)
+(declare-const x String)
+(declare-const y String)
+(declare-const z String)
+(declare-const w String)
+(assert (= (str.++ x "AB" z) (str.++ "A" x y)))
+(assert (not (= z y)))
+(check-sat)

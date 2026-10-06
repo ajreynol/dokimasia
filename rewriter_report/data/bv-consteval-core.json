@@ -1,0 +1,689 @@
+{
+  "unit": "bv-consteval-core",
+  "source_rev": "40a4bb7e43",
+  "binary": "cvc5 version 1.3.2.dev+main@dc8ad24031 [git dc8ad24031 on branch main]",
+  "rules": [
+    {
+      "id": "ConcatFlatten",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_core.h:29",
+      "dispatch": "pre+post BITVECTOR_CONCAT via RewriteConcat (first, TRY_REWRITE -> REWRITE_AGAIN_FULL); no ProofRewriteRule",
+      "summary": "(concat .. (concat a b) ..) -> flat n-ary concat (depth-first, order preserved)",
+      "coverage": "none",
+      "proof_rules": [
+        "ACI_NORM"
+      ],
+      "guard_comparison": "No RARE rule or ProofRewriteRule; generic reconstruction proves every instance with ACI_NORM (concat is associative with nil), which is checked independently (expr::isACINorm / CPC $get_aci_normal_form). Flattening preserves child order, so every C++ output is an ACI_NORM instance.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ConcatFlatten_nested.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; proof uses aci_norm",
+      "confidence": "high",
+      "rationale": "Pure associativity flattening; proved by the independent ACI_NORM rule with no trust. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "ConcatExtractMerge",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_core.h:65",
+      "dispatch": "pre+post BITVECTOR_CONCAT via RewriteConcat (2nd, TRY_REWRITE); MACRO_BV_CONCAT_EXTRACT_MERGE (POST_DSL)",
+      "summary": "concat(.., x[h:l], x[l-1:k], ..) -> concat(.., x[h:k], ..), chains merged greedily",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_BV_CONCAT_EXTRACT_MERGE",
+        "bv-concat-extract-merge",
+        "ACI_NORM",
+        "bv-extract-whole"
+      ],
+      "guard_comparison": "C++ merges adjacent extracts with identical base (current[0]==next[0]) iff nextHigh+1==currentLow; RARE bv-concat-extract-merge requires same s and j1=j+1 with list contexts xs/ys, identical condition. Elaborator groups each run by ACI_NORM and reproves each binary merge (run<true> of the C++) as a RCONS_SIMPLE subgoal that is discharged by the RARE rule. Tried: reversed order, gap, different base, width-1 extracts, all 7 split patterns of a 4-bit x, merge to whole (then ExtractWhole).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ConcatExtractMerge_chain3.smt2",
+        "probes/bv/ConcatExtractMerge_sweep4.smt2",
+        "probes/bv/ConcatExtractMerge_width1.smt2",
+        "probes/bv/ConcatExtractMerge_nomerge.smt2"
+      ],
+      "probe_result": "unsat probes: cvc5=unsat z3=unsat, no trust, rare=bv-concat-extract-merge(+bv-extract-whole); nomerge: cvc5=sat z3=sat",
+      "confidence": "high",
+      "rationale": "C++ guard equals the RARE condition; all probes reconstruct with no residual trust. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "ConcatConstantMerge",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_core.h:143",
+      "dispatch": "pre+post BITVECTOR_CONCAT via RewriteConcat (LinearRewriteStrategy after ApplyRuleToChildren<ExtractWhole>); MACRO_BV_CONCAT_CONSTANT_MERGE (POST_DSL)",
+      "summary": "maximal runs of adjacent constant children of a concat folded into one constant",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_BV_CONCAT_CONSTANT_MERGE",
+        "ACI_NORM",
+        "EVALUATE",
+        "bv-concat-merge-const"
+      ],
+      "guard_comparison": "C++ folds each maximal run of CONST_BITVECTOR children with BitVector::concat; elaborator regroups runs by ACI_NORM and proves each group by EVALUATE (no trust step added); RARE bv-concat-merge-const also covers binary merges. Output is pure constant evaluation of concat, order preserved.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ConcatConstantMerge_runs.smt2",
+        "probes/bv/ExtractConcat_nested_const.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; rare=bv-concat-merge-const",
+      "confidence": "high",
+      "rationale": "Constant folding of concat; elaboration uses ACI_NORM+EVALUATE/RARE with no residual trust. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "ExtractWhole",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_core.h:200",
+      "dispatch": "post BITVECTOR_EXTRACT via RewriteExtract (after ExtractConcat/SignExtend/Not/ExtractExtract); also ApplyRuleToChildren<CONCAT,ExtractWhole> in RewriteConcat",
+      "summary": "x[w-1:0] -> x",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-extract-whole"
+      ],
+      "guard_comparison": "C++ requires high==w-1 and low==0; RARE bv-extract-whole matches (extract n 0 x) with n>=w-1 (well-typed only for n=w-1). Exact match; concat-child application is covered by CONG.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ExtractWhole_basic.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; rare=bv-extract-whole",
+      "confidence": "high",
+      "rationale": "Direct RARE instance. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "ExtractConstant",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_core.h:222",
+      "dispatch": "post BITVECTOR_EXTRACT via RewriteExtract (last in LinearRewriteStrategy)",
+      "summary": "extract of a constant -> constant",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Uses BitVector::extract(high,low) which asserts high<size, low<=high (guaranteed by typing). Same semantics as SMT-LIB extract; edge indices (top bit, bit 0) probed.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ExtractConstant_eval.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; evaluate",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "ExtractConcat",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_core.h:245",
+      "dispatch": "pre+post BITVECTOR_EXTRACT via RewriteExtract (first, REWRITE_AGAIN_FULL); MACRO_BV_EXTRACT_CONCAT (POST_DSL)",
+      "summary": "x[j:i] of concat(c_n..c_0) -> concat of per-child slices that overlap [i,j]",
+      "coverage": "macro-elaborated",
+      "proof_rules": [
+        "MACRO_BV_EXTRACT_CONCAT",
+        "ACI_NORM",
+        "bv-extract-concat-1",
+        "bv-extract-concat-2",
+        "bv-extract-concat-3",
+        "bv-extract-concat-4",
+        "bv-extract-whole"
+      ],
+      "guard_comparison": "C++ walks children from LSB with signed int offsets, emitting extract(min(hi,size-1), max(lo,0)) for each overlapped child. Elaborator curries the concat (ACI_NORM), applies the same C++ to each binary concat as RCONS_SIMPLE subgoals, which RARE bv-extract-concat-1..4 discharge (cases: inside low child, straddling, above low child, below high child), then ACI_NORM to the n-ary result. Index arithmetic checked exhaustively: all 21 (j,i) over widths (1,2,3) and all 21 over (2,1,1,2), plus nested unflattened concat with constants in pre-rewrite and an off-by-one differential.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ExtractConcat_span3.smt2",
+        "probes/bv/ExtractConcat_inside.smt2",
+        "probes/bv/ExtractConcat_sweep123.smt2",
+        "probes/bv/ExtractConcat_sweep2112.smt2",
+        "probes/bv/ExtractConcat_nested_const.smt2",
+        "probes/bv/ExtractConcat_offbyone.smt2"
+      ],
+      "probe_result": "all unsat probes cvc5=unsat z3=unsat with no trust (rare=bv-extract-concat-1..4, bv-extract-whole); offbyone cvc5=sat z3=sat",
+      "confidence": "high",
+      "rationale": "Index arithmetic is fully re-proved by RARE extract-concat cases on every tested (j,i); no residual trust. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "ExtractExtract",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_core.h:289",
+      "dispatch": "post only BITVECTOR_EXTRACT via RewriteExtract (TRY_REWRITE after ExtractConcat/SignExtend/Not)",
+      "summary": "x[a:b][k:l] (any nesting depth) -> x[k+sum(lows) : l+sum(lows)]",
+      "coverage": "rare",
+      "proof_rules": [
+        "bv-extract-extract"
+      ],
+      "guard_comparison": "C++ accumulates low offsets of all nested extracts in uint32 (no overflow: bounded by width). RARE bv-extract-extract handles one level with ll=i+l, kk=i+k; deeper nesting is a chain of the same rule (rare-multi). Exhaustive check of all double extracts of a 5-bit x and a triple nest probe; off-by-one differential sat.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ExtractExtract_nested3.smt2",
+        "probes/bv/ExtractExtract_sweep5.smt2",
+        "probes/bv/ExtractExtract_offbyone.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat, no trust, rare=bv-extract-extract(+bv-extract-whole); offbyone sat/sat",
+      "confidence": "high",
+      "rationale": "Direct RARE instance (chained for deeper nesting), all reconstructed without trust. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "FailEq",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_core.h:320",
+      "dispatch": "pre+post EQUAL (BV) via RewriteEqual (1st)",
+      "summary": "(= c1 c2) with distinct BV constants -> false",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Guard: both children CONST_BITVECTOR and node[0]!=node[1] (same type, so distinct values). Proved by EVALUATE.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/FailEq_consts.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; evaluate",
+      "confidence": "n/a",
+      "rationale": "Constant evaluation of equality. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "SimplifyEq",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_core.h:338",
+      "dispatch": "pre+post EQUAL (BV) via RewriteEqual (2nd)",
+      "summary": "(= x x) -> true",
+      "coverage": "rare",
+      "proof_rules": [
+        "eq-refl"
+      ],
+      "guard_comparison": "Exact instance of uf RARE rule eq-refl.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/FailEq_consts.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; rare=eq-refl",
+      "confidence": "high",
+      "rationale": "Direct RARE instance. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "ReflexivityEq",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_core.h:354",
+      "dispatch": "pre+post EQUAL (BV) via RewriteEqual (3rd)",
+      "summary": "(= a b) -> (= b a) when a > b in node order",
+      "coverage": "rare-multi",
+      "proof_rules": [
+        "eq-symm",
+        "BV_POLY_NORM_EQ"
+      ],
+      "guard_comparison": "Unconditional symmetric swap; any instance is covered by uf RARE rule eq-symm; in the probe the reconstruction chose bv_poly_norm/bv_poly_norm_eq.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/ReflexivityEq_swap.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; bv_poly_norm_eq",
+      "confidence": "high",
+      "rationale": "Trivially sound swap covered by eq-symm / poly norm. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalAnd",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:29",
+      "dispatch": "not dispatched: applies()/apply() call Unreachable(); BITVECTOR_AND constants folded by AndSimplify",
+      "summary": "constant folding (dead code)",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Not referenced by any rewrite table entry or rewriteViaRule; only listed in AllRewriteRules/printer.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (unreachable)",
+      "confidence": "n/a",
+      "rationale": "Dead code. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalOr",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:49",
+      "dispatch": "not dispatched: applies()/apply() call Unreachable(); BITVECTOR_OR constants folded by OrSimplify",
+      "summary": "constant folding (dead code)",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Not referenced by any rewrite table entry or rewriteViaRule; only listed in AllRewriteRules/printer.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (unreachable)",
+      "confidence": "n/a",
+      "rationale": "Dead code. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalXor",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:69",
+      "dispatch": "not dispatched: applies()/apply() call Unreachable(); BITVECTOR_XOR constants folded by XorSimplify",
+      "summary": "constant folding (dead code)",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Not referenced by any rewrite table entry or rewriteViaRule; only listed in AllRewriteRules/printer.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (unreachable)",
+      "confidence": "n/a",
+      "rationale": "Dead code. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalNot",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:103",
+      "dispatch": "pre+post BITVECTOR_NOT via RewriteNot (after NotIdemp)",
+      "summary": "bvnot c -> ~c",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "isBvConstTerm; BitVector operator~ (mod 2^w). Matches SMT-LIB.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalCompare_edges.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalMult",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:137",
+      "dispatch": "not dispatched: RewriteMult uses FlattenAssocCommut/MultSimplify (which folds constants); EvalMult never referenced",
+      "summary": "constant folding (dead code)",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Not referenced by any rewrite table entry or rewriteViaRule; only listed in AllRewriteRules/printer.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (unreachable)",
+      "confidence": "n/a",
+      "rationale": "Dead code. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalAdd",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:156",
+      "dispatch": "not dispatched: RewriteAdd uses FlattenAssocCommut/AddCombineLikeTerms; EvalAdd never referenced",
+      "summary": "constant folding (dead code)",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Not referenced by any rewrite table entry or rewriteViaRule; only listed in AllRewriteRules/printer.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (unreachable)",
+      "confidence": "n/a",
+      "rationale": "Dead code. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalNeg",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:190",
+      "dispatch": "pre+post BITVECTOR_NEG via RewriteNeg (1st)",
+      "summary": "bvneg c -> -c mod 2^w",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "BitVector unary minus; probed min-signed (#b1000) and width 1.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalCompare_edges.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalUdiv",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:205",
+      "dispatch": "pre+post BITVECTOR_UDIV via RewriteUdiv (after UdivPow2, so only non-power-of-2 or zero divisors)",
+      "summary": "bvudiv c1 c2 -> constant",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "unsignedDivTotal: divisor 0 -> all ones (SMT-LIB total semantics), else floor quotient. Probed /0 at widths 1 and 4, non-pow2 divisors.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalUdiv_EvalUrem_divzero.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; evaluate",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalUrem",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:221",
+      "dispatch": "pre+post BITVECTOR_UREM via RewriteUrem (after UremPow2)",
+      "summary": "bvurem c1 c2 -> constant",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "unsignedRemTotal: divisor 0 -> dividend (SMT-LIB), else floor remainder. Probed %0 at widths 1 and 4.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalUdiv_EvalUrem_divzero.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust; evaluate",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalShl",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:238",
+      "dispatch": "pre+post BITVECTOR_SHL via RewriteShl, but shadowed: ShlByConst fires first whenever node[1] is constant (always true when isBvConstTerm), so effectively unreachable",
+      "summary": "constant shift folding",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "BitVector shift: amount > width -> 0 (ashr: sign fill; the all-ones case is built as d_size*2^d_size-1, correct only because the constructor reduces mod 2^w); amount == width handled by the general path (multiplyByPow2/divByPow2/oneExtend) and also yields 0 / sign fill. Matches SMT-LIB. Probed 0, w-1, w, >w, 2^w-1 and width 1 (exercises ShlByConst path in practice).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalShift_bounds.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust (rare=bv-lshr-by-const-*, bv-repeat-elim + evaluate)",
+      "confidence": "n/a",
+      "rationale": "Shadowed by ShlByConst; constant evaluation anyway. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalLshr",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:255",
+      "dispatch": "pre+post BITVECTOR_LSHR via RewriteLshr, but shadowed: LshrByConst fires first whenever node[1] is constant (always true when isBvConstTerm), so effectively unreachable",
+      "summary": "constant shift folding",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "BitVector shift: amount > width -> 0 (ashr: sign fill; the all-ones case is built as d_size*2^d_size-1, correct only because the constructor reduces mod 2^w); amount == width handled by the general path (multiplyByPow2/divByPow2/oneExtend) and also yields 0 / sign fill. Matches SMT-LIB. Probed 0, w-1, w, >w, 2^w-1 and width 1 (exercises LshrByConst path in practice).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalShift_bounds.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust (rare=bv-lshr-by-const-*, bv-repeat-elim + evaluate)",
+      "confidence": "n/a",
+      "rationale": "Shadowed by LshrByConst; constant evaluation anyway. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalAshr",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:272",
+      "dispatch": "pre+post BITVECTOR_ASHR via RewriteAshr, but shadowed: AshrByConst fires first whenever node[1] is constant (always true when isBvConstTerm), so effectively unreachable",
+      "summary": "constant shift folding",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "BitVector shift: amount > width -> 0 (ashr: sign fill; the all-ones case is built as d_size*2^d_size-1, correct only because the constructor reduces mod 2^w); amount == width handled by the general path (multiplyByPow2/divByPow2/oneExtend) and also yields 0 / sign fill. Matches SMT-LIB. Probed 0, w-1, w, >w, 2^w-1 and width 1 (exercises AshrByConst path in practice).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalShift_bounds.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust (rare=bv-lshr-by-const-*, bv-repeat-elim + evaluate)",
+      "confidence": "n/a",
+      "rationale": "Shadowed by AshrByConst; constant evaluation anyway. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalUlt",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:289",
+      "dispatch": "post (and pre) BITVECTOR_ULT via RewriteUlt (1st)",
+      "summary": "bvult c1 c2 -> true/false",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "unsignedLessThan; probed sign-boundary and width 1.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalCompare_edges.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalUltBv",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:311",
+      "dispatch": "BITVECTOR_ULTBV via RewriteUltBv (internal kind from bool-to-bv)",
+      "summary": "bvultbv c1 c2 -> #b1/#b0",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "unsignedLessThan; internal kind not expressible in SMT-LIB input.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (internal kind)",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. Internal kind only. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalSlt",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:333",
+      "dispatch": "BITVECTOR_SLT via RewriteSlt (1st, before SltSelf/MultSltMult)",
+      "summary": "bvslt c1 c2 -> true/false",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "signedLessThan; probed min/max signed and width 1 (#b1 <s #b0).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalCompare_edges.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalSltBv",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:355",
+      "dispatch": "BITVECTOR_SLTBV via RewriteSltBv (internal kind)",
+      "summary": "bvsltbv c1 c2 -> #b1/#b0",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "signedLessThan; internal kind.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (internal kind)",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. Internal kind only. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalITEBv",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:377",
+      "dispatch": "BITVECTOR_ITE via RewriteITEBv (1st; internal kind from bool-to-bv)",
+      "summary": "bvite c t e (all const) -> t if c=#b1 else e",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Requires all three children constant; branches on 1-bit condition (Assert c=#b0 otherwise). BvIteConstCond (next) covers the const-cond case anyway.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (internal kind; bool-to-bv option breaks z3 comparison)",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. Internal kind only. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalUle",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:403",
+      "dispatch": "BITVECTOR_ULE via RewriteUle (1st)",
+      "summary": "bvule c1 c2 -> true/false",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "unsignedLessThanEq.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalCompare_edges.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalSle",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:425",
+      "dispatch": "BITVECTOR_SLE via RewriteSle (1st)",
+      "summary": "bvsle c1 c2 -> true/false",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "signedLessThanEq; probed min-signed and width 1.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalCompare_edges.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalExtract",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:446",
+      "dispatch": "not dispatched: RewriteExtract uses ExtractConstant instead",
+      "summary": "constant folding (dead code)",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Not referenced by any rewrite table entry or rewriteViaRule; only listed in AllRewriteRules/printer.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (unreachable)",
+      "confidence": "n/a",
+      "rationale": "Dead code. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalConcat",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:466",
+      "dispatch": "not dispatched: RewriteConcat uses ConcatConstantMerge instead",
+      "summary": "constant folding (dead code)",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Not referenced by any rewrite table entry or rewriteViaRule; only listed in AllRewriteRules/printer.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (unreachable)",
+      "confidence": "n/a",
+      "rationale": "Dead code. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalSignExtend",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:487",
+      "dispatch": "BITVECTOR_SIGN_EXTEND via RewriteSignExtend (after MergeSignExtend)",
+      "summary": "sign_extend n c -> constant",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "BitVector::signExtend reads bit size-1 and one-extends; probed width-1 negative (#b1 -> #b1111) and amount 0.",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalCompare_edges.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalEquals",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:507",
+      "dispatch": "not dispatched: RewriteEqual uses FailEq/SimplifyEq instead",
+      "summary": "constant folding (dead code)",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Not referenced by any rewrite table entry or rewriteViaRule; only listed in AllRewriteRules/printer.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (unreachable)",
+      "confidence": "n/a",
+      "rationale": "Dead code. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalComp",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:527",
+      "dispatch": "BITVECTOR_COMP via RewriteComp (1st, BvComp only if unchanged)",
+      "summary": "bvcomp c1 c2 -> #b1/#b0",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "BitVector equality (sizes equal by typing).",
+      "guard_gap": null,
+      "probes": [
+        "probes/bv/EvalCompare_edges.smt2"
+      ],
+      "probe_result": "cvc5=unsat z3=unsat; no trust",
+      "confidence": "n/a",
+      "rationale": "Pure constant evaluation; proof uses EVALUATE. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalConstBvSym",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:547",
+      "dispatch": "CONST_BITVECTOR_SYMBOLIC (@bv n w) via RewriteConstBvSym; internal kind used by RARE term processing",
+      "summary": "(@bv n w) with const n, w -> concrete BV constant of width w",
+      "coverage": "evaluate",
+      "proof_rules": [
+        "EVALUATE"
+      ],
+      "guard_comparison": "Guard accepts w>=0 (sgn()>=0) and fitsUnsignedInt; the type rule (BitVectorConstantSymbolicTypeRule) only assigns a concrete BV type for w>0, so (@bv n 0) (abstract type) would be rewritten to a 0-width BitVector constant: a type-changing rewrite. Evaluator (evaluator.cpp:1290) has the same w>=0 behaviour. Value semantics (n mod 2^w) agree with BitVector ctor. Not reachable from SMT-LIB input; RARE instantiations should never produce width 0.",
+      "guard_gap": "w = 0: (@bv n 0) is rewritten to a 0-width constant although the term's type is abstract; not a soundness issue for user input (unreachable), only a guard inconsistency.",
+      "probes": [],
+      "probe_result": "not probed (internal kind)",
+      "confidence": "n/a",
+      "rationale": "Internal constant evaluation; minor guard inconsistency at width 0 noted. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    },
+    {
+      "id": "EvalEagerAtom",
+      "theory": "bv",
+      "location": "src/theory/bv/theory_bv_rewrite_rules_constant_evaluation.h:566",
+      "dispatch": "BITVECTOR_EAGER_ATOM via RewriteEagerAtom (internal wrapper from bv-eager-atoms preprocessing)",
+      "summary": "(eager_atom c) with constant c -> c",
+      "coverage": "none",
+      "proof_rules": [
+        "REFL (CPC node converter erases BITVECTOR_EAGER_ATOM)"
+      ],
+      "guard_comparison": "Wrapper is the identity; eo_node_converter.cpp:297 removes the application in CPC output, so the step is refl there.",
+      "guard_gap": null,
+      "probes": [],
+      "probe_result": "not probed (internal kind, --bitblast=eager only)",
+      "confidence": "n/a",
+      "rationale": "Identity unwrapping of an internal marker. C++ unchanged (formatting only) between binary dc8ad24031 and source 40a4bb7e43."
+    }
+  ]
+}

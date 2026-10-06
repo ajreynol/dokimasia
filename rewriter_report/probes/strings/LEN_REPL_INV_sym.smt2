@@ -1,0 +1,10 @@
+; len(replace(x,u++a,b++u)) = len x (symbolic equal-length pattern/replacement)
+; EXPECT: unsat
+(set-logic QF_SLIA)
+(declare-const x String)
+(declare-const y String)
+(declare-const z String)
+(declare-const w String)
+(declare-const u String)
+(assert (not (= (str.len (str.replace x (str.++ u "a") (str.++ "b" u))) (str.len x))))
+(check-sat)
