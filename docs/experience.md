@@ -23,18 +23,19 @@ identities, dates, archived evidence and the `closed_*` fields a closure adds.
 The open hypotheses that have not yet become an episode are the register in
 [`docs/README.md`](README.md).
 
-**4 episodes so far, and 2 of 4 are negative** — and none is a proof hole. Two
-were cvc5 accepting something and two were cvc5 telling us we were wrong; the
-first three fell in one week and `E15` is the first since. That is the honest
-summary of what this repository has cost cvc5 and returned to them to date.
+**5 episodes so far, and 2 of 5 are negative.** Three record cvc5 acting on
+our work and two record cvc5 telling us we were wrong. None establishes a
+reproduced safe-mode proof hole from this repository; `E16` records the
+regression-audit response, including proof-format fixes and exclusion cleanup.
 
 The numbering starts at `E9` because `E1`–`E8` and `E11`–`E13` were withdrawn on
 2026-09-19: they recorded corrections cvc5 was never party to. Their ids stay
 spent, as ids here always do. A proposed fix earns an entry when it lands;
 `E15` records the TCB cleanup that was still on a branch when `E14` was written.
 
-The running tally counts **experience episodes by outcome**. Both the `SUBS`
-documentation fix (`E9`) and the TCB cleanup (`E15`) are positive experiences.
+The running tally counts **experience episodes by outcome**. The `SUBS`
+documentation fix (`E9`), TCB cleanup (`E15`) and regression-audit response
+(`E16`) are positive experiences.
 The rejected option change (`E10`) and cvc5's correction of our dependency claim
 (`E14`) are negative experiences. Each counts once, regardless of how many
 database observations it closed.
@@ -48,8 +49,8 @@ and `--check` fails if it is stale. An append refreshes it too.
 
 | project | positive | negative | neutral | total episodes |
 | --- | ---: | ---: | ---: | ---: |
-| cvc5 | 2 | 2 | 0 | 4 |
-| **total** | **2** | **2** | **0** | **4** |
+| cvc5 | 3 | 2 | 0 | 5 |
+| **total** | **3** | **2** | **0** | **5** |
 
 Counted from the **Kind** field of each numbered episode below; do not edit
 by hand. Every episode counts once, including rejected asks and corrections
@@ -186,6 +187,41 @@ split the dead edges from the coupled ones before filing rather than after. And
 this is the first time the TCB figure has moved at all: `docs/README.md` argues
 that the number going down *is* the argument getting shorter, and a 24% cut is
 the first evidence that the argument responds to being made.
+
+## E16: cvc5 explained proof-test exclusions and removed stale disables
+
+| | |
+| --- | --- |
+| **When** | 2026-09-28 |
+| **Kind** | positive — the regression audit prompted an upstream cleanup |
+| **Ours** | [regression audit](../regression_audit/README.md) and its [removal candidates](../regression_audit/todo.md) |
+| **Theirs** | cvc5 [#12973](https://github.com/cvc5/cvc5/pull/12973), [`b1b44dbe`](https://github.com/cvc5/cvc5/commit/b1b44dbe0fe0fcdc7f1990e821a69e0d3b154e59) |
+| **Outcome** | merged; exclusions gained reasons, several disables were removed, and floating-point CPC declarations were repaired. No database observation closed. |
+
+**What happened.** cvc5 explicitly credited this repository's regression audit.
+The change removed the four inactive proof disables identified in our review,
+along with other proof and CPC disables. It explained retained exclusions:
+bit-vector abstraction tests would exercise a different solver with proofs
+enabled, some tests intentionally print individual proof components, and other
+cases have known proof failures or historical timeouts. It also corrected the
+`fp.sqrt` and `fp.to_real` declarations, added `fp.to_real_total`, and added a
+floating-point CPC regression. The changed directives and declarations were
+re-read at upstream main `553db22e0ed4b9d2a52cf1fa6169415c99e3374b` on
+2026-10-06; this review did not rerun the solver or external checker.
+
+**What we learned.** A tester exclusion is not automatically missing proof
+coverage. Removing a proof disable from a test expecting only `sat` changes no
+proof execution, because the tester already requires `unsat`. Conversely, a
+retained disable can protect the test's intended solver configuration. Reasons
+beside the directives make those distinctions reviewable. The signature repairs
+also show why a nearby fix must be matched to the exact recorded claim before
+closing an observation.
+
+**Not closed.** The four `CI0004` observations concern whole regression levels
+excluded by matrix jobs, not individual file directives. Those exclusions
+remain, under renamed jobs. `SIG0002` / `FP_TO_REAL`
+(`dokimasia:bd7aeb525f2ee794bb575f37`) concerns an auxiliary skolem refused by
+the Eunoia converter; fixing the `fp.to_real` declaration does not resolve it.
 
 ## How this page is maintained
 

@@ -399,10 +399,8 @@ Cleanups and unrestricted-mode gaps. Real, but nobody is relying on them.
 | i-7 | **14 `ProofRule`s the solver emits, the seam cannot print**: 4 `ARITH_POW2_*`, 9 `ARITH_TRANS_*`, `SAT_REFUTATION`. The arith ones are behind `--arith-exp`; the `ARITH_POW2_*` four are *also* registered trusted at pedantic level 1. `SAT_REFUTATION` is the one that is not arith and wants its own answer | `ledger holes` |
 | i-8 | **51 `InferenceId`s are produced at more than one site**, 14 are produced nowhere, and 21 inferences are emitted with a sentinel id. Not defects; they are what makes an inference-coverage analysis imprecise | `inferid check` |
 | i-9 | **8 trust steps are built with `TrustId::NONE`** — a declared hole with no stated reason, so nothing downstream can attribute them | `trust census` |
-| i-10 | **3 `PREPROCESS_*` trust ids are dead**: both `bv_to_int` ids and `PREPROCESS_BITVECTOR_EAGER_ATOMS`. That pass's actual trust step is `INT_BLASTER`, built in a different file | `trust passes` |
 | i-11 | **The pass↔trust-id correspondence is not derivable by name.** 7 ids do not follow their pass filename, including `PREPROCESS_BV_GUASS` — a misspelling of Gauss | `trust passes` |
 | i-16 | **The RARE↔enum correspondence is exact but under-stated.** The generated marker names the rule, not its file, so a rule's owning theory is not recoverable from the header; hand-written entries are identified only by *absence* of a marker; RARE files carry six basenames and no extension; and the `ite-` prefix is claimed by both `booleans` and `builtin`. *The missing source file is now an accepted cost — the marker sits in a public header and the RARE layout is not ours to publish there (**R7b**, withdrawn); we scan the two directories instead. The other three remain under-stated, and only identification-by-absence is worth an ask (H11 C2).* | `rewrites correspondence` |
-| **i-21** | **`SUBS`'s documentation omits an argument the checker reads.** The doc says `\inferrule{F_1 \dots F_n \mid t, ids?}` — one required argument plus an optional `ids`. The checker asserts `1 <= args.size() && args.size() <= 3` and reads `args[2]` as a second `MethodId` (`ida`, defaulting to `SBA_SEQUENTIAL`), which selects how the substitution is *applied*. Nothing in the documentation mentions it | `signature checker` |
 | i-19 | **24 `SkolemId`s are constructed by the solver and refused by the Eunoia seam.** A skolem the seam cannot print sinks a proof exactly as an unprintable rule does. Most are bags/sets/relations/transcendental — safe mode disables those — but `GROUND_TERM`, `BV_TO_INT_UF` and `SHARED_SELECTOR` want checking. **`SETS_CHOOSE` does not fit that parenthetical**: safe mode disables `setsExp`, not sets, and `set.choose` carries no gate (`i-24`) | `signature skolems` |
 | i-20 | **The `\inferrule` documentation is prose, not a specification.** Comparing it against the *checker* took five rounds of parser fixes (10 → 3 → 2 → 3 → 1 disagreements) as LaTeX conventions were accounted for: dots inside a conjunction, `\,` thin spaces, bare ellipses between listed premises, and `DSL_REWRITE` alone separating its arguments with spaces rather than commas. The residue is one real finding (`i-21`). **The docs are readable by people and barely by machines**, which is why nothing checks them. cvc5 states a rule's arity in LaTeX only — unlike `SkolemId`, which states "Number of skolem indices: N" in a structured field and is checkable directly | `signature arity`, `signature checker` |
 | i-12 | **11 `FF_*` rules** are in the public enum and documented, have no registered checker, and nothing produces them — `src/theory/ff` is entirely `#ifdef CVC5_USE_COCOA` | `ledger holes` |
@@ -477,6 +475,8 @@ worth as much as a finding.
 
 | # | what we suspected | what settled it |
 | --- | --- | --- |
+| i-10 | Three dead `PREPROCESS_*` trust ids remained declared | **Fixed.** [cvc5 #12948](https://github.com/cvc5/cvc5/pull/12948) removed `PREPROCESS_BV_TO_INT`, `PREPROCESS_BV_TO_INT_LEMMA`, and `PREPROCESS_BITVECTOR_EAGER_ATOMS`. These were measurements in the run archive, not individual database observations. |
+| i-21 | `SUBS` documentation omitted the third argument `ida` | **Fixed.** [cvc5 #12948](https://github.com/cvc5/cvc5/pull/12948) documented it; `SIG0003` / `dokimasia:398b7ed5b492831606d98491` already carries the closure. See [E9](experience.md#e9-cvc5-documented-the-argument-subss-checker-had-always-read). |
 | s-1 | `ARITH_POW_ELIM` and `ARRAYS_SELECT_CONST` might be safe-mode seam gaps | **blocked.** `POW` needs `--arith-exp`; `ARRAYS_SELECT_CONST`'s arm conjoins `SELECT` with `STORE_ALL`, which needs `--arrays-exp` |
 | s-2 | `ARRAYS_EQ_RANGE_EXPAND` and `DT_MATCH_ELIM` — two hard rewrite gaps | **blocked.** `EQ_RANGE` needs `--arrays-exp`, `MATCH` needs `--datatypes-exp` |
 | s-3 | "`EoPrinter::isHandled` refuses 37 rules" (172 − 135) | **superseded.** The subtraction was naive. The ledger computes it: 40 refused, of which 14 by design, 12 unreachable, 14 real gaps |
@@ -487,7 +487,9 @@ worth as much as a finding.
 
 ## Filed
 
-The only thing this repository has carried to cvc5. It is a kind C — an
+The architectural request below was acted on in cvc5 #12959; `E15` in
+`docs/experience.md` records the outcome. The details retain the original
+measurement and the correction cvc5 supplied. It is a kind C — an
 architectural coupling with a cheap, local fix — not a proof hole.
 
 **`f-1` / `tcb-001` — six proof rule checkers compile against the theory solvers

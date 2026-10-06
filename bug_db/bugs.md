@@ -8,7 +8,20 @@ The first claim is preserved. Disappearance does not close a finding.
 [Archived run records](runs/) contain the source revisions, actual coverage and evidence keyed by id.
 See `docs/maintenance.md` for evidence, limitations and the historical register.
 
-197 observation(s).
+197 observation(s); 1 with a recorded closure.
+
+Entries without closure fields can include withdrawn claims and false positives; they are not a count of open defects.
+See the [reviewed outcomes](README.md#reviewed-outcomes) for interpretation and the latest source assessment.
+
+## Recorded closures
+
+| id | check | entity | closed on | commit | pull request | reason |
+| --- | --- | --- | --- | --- | --- | --- |
+| dokimasia:398b7ed5b492831606d98491 | SIG0003 | SUBS | 2026-09-19 | 6e62c7cf595273b7fdfdc0a607aa53a8555530ee | https://github.com/cvc5/cvc5/pull/12948 | The commit rewrote SUBS's \inferrule documentation in include/cvc5/cvc5_proof_rule.h to name the third argument ida alongside t and ids; re-reading that comment and BuiltinProofRuleChecker::checkInternal on main, the documented argument arity is now (3, 1) against the checker's Assert(1 &lt;= args.size() &amp;&amp; args.size() &lt;= 3) and its args[2] read, so the recorded disagreement no longer holds. |
+
+## Original observations
+
+Closed observations remain in this history with their original claims.
 
 | id | check | entity | first seen | last seen | original claim |
 | --- | --- | --- | --- | --- | --- |

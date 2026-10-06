@@ -333,6 +333,36 @@ class AnalyzerTests(unittest.TestCase):
         self.assertNotIn("../docs/", body)
         self.assertIn("a &#124; b &lt;tag&gt; &#96;code&#96; next line", body)
 
+    def test_render_shows_closures_without_rewriting_observation_history(self):
+        closed = dict(observation("SIG0003", "SUBS"),
+                      first_seen="2026-09-16", last_seen="2026-09-16",
+                      closed_on="2026-09-19", closed_commit="a" * 40,
+                      closed_pr="https://github.com/cvc5/cvc5/pull/12948",
+                      closed_why="Documented ida | checked <source>.\nConfirmed.")
+        unclosed = observation("MODE0001", "macrosQuantMode")
+        write_json(self.db, {"bugs": [closed, unclosed]})
+        before = self.db.read_bytes()
+        body = render(self.db, self.page)
+        self.assertIn("2 observation(s); 1 with a recorded closure.", body)
+        closures, history = body.split("## Original observations")
+        self.assertIn(closed["id"], closures)
+        self.assertNotIn(unclosed["id"], closures)
+        for key in ("closed_on", "closed_commit", "closed_pr"):
+            self.assertIn(closed[key], closures)
+        self.assertIn("Documented ida &#124; checked &lt;source&gt;. Confirmed.", closures)
+        for row in (closed, unclosed):
+            self.assertIn(row["description"], history)
+        self.assertIn("withdrawn claims and false positives", body)
+        self.assertIn("[reviewed outcomes](README.md#reviewed-outcomes)", body)
+        self.assertEqual(self.db.read_bytes(), before)
+
+    def test_render_does_not_call_unclosed_observations_open_defects(self):
+        write_json(self.db, {"bugs": [observation("CI0002", "explicit-completeness")]})
+        body = render(self.db, self.page)
+        self.assertIn("1 observation(s); 0 with a recorded closure.", body)
+        self.assertNotIn("## Recorded closures", body)
+        self.assertIn("they are not a count of open defects", body)
+
     def test_tally_counts_experiences_by_kind_and_preserves_episodes(self):
         experience = self.base / "experience.md"
         before = "# Experience\n\nWithdrawn ids: E1–E8 and E11–E13.\n\n"

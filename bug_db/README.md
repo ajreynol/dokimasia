@@ -15,6 +15,40 @@ provide the shared append, history-window and closure operations.
 | [runs/](runs/) | archived observations, evidence, source revisions and actual coverage |
 | [fragment.md](fragment.md) | generated report of proof support by theory |
 
+## Reviewed outcomes
+
+The original claims in `bugs.json` are preserved even when review rejects their
+interpretation. Closure fields record an upstream fix; their absence does not
+mean a claim is actionable. The [issue register](../docs/README.md#the-register)
+holds the verdicts, and the generated [view](bugs.md#recorded-closures) now shows
+recorded closures separately from the original observations.
+
+| Observation | Reviewed outcome |
+| --- | --- |
+| `SIG0003` / `SUBS` | **Fixed.** [cvc5 #12948](https://github.com/cvc5/cvc5/pull/12948) documented the third argument. The database already carries the closure; [E9](../docs/experience.md#e9-cvc5-documented-the-argument-subss-checker-had-always-read) records the outcome. |
+| `CI0002` / `explicit-completeness` | **Withdrawn check.** Safe-mode completeness is enabled implicitly; making the option explicitly settable would also allow disabling it. This is not an outstanding request to add the flag to CI. See [E10](../docs/experience.md#e10-cvc5-decided-to-keep-proof-completeness-checking-an-expert-option). |
+| `MODE0001` / `macrosQuantMode` | **False positive as a reachable defect.** The controlling `macrosQuant` option defaults to false. The recorded defaults-only observation remains historical evidence; see `s-4` in the [settled register](../docs/README.md#settled). |
+
+### Source assessment, 2026-10-06
+
+Reviewed the subjects and changed paths of all **105 commits** from the archived
+cvc5 revision `40a4bb7e43adf97534c29a52ed079c4efd687644` through upstream main
+[`553db22e0ed4b9d2a52cf1fa6169415c99e3374b`](https://github.com/cvc5/cvc5/commit/553db22e0ed4b9d2a52cf1fa6169415c99e3374b),
+then inspected relevant patches and the affected source at that revision.
+No additional recorded observation met the upstream-fix closure criterion.
+This was a source assessment, not a solver or proof-checker replay; it does not
+refresh the original ingestion dates or the historical corpus measurements.
+
+| Change or candidate | Assessment at that revision |
+| --- | --- |
+| Four `CI0004` job names | [#12906](https://github.com/cvc5/cvc5/pull/12906) renamed `production-dbg`, `production-dbg-clang`, `safe-mode`, and `stable-mode` to `unrestricted-dbg`, `unrestricted-dbg-clang`, `safe`, and `stable`. All four still exclude regression levels `3-4`. The old identities disappearing is not a fix. |
+| `INFERID0001` / `SETS_RELS_TCLOSURE_FWD` and `SETS_RELS_TCLOSURE_UP` | [#12901](https://github.com/cvc5/cvc5/pull/12901) renamed `FWD` to `UP` and the old `UP` to `DOWN`. The production sites remain. In particular, the current `UP` name refers to the old `FWD` inference, so a matching name alone does not establish continuity. |
+| `MODE0001` / `stringLazyPreproc` | Still defaults to true, declares no proof support, and has no direct safe-mode override. Resolve the annotation/default mismatch; no failing proof is established by this check. |
+| `RW0002` / `LAMBDA_ELIM`; `SIG0002` / `SETS_CHOOSE` | Still candidates. The lambda rewrite is accepted by the printer only in unrestricted mode. The sets choose lemma still receives a null proof generator and its skolem is not handled by the Eunoia converter. Final-proof reachability still needs a reproducer (`i-1`, `i-24`). |
+| String and arithmetic proof fixes | [#12969](https://github.com/cvc5/cvc5/pull/12969) adds string RARE rules; [#13020](https://github.com/cvc5/cvc5/pull/13020) repairs arithmetic reconstruction and a regexp fixed-point rewrite. Neither adds the missing string inference cases nor makes the recorded refused macro rewrites directly printable. These improvements do not close those broader observations. |
+| `RW0001` / `MACRO_BV_MULT_SLT_MULT` | [#13042](https://github.com/cvc5/cvc5/pull/13042) fixes unsound applicability conditions in the underlying rewrite. The database claim concerns direct Eunoia handling, which is unchanged. Keep the soundness fix distinct from that observation. |
+| Regression audit response | [#12973](https://github.com/cvc5/cvc5/pull/12973) cites this repo, documents exclusions, removes some disables, and repairs floating-point signature declarations. Recorded in [E16](../docs/experience.md#e16-cvc5-explained-proof-test-exclusions-and-removed-stale-disables); it closes no database row. In particular, the `SIG0002` / `FP_TO_REAL` skolem observation is not the `fp.to_real` declaration fix. |
+
 ## Record a run
 
 Use Python 3.10 or later and a cvc5 source checkout. From the repository root:

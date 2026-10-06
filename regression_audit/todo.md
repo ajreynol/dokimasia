@@ -1,5 +1,14 @@
 # Removing regression tester disables
 
+**Upstream update, reviewed 2026-10-06:** cvc5
+[#12973](https://github.com/cvc5/cvc5/pull/12973) removed the four inactive
+proof directives below and documented many retained exclusions. It also removed
+the CPC disable from `stream-x2014-09-18-unsat.smt2`. These changes remain at
+upstream main `553db22e0ed4b9d2a52cf1fa6169415c99e3374b`; this source review did
+not rerun the tests. [E16](../docs/experience.md#e16-cvc5-explained-proof-test-exclusions-and-removed-stale-disables)
+records the response. Counts and source lines below describe the original
+pinned snapshot, not current main.
+
 Source review on 2026-09-21, against cvc5 `40a4bb7e43` (the reference in
 `scripts/cvc5.lock`). Scope: the **49 proof and 19 CPC directives** reported by
 the audit. Suite-wide exclusions are out of scope. CPC-Logos is not registered
@@ -14,8 +23,9 @@ to cvc5's `test/regress/cli/`; other source paths are relative to cvc5's root.
 
 - [x] Inspect all 68 directives against the runner's expected-output metadata
   and proof/CPC applicability conditions.
-- [ ] Remove the following four `DISABLE-TESTER: proof` lines in a cvc5 patch,
-  after confirming the same expected outputs at the patch's target revision.
+- [x] Remove the following four `DISABLE-TESTER: proof` lines in a cvc5 patch.
+  Landed in #12973; their expected outputs still contain no `unsat` at the
+  reviewed revision.
 
 | Regression and directive line | Expected output | Assessment |
 | --- | --- | --- |
@@ -58,10 +68,12 @@ must not be relabelled as timeouts without a run or historical evidence.
 
 | Regression | Tester | Why retry it |
 | --- | --- | --- |
-| `regress1/quantifiers/bug802.smt2:1` | proof | No command-line override or adjacent reason accompanies the disable. |
-| `regress2/instance_1444.smtv1.smt2:1` | proof | Expected `unsat`, QF_UF, and explicitly non-incremental; no adjacent disable reason. |
-| `regress1/quantifiers/cdt-0208-to.smt2:3` | cpc | Expected `unsat`; `--full-saturate-quant` and no recorded reason. |
-| `regress1/quantifiers/stream-x2014-09-18-unsat.smt2:2` | cpc | Expected `unsat`, no command-line override and no recorded reason. |
+| `regress1/quantifiers/bug802.smt2` | proof | #12973 now records a nightly timeout from #11927. Retry only within the affected time budget. |
+| `regress2/instance_1444.smtv1.smt2` | proof | #12973 now records a known proof bug from #6151 and requires revalidating inherited external checks. |
+| `regress1/quantifiers/cdt-0208-to.smt2` | cpc | #12973 now records incomplete Ethos support for codatatypes, citing #11405 and #11541. Revisit after addressing that obstacle. |
+
+The fourth original candidate, `regress1/quantifiers/stream-x2014-09-18-unsat.smt2`,
+no longer disables CPC after #12973.
 
 - [ ] For the other unexplained directives, recover the introducing change
   before proposing removal. Preserve the intended option coverage: making a

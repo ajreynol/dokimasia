@@ -101,6 +101,7 @@ def render(db=DB, page=None):
     db = Path(db).resolve()
     page = Path(page).resolve() if page else db.parent / PAGE.name
     bugs = json.loads(db.read_text())["bugs"]
+    closed = [b for b in bugs if any(k.startswith("closed_") for k in b)]
     def link(path):
         return quote(Path(os.path.relpath(path, page.parent)).as_posix(), safe="/.")
     lines = ["# Dokimasia bug database", "",
@@ -114,11 +115,26 @@ def render(db=DB, page=None):
         # document re-creates a stale cross-reference on every render, which is
         # how this one survived a documentation refactor pointing nowhere.
         "See `docs/maintenance.md` for evidence, limitations and the historical register.", "",
-        f"{len(bugs)} observation(s).", "",
-        "| id | check | entity | first seen | last seen | original claim |",
-        "| --- | --- | --- | --- | --- | --- |"]
+        f"{len(bugs)} observation(s); {len(closed)} with a recorded closure.", "",
+        "Entries without closure fields can include withdrawn claims and false positives; "
+        "they are not a count of open defects.",
+        f"See the [reviewed outcomes]({link(db.parent / 'README.md')}#reviewed-outcomes) "
+        "for interpretation and the latest source assessment.", ""]
     def cell(value):
         return str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("|", "&#124;").replace("`", "&#96;").replace("\n", " ")
+    if closed:
+        lines += ["## Recorded closures", "",
+                  "| id | check | entity | closed on | commit | pull request | reason |",
+                  "| --- | --- | --- | --- | --- | --- | --- |"]
+        for b in closed:
+            lines.append("| " + " | ".join(cell(b.get(k, "")) for k in
+                         ("id", "code", "entity", "closed_on", "closed_commit",
+                          "closed_pr", "closed_why")) + " |")
+        lines.append("")
+    lines += ["## Original observations", "",
+              "Closed observations remain in this history with their original claims.", "",
+              "| id | check | entity | first seen | last seen | original claim |",
+              "| --- | --- | --- | --- | --- | --- |"]
     for b in bugs:
         lines.append("| " + " | ".join(cell(b.get(k, "")) for k in
                      ("id", "code", "entity", "first_seen", "last_seen", "description")) + " |")
