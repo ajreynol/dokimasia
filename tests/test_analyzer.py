@@ -331,6 +331,8 @@ class AnalyzerTests(unittest.TestCase):
         self.assertIn("`docs/maintenance.md`", body)
         self.assertNotIn("](docs/maintenance.md", body)
         self.assertNotIn("../docs/", body)
+        self.assertIn("`bug_db/README.md`", body)
+        self.assertNotIn("README.md#reviewed-outcomes", body)
         self.assertIn("a &#124; b &lt;tag&gt; &#96;code&#96; next line", body)
 
     def test_render_shows_closures_without_rewriting_observation_history(self):
@@ -353,7 +355,7 @@ class AnalyzerTests(unittest.TestCase):
         for row in (closed, unclosed):
             self.assertIn(row["description"], history)
         self.assertIn("withdrawn claims and false positives", body)
-        self.assertIn("[reviewed outcomes](README.md#reviewed-outcomes)", body)
+        self.assertIn("See **Reviewed outcomes** in `bug_db/README.md`", body)
         self.assertEqual(self.db.read_bytes(), before)
 
     def test_render_does_not_call_unclosed_observations_open_defects(self):

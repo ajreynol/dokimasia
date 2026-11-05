@@ -19,15 +19,15 @@ provide the shared append, history-window and closure operations.
 
 The original claims in `bugs.json` are preserved even when review rejects their
 interpretation. Closure fields record an upstream fix; their absence does not
-mean a claim is actionable. The [issue register](../docs/README.md#the-register)
+mean a claim is actionable. The issue register in `docs/README.md`
 holds the verdicts, and the generated [view](bugs.md#recorded-closures) now shows
 recorded closures separately from the original observations.
 
 | Observation | Reviewed outcome |
 | --- | --- |
-| `SIG0003` / `SUBS` | **Fixed.** [cvc5 #12948](https://github.com/cvc5/cvc5/pull/12948) documented the third argument. The database already carries the closure; [E9](../docs/experience.md#e9-cvc5-documented-the-argument-subss-checker-had-always-read) records the outcome. |
-| `CI0002` / `explicit-completeness` | **Withdrawn check.** Safe-mode completeness is enabled implicitly; making the option explicitly settable would also allow disabling it. This is not an outstanding request to add the flag to CI. See [E10](../docs/experience.md#e10-cvc5-decided-to-keep-proof-completeness-checking-an-expert-option). |
-| `MODE0001` / `macrosQuantMode` | **False positive as a reachable defect.** The controlling `macrosQuant` option defaults to false. The recorded defaults-only observation remains historical evidence; see `s-4` in the [settled register](../docs/README.md#settled). |
+| `SIG0003` / `SUBS` | **Fixed.** [cvc5 #12948](https://github.com/cvc5/cvc5/pull/12948) documented the third argument. The database already carries the closure; E9 in `docs/experience.md` records the outcome. |
+| `CI0002` / `explicit-completeness` | **Withdrawn check.** Safe-mode completeness is enabled implicitly; making the option explicitly settable would also allow disabling it. This is not an outstanding request to add the flag to CI. See E10 in `docs/experience.md`. |
+| `MODE0001` / `macrosQuantMode` | **False positive as a reachable defect.** The controlling `macrosQuant` option defaults to false. The recorded defaults-only observation remains historical evidence; see `s-4` in the settled register in `docs/README.md`. |
 
 ### Source assessment, 2026-10-06
 
@@ -47,7 +47,7 @@ refresh the original ingestion dates or the historical corpus measurements.
 | `RW0002` / `LAMBDA_ELIM`; `SIG0002` / `SETS_CHOOSE` | Still candidates. The lambda rewrite is accepted by the printer only in unrestricted mode. The sets choose lemma still receives a null proof generator and its skolem is not handled by the Eunoia converter. Final-proof reachability still needs a reproducer (`i-1`, `i-24`). |
 | String and arithmetic proof fixes | [#12969](https://github.com/cvc5/cvc5/pull/12969) adds string RARE rules; [#13020](https://github.com/cvc5/cvc5/pull/13020) repairs arithmetic reconstruction and a regexp fixed-point rewrite. Neither adds the missing string inference cases nor makes the recorded refused macro rewrites directly printable. These improvements do not close those broader observations. |
 | `RW0001` / `MACRO_BV_MULT_SLT_MULT` | [#13042](https://github.com/cvc5/cvc5/pull/13042) fixes unsound applicability conditions in the underlying rewrite. The database claim concerns direct Eunoia handling, which is unchanged. Keep the soundness fix distinct from that observation. |
-| Regression audit response | [#12973](https://github.com/cvc5/cvc5/pull/12973) cites this repo, documents exclusions, removes some disables, and repairs floating-point signature declarations. Recorded in [E16](../docs/experience.md#e16-cvc5-explained-proof-test-exclusions-and-removed-stale-disables); it closes no database row. In particular, the `SIG0002` / `FP_TO_REAL` skolem observation is not the `fp.to_real` declaration fix. |
+| Regression audit response | [#12973](https://github.com/cvc5/cvc5/pull/12973) cites this repo, documents exclusions, removes some disables, and repairs floating-point signature declarations. Recorded in E16 in `docs/experience.md`; it closes no database row. In particular, the `SIG0002` / `FP_TO_REAL` skolem observation is not the `fp.to_real` declaration fix. |
 
 ## Record a run
 
@@ -71,7 +71,7 @@ changed during a run.
 
 The append command validates the dump and its `.run.json` evidence sidecar,
 archives the run, updates the database and refreshes `bugs.md` and the running
-tally in [`docs/experience.md`](../docs/experience.md). The preview
+tally in `docs/experience.md`. The preview
 writes nothing. Repeating a run adds no duplicate identities.
 
 To analyze and record in one command, omit `--no-update` from the analyzer
