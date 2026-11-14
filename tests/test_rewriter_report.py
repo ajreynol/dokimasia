@@ -5,7 +5,7 @@ records and REPORT.md are checked as files.
 
 Run: python3 tests/test_rewriter_report.py
 """
-import glob, os, sys
+import glob, json, os, sys
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
                     "rewriter_report")
@@ -47,11 +47,25 @@ def test_records():
     check("there is at least one unit", bool(units), True)
     merged = B.merge(rules)
     sus = sorted(r["id"] for r in merged if r["confidence"] == "suspect")
-    # The calibration case: #13039 must stay suspect at the pinned revision.
+    # The calibration case: #13039 must stay suspect at the pinned revision,
+    # and name its upstream fix instead of changing level (see METHOD.md).
     check("MultSltMult is suspect", "MultSltMult" in sus, True)
+    for rid in ("MultSltMult", "MACRO_BV_MULT_SLT_MULT"):
+        rec = next((r for r in merged if r["id"] == rid), {})
+        check(f"{rid} names the #13039 fix",
+              "13042" in (rec.get("fixed_upstream") or ""), True)
     with open(os.path.join(ROOT, "REPORT.md")) as f:
         check("REPORT.md is regenerated", f.read() == B.render(units, merged),
               True)
+
+
+def test_runs():
+    print("runs:")
+    runs = sorted(glob.glob(os.path.join(ROOT, "runs", "*.json")))
+    check("there is at least one run", bool(runs), True)
+    check("every run records the CPC signature ethos checked against",
+          [os.path.basename(p) for p in runs
+           if not json.load(open(p))["versions"].get("cpc_sig")], [])
 
 
 def test_probes():
@@ -65,6 +79,7 @@ def test_probes():
 if __name__ == "__main__":
     test_parsers()
     test_records()
+    test_runs()
     test_probes()
     print(f"\n{len(FAILURES)} failure(s)")
     sys.exit(1 if FAILURES else 0)

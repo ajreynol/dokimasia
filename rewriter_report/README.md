@@ -39,11 +39,21 @@ The probe needs `cvc5` and `z3` on PATH, or `$CVC5_BIN` and `$Z3_BIN`.
 | bv | 2 | 7 | 31 | 111 | 44 |
 | strings | 0 | 31 | 35 | 157 | 29 |
 
-All 909 probes were run on two binaries. On both, the only disagreements with
-z3 are the 8 `MultSltMult` probes. 681 of the 787 unsat probes on b08092b502
-have proofs that are trust-free and accepted by ethos.
+All 909 probes were run on two binaries at or before the pin. On both, the only
+disagreements with z3 are the 8 `MultSltMult` probes. 681 of the 787 unsat
+probes on b08092b502 have proofs that are trust-free and accepted by ethos.
 
-### Unsound: `MultSltMult` / `MACRO_BV_MULT_SLT_MULT` (bv)
+They were run again on a3f47bdffd, a build of main 126 commits after the pin
+that carries the `MultSltMult` fix, checked against that revision's own CPC
+signature and against z3 5.1.0 rather than 4.13.4. Nothing disagrees with z3
+and no probe answers against its `; EXPECT:`. For the review at the pin that
+run is only indicative: 126 commits of other work, much of it on strings
+proofs, lift the trust-free count from 681 to 731. No probe moved to a worse
+category. What survives is what is listed below: the 8 ethos rejects are the
+proof-side defects named there, and the same four `--bv-rw-extend-eq` probes
+still error out.
+
+### Unsound at the pin, fixed upstream: `MultSltMult` / `MACRO_BV_MULT_SLT_MULT` (bv)
 
 The pinned revision still has the #13039 code. The C++ accepts three input
 classes that the RARE rules `bv-mult-slt-mult-1/2` do not cover, and it
@@ -63,12 +73,29 @@ the model fixed:
    pre-rewrite before constant folding, and proof printing then errors with
    `expecting comparable bit-vector terms`.
 
-By inspection, upstream fix #13042 closes all three; it has not been run. The
-proof channel is the same in every case. The elaborator normalizes, then adds
-an unconditional `MACRO_THEORY_REWRITE_RCONS_SIMPLE` step for the remainder.
-When RARE cannot close it, it stays `trust` and nothing fails.
+Upstream closed all three in `080e371a48`
+([#13042](https://github.com/cvc5/cvc5/pull/13042), 2026-10-05), 100 commits
+after the pin: a `concat` now has to have exactly two children, and outside the
+sext/sext case the add has to sit in the zero-extended position and `a` in the
+sign-extended one, on both sides. Re-run on a build of a3f47bdffd, the eight
+probes for the three classes answer `sat` and agree with z3, the two n-ary
+`concat` probes no longer abort proof printing, and the six sound shapes still
+reconstruct from `bv-mult-slt-mult-1/2` with no trust step. Upstream regression
+tests cover classes 1 and 3 (`regress0/bv/issue13039.smt2` and
+`issue13039-2-concat.smt2`); class 2 is closed but has no test there, so the
+four probes that cover it (`MultSltMult_cross_roles*`,
+`MACRO_BV_MULT_SLT_MULT_rhs_mixed_ext*`) are the only ones that would catch it
+coming back.
+
+The proof channel is the same in every case. The elaborator normalizes, then
+adds an unconditional `MACRO_THEORY_REWRITE_RCONS_SIMPLE` step for the
+remainder. When RARE cannot close it, it stays `trust` and nothing fails.
 `--check-proofs-complete`, ethos and `--no-proof-allow-trust` all reject these
-proofs; plain `--check-proofs` does not.
+proofs; plain `--check-proofs` does not. The fix leaves that channel as it was:
+it does not touch the elaborator, and on a3f47bdffd a sound sext/sext input
+whose shared factor is itself an add
+(`probes/bv/MACRO_BV_MULT_SLT_MULT_add_in_both.smt2`) still ends in an
+`RCONS_SIMPLE` trust step.
 
 ### Proof-side defects (the rewrite is right, the proof is not)
 
@@ -117,20 +144,27 @@ name. A trust step therefore cannot tell a bug from a coverage gap: sound
 rewrites leave the same trust as #13039 did. Rejecting trust
 (`--check-proofs-complete`, on by default in safe builds per `cvc5 --help`)
 catches every unsound probe here. The cost is also failing on the 65 sound
-probes that still leave trust on b08092b502.
+probes that still leave trust on b08092b502, or 40 of them on a3f47bdffd.
 
 ## Caveats
 
 - **No binary at the pin.** Probes ran on b08092b502 (193 commits before the
   pin; its strings rewriter and elaborator match the pin) and on the PATH
   binary, dc8ad24031 (478 commits before). Each record notes where the rule's
-  C++ or RARE rules changed in between.
+  C++ or RARE rules changed in between. The third run, a3f47bdffd, is 126
+  commits *after* the pin and is quoted only for what the `MultSltMult` fix
+  changed and for which ethos rejects are skew; the rule records still describe
+  the pin.
 - **Some ethos rejects are version skew.** Old proofs checked against the
   pin's signature can fail because rule arguments changed (aafcc486e2), or
   because indices became opaque (a13878bc19). Skew-only rejects are not
-  findings.
+  findings. With the binary and the signature on the same revision
+  (a3f47bdffd), 8 of b08092b502's 33 rejects survive, and they are the
+  proof-side defects above: `$str_is_code_point`, three `seq.update` probes and
+  three `STR_EQ_CONJ_LEN_ENTAIL` probes, plus `CTN_SPLIT_constlhs_seq`.
   - `CTN_SPLIT_constlhs_seq` fails in a `concat_csplit` solver step, not a
-    rewrite. It is unresolved.
+    rewrite. It is unresolved, and not skew: it still fails when the binary and
+    the signature are the same revision.
 - **The reviewers were model agents**, each reading one unit of C++ against
   its proof rules. `suspect` and proof-defect items were reproduced by hand.
   `high` means the probes and the guard comparison found nothing. It is not a

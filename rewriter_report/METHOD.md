@@ -6,7 +6,9 @@ hand-written BV rewrite (`MultSltMult`). Its RARE counterparts
 RARE rules do not cover. With proofs on, the step was not reconstructed. It
 appeared as a `trust` step (`MACRO_THEORY_REWRITE_RCONS_SIMPLE`), so the proof
 checker never saw an unsound inference. Proof production masked the bug instead
-of catching it.
+of catching it. Upstream fixed it in
+[#13042](https://github.com/cvc5/cvc5/pull/13042) (`080e371a48`), 100 commits
+after the revision reviewed here.
 
 This review asks the same question of every hand-written rewrite in a
 theory rewriter: **does a proof rule capture exactly what the C++ does?** When
@@ -69,6 +71,12 @@ uncovered part rests on the C++ alone.
 | `suspect` | A concrete guard gap was found: an input the C++ accepts that the proof rule does not, with a different result. It may also be a confirmed differential disagreement. The record carries a witness. |
 | `n/a` | Dead code, not dispatched, or pure constant evaluation. |
 
+A level describes the revision under review. A later upstream fix does not
+change it: the record keeps the level and names the fix in `fixed_upstream`,
+with what re-running the probes on a binary that has it showed. The report
+prints that first in the rule's entry. Levels therefore keep saying what the
+pinned source does, and the calibration case stays visible.
+
 ## Record schema (`data/<unit>.json`)
 
 ```json
@@ -91,7 +99,8 @@ uncovered part rests on the C++ alone.
       "probe_result": "cvc5=unsat z3=sat; trust MACRO_THEORY_REWRITE_RCONS_SIMPLE",
       "confidence": "suspect",
       "rationale": "why this level, in 1-3 sentences",
-      "witness": "for suspect: the smallest input and the wrong result"
+      "witness": "for suspect: the smallest input and the wrong result",
+      "fixed_upstream": "optional: the later commit that fixes it, and what re-running the probes on a binary with it showed"
     }
   ]
 }

@@ -82,12 +82,14 @@ def sweeps() -> list[str]:
     L = ["## Probe sweeps", "",
          "Every probe re-run on each binary by `tools/probe.py --ethos`. "
          "*Clean* means unsat with no trust step and accepted by ethos against "
-         "the source revision's CPC signature; ethos failures on old binaries "
-         "include version skew. A disagreement counts only when neither solver "
-         "reported an error.", "",
+         "the CPC signature in the last column; where that signature and the "
+         "binary are different revisions, ethos failures include version skew. "
+         "A disagreement counts only when neither solver reported an error.",
+         "",
          "| Binary | Probes | unsat | sat | clean | trust | ethos rejects "
-         "| proof errors | disagree |",
-         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |"]
+         "| proof errors | disagree | CPC sig |",
+         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: "
+         "| --- |"]
     dis: dict[str, list[str]] = {}
     for path in runs:
         d = json.load(open(path))
@@ -103,7 +105,8 @@ def sweeps() -> list[str]:
         dis[b] = sorted(p["file"] for p in ps if p["disagree"])
         L.append(f"| {b} | {len(ps)} | {len(uns)} | "
                  f"{sum(p['cvc5'] == 'sat' for p in ps)} | {len(clean)} | "
-                 f"{len(trust)} | {len(rej)} | {len(perr)} | {len(dis[b])} |")
+                 f"{len(trust)} | {len(rej)} | {len(perr)} | {len(dis[b])} | "
+                 f"{d['versions'].get('cpc_sig') or '?'} |")
     L.append("")
     for b, fs in dis.items():
         if fs:
@@ -149,8 +152,10 @@ def render(units: list[dict], rules: list[dict]) -> str:
     if not sus:
         L += ["None.", ""]
     for r in sorted(sus, key=lambda r: (r["theory"], r["id"])):
-        L += [f"### `{r['id']}` ({r['theory']})", "",
-              f"- **Location:** `{r['location']}`",
+        L += [f"### `{r['id']}` ({r['theory']})", ""]
+        if r.get("fixed_upstream"):
+            L.append(f"- **Fixed upstream:** {_cell(r['fixed_upstream'])}")
+        L += [f"- **Location:** `{r['location']}`",
               f"- **Dispatch:** {_cell(r.get('dispatch'))}",
               f"- **Proof rules:** {_cell(r.get('proof_rules'))}",
               f"- **Guard gap:** {_cell(r.get('guard_gap'))}",

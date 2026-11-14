@@ -1,7 +1,8 @@
 {
  "versions": {
   "cvc5": "This is cvc5 version 1.3.4.dev+HEAD@b08092b502 [git b08092b502 on branch HEAD]",
-  "z3": "Z3 version 4.13.4 - 64 bit"
+  "z3": "Z3 version 4.13.4 - 64 bit",
+  "cpc_sig": "40a4bb7e43"
  },
  "probes": [
   {

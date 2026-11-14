@@ -90,11 +90,21 @@ def _answer(out: str) -> str:
     return "error"
 
 
+def _sig() -> str:
+    """The CPC signature directory ethos checks against."""
+    return os.environ.get("CPC_SIG") or os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "..", "..", "deps", "cvc5",
+        "proofs", "eo", "cpc")
+
+
 def versions() -> dict:
     cv, _ = _run([_bin("CVC5_BIN", "cvc5"), "--version"])
     zv, _ = _run([_bin("Z3_BIN", "z3"), "--version"])
+    sig = os.path.abspath(_sig())
+    rev, _ = _run(["git", "-C", sig, "rev-parse", "--short=10", "HEAD"])
     return {"cvc5": cv.splitlines()[0] if cv else "?",
-            "z3": zv.splitlines()[0] if zv else "?"}
+            "z3": zv.splitlines()[0] if zv else "?",
+            "cpc_sig": rev.strip() or sig}
 
 
 def _ethos(pf: str, path: str) -> tuple[bool, str]:
@@ -102,10 +112,9 @@ def _ethos(pf: str, path: str) -> tuple[bool, str]:
 
     The signature defaults to ``deps/cvc5/proofs/eo/cpc``; it should match the
     cvc5 binary's revision, or failures may be version skew, not rewrites.
+    ``versions()`` records which revision was used, as ``cpc_sig``.
     """
-    sig = os.environ.get("CPC_SIG") or os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "..", "..", "deps", "cvc5",
-        "proofs", "eo", "cpc")
+    sig = _sig()
     lines = pf.splitlines()
     # Drop the "unsat" line and the outer parentheses of the printed proof.
     body = [ln for ln in lines if ln.strip() not in ("unsat", "(", ")")]
