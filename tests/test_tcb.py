@@ -212,10 +212,41 @@ def test_cvc5(root):
           a.loc == b.loc, True)
 
 
+def test_ethos_seed_sets():
+    """The ethos seed sets measure an ethos-shaped `src/`, not a cvc5 one.
+
+    They exist so the internal checker's figure has a comparison measured by
+    the same closure; `docs/maintenance.md` quotes them at an ethos commit.
+    """
+    print("\nethos seed sets:")
+    import contextlib
+    import io
+    from dokimasia_analyzer.tcb.__main__ import main
+    with tempfile.TemporaryDirectory() as tmp:
+        write_tree(tmp, {
+            "src/type_checker.cpp": '#include "type_checker.h"\n#include "expr.h"\n',
+            "src/type_checker.h": '#include "expr.h"\n',
+            "src/parser.cpp": '#include "parser.h"\n',
+            "src/parser.h": '#include "lexer.h"\n',
+            "src/lexer.h": "\n",
+            "src/expr.h": "\n",
+            "src/main.cpp": '#include "parser.h"\n',
+        })
+        got = {}
+        for seeds in ("ethos-type-checker", "ethos-parser"):
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                main(["--seeds", seeds, "measure", tmp, "--json"])
+            got[seeds] = json.loads(out.getvalue())["tcb_files"]
+    check("the type checker's closure is its pair and expr.h", got["ethos-type-checker"], 3)
+    check("the parser's closure is its pair and lexer.h", got["ethos-parser"], 3)
+
+
 if __name__ == "__main__":
     test_synthetic()
     test_edge_use()
     test_index_quotes_no_loose_figure()
+    test_ethos_seed_sets()
     root = sys.argv[1] if len(sys.argv) > 1 else os.environ.get("CVC5")
     if root and os.path.isdir(root):
         print()

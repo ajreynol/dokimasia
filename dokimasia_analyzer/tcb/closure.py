@@ -146,6 +146,16 @@ SEED_SETS: dict[str, tuple[str, ...]] = {
         "proof/*.cpp",
         "proof/*.h",
     ),
+    # ethos, the external checker of cvc5's Eunoia proofs, for comparison with
+    # the internal checker above. Point these at an ethos checkout, not cvc5.
+    "ethos-type-checker": (
+        "type_checker.cpp",
+        "type_checker.h",
+    ),
+    "ethos-parser": (
+        "parser.cpp",
+        "parser.h",
+    ),
 }
 
 
@@ -412,10 +422,10 @@ class Closure:
 
 
 def resolve_src(root: str) -> str:
-    """Accept either a cvc5 checkout or its ``src/`` directory."""
+    """Accept either a checkout (cvc5 or ethos) or its ``src/`` directory."""
     cand = os.path.join(root, "src")
     if os.path.isdir(cand):
         return cand
     if os.path.basename(os.path.normpath(root)) == "src":
         return root
-    raise SystemExit(f"not a cvc5 checkout (no src/ under {root!r})")
+    raise SystemExit(f"not a source checkout (no src/ under {root!r})")

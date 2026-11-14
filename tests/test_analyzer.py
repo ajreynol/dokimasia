@@ -270,6 +270,9 @@ class AnalyzerTests(unittest.TestCase):
         self.write_evidenced_dump(changed)
         self.assertEqual(append(self.dump, self.db, self.page), 0)
         self.assertEqual(json.loads(self.db.read_text())["bugs"][0]["description"], first[0]["description"])
+        kept = list((self.base / "runs").glob("*.conflicts.txt"))
+        self.assertEqual(len(kept), 1)
+        self.assertIn("A revised claim", kept[0].read_text())
 
     def write_evidenced_dump(self, bugs):
         write_json(self.dump, bugs)

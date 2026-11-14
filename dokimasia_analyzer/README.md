@@ -56,31 +56,39 @@ adding it does not by itself fix a proof gap.
 
 ## The promises
 
-These are Dokimasia's review standards. Cite them by name. **Enforced** means a
-mechanism rejects a violation; **structural** means the design helps prevent
-it; **intention** means it depends on review.
+These are Dokimasia's review standards. Cite them by name. Each position
+originates in anoieu's
+[reporting policy](https://github.com/ajreynol/anoieu/blob/main/bug_db/reporting-policy.md),
+which Dokimasia signs in full; it is restated here because a tier is a claim
+about a tree, and the last column marks where this tree's tier differs from
+that page's (read 2026-11-14). **Enforced** means a mechanism rejects a
+violation; **structural** means the design helps prevent it; **intention**
+means it depends on review.
 
-| Position | Support | Mechanism or review obligation |
-| --- | --- | --- |
-| **Silence is never evidence** | structural | A clean run covers only the selected checks. The catalogue and archived evidence state each check's limitations. |
-| **Publish a candidate; carry a finding** | structural | Raw observations stay in `bug_db/`; promoting a claim requires a separate review in the issue register. |
-| **Presence is not reachability** | structural | A static gap needs runtime evidence before it is treated as a reachable defect. The corpus comparison in `docs/maintenance.md` measures that distinction. |
-| **A false positive is ours — and so is anything we asked cvc5 to run** | enforced in part | Correct the analyzer and test the failure. Baseline checks detect changes in recorded results; review still has to establish whether a result is false. |
-| **Every claim is re-checkable without us** | enforced for revision provenance | Measurements name their command and revision. [scripts/cvc5.lock](../scripts/cvc5.lock), `tests/test_pin.py` and CI check the baseline provenance. |
-| **Closing is a verdict, not an absence** | enforced for the launcher | Database appends preserve observations. `tests/test_experience.py` checks that the closure prompt requires evidence and confirmation in current source. |
-| **A reply is triage; an artifact settles it** | intention | Closing a defect requires a cvc5 change whose effect is confirmed in current source. A reply, commit message or missing row is insufficient. |
+| Position | Support | Mechanism or review obligation | Tier on anoieu's page |
+| --- | --- | --- | --- |
+| **Silence is never evidence** | structural | A clean run covers only the selected checks. The catalogue and archived evidence state each check's limitations. | intention — differs |
+| **Publish a candidate; carry a finding** | structural | Raw observations stay in `bug_db/`; promoting a claim requires a separate review in the issue register. | intention — differs |
+| **Presence is not reachability** | structural | A static gap needs runtime evidence before it is treated as a reachable defect. The corpus comparison in `docs/maintenance.md` measures that distinction. | intention — differs |
+| **A false positive is ours — and so is anything we asked cvc5 to run** | enforced in part | Correct the analyzer and test the failure. Baseline checks detect changes in recorded results; review still has to establish whether a result is false. | enforced, for the half that can be — same |
+| **Every claim is re-checkable without us** | enforced for revision provenance | Measurements name their command and revision. [scripts/cvc5.lock](../scripts/cvc5.lock), `tests/test_pin.py` and CI check the baseline provenance. | enforced — same |
+| **Closing is a verdict, not an absence** | enforced for the launcher | Database appends preserve observations. `tests/test_experience.py` checks that the closure prompt requires evidence and confirmation in current source. | enforced — same |
+| **A reply is triage; an artifact settles it** | intention | Closing a defect requires a cvc5 change whose effect is confirmed in current source. A reply, commit message or missing row is insufficient. | intention — same |
 
 Two related standards govern the material we use:
 
 - **Published is not available.** Reading a public tree does not remove our
   responsibility for the cost of a misleading analysis to its maintainers.
-- **Unpublished work is not material.** This includes unreleased work on a
-  public personal branch. Our qualification permits answering a question we
-  are asked about our own registers; it does not permit an unsolicited exercise
-  on somebody else's unreleased work. The reference lock records the historical
-  use of a personal fork for the reachability census as a reproducibility debt.
+- **Unreleased work is nobody's material.** This includes unreleased work on a
+  public personal branch. What it forbids is making unreleased work the
+  subject; it does not forbid answering a question we are asked about our own
+  registers when the artifact prompting it sits on a personal fork, attributed,
+  dated and named as exploratory. anoieu's page now carries that reading in its
+  own words, so we sign it without qualification. The reference lock records
+  the historical use of a personal fork for the reachability census as a
+  reproducibility debt.
 
-Both are review obligations. Nothing crosses a repository boundary
+Both are review obligations, at the **intention** tier here as on anoieu's page. Nothing crosses a repository boundary
 automatically, and where cvc5 adopts an invariant, success can mean deleting
 our external check.
 

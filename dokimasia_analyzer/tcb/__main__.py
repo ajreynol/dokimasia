@@ -81,7 +81,7 @@ def cmd_measure(args) -> int:
     print(f"  seeds        {st['seed_files']:>6} files")
     print(f"  closure      {st['tcb_files']:>6} files   {st['tcb_lines']:>9,} lines")
     print(f"  all of src/  {st['src_files']:>6} files   {st['src_lines']:>9,} lines")
-    print(f"  the checker depends on {st['pct_lines']}% of cvc5 by line count")
+    print(f"  the checker depends on {st['pct_lines']}% of src/ by line count")
     print()
     print("  by subsystem (heaviest first):")
     for name, nf, nl in clo.by_subsystem(1)[:10]:

@@ -222,8 +222,18 @@ def append(dump, db=DB, page=PAGE, dry_run=False, date=None):
         archive = dict(run, observations=bugs)
         body = json.dumps(archive, indent=2, ensure_ascii=False, sort_keys=True) + "\n"
         name = hashlib.sha256(body.encode()).hexdigest() + ".json"
-        write(Path(db).parent / "runs" / name, body)
-        rc = subprocess.run(argv).returncode
+        archived = Path(db).parent / "runs" / name
+        write(archived, body)
+        # Koine keeps the recorded claim and reports each disagreement only on
+        # stderr. Echo it, and keep those lines beside the run that caused them,
+        # so a changed claim outlives the terminal it was printed on.
+        proc = subprocess.run(argv, stderr=subprocess.PIPE, text=True)
+        sys.stderr.write(proc.stderr)
+        rc = proc.returncode
+        kept = [line for line in proc.stderr.splitlines()
+                if line.startswith(("-- conflict:", "-- reopen candidate:"))]
+        if rc == 0 and kept:
+            write(archived.with_suffix(".conflicts.txt"), "\n".join(kept) + "\n")
         if rc == 0:
             for path, body in render_views(db, page).items():
                 write(path, body)

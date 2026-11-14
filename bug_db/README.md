@@ -104,7 +104,8 @@ and `last_seen` ingestion dates. See **Identity and evidence** in
 `docs/maintenance.md` for the identity scheme and archived evidence.
 
 Koine preserves the original claim and updates `last_seen` on re-ingestion,
-including when it reports a conflicting claim. These dates do not establish
+including when it reports a conflicting claim; the conflicting text is kept
+in `runs/<digest>.conflicts.txt` beside that run's archive. These dates do not establish
 fresh reproduction. An absent observation remains in the database.
 
 ## Close an observation

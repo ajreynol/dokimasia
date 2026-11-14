@@ -594,6 +594,19 @@ compare to the target — and it belongs upstream beside the rewriter, where a
 failure is one rule rather than a corpus statistic. Partial coverage is fine;
 the point is that a misstatement stops being silent.
 
+**Compiling rules into the rewriter, read 2026-09-18 and dated as such.** An
+exploratory branch on a personal fork (`ajreynol/cvc5` `rdbExec`, not a
+position of cvc5's; described to us by eschaton, and neither run nor read here)
+compiles RARE rules marked `:exec` into the rewriter. That is a different move
+from compiling the rule database into the **reconstructor**: the first attacks
+the search, the second removes the occasion for it. For a compiled rule the
+C++ is derived from the rule, so the two stop being two statements of one fact
+and `i-17` does not describe it. The effect is bounded by how many rules carry
+the marker: eschaton counts six of 321 RARE rules on the branch as it stood. It
+narrows `i-4` without settling it, since rule conditions are still
+reconstructed under the same budget, and recording the applied rule as a trust
+step moves work from `rewrites` into `trust`.
+
 ## The two wishues
 
 A **wishue** is a goal you would take if the work went unusually well and are

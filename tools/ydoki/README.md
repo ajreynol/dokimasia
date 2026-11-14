@@ -74,10 +74,24 @@ Paths in this table are relative to `tools/ydoki/`.
 | `docs/options.md` | option candidates, tiers and limitations |
 | `docs/ledger.md` | candidate feedback and requests for missing measurements |
 
-All measurements come from the parent's `fragment`, `modes`, `ledger` and
-`signature` modules. The parent's `docs/README.md` and `TODO.md` remain the
-authority for its findings and plans. This project has no tests or CI jobs of
-its own, and the analyzer does not depend on it.
+## Boundaries and home
+
+**Dependencies.** All measurements come from the parent's `fragment`, `modes`,
+`ledger` and `signature` modules, run against the parent's reference revision
+in `scripts/cvc5.lock`. The parent's `docs/README.md` and `TODO.md` remain the
+authority for its findings and plans; this project's account of them assigns
+it no authority.
+
+**Outputs and consumers.** Its outputs are the prose pages in `docs/`. Nothing
+consumes them: the analyzer does not depend on this project, and it has no
+code, tests or CI jobs of its own. The parent's front page and documentation
+index list it. Its pages are maintained as part of Dokimasia's ordinary
+maintenance.
+
+**Why Dokimasia is its home.** The parent supplies the evidence: every figure
+here is one of the parent's measurements, read at the parent's pin.
+Cross-repository feedback goes through the parent's discussion file or
+reporting discipline, never from here.
 
 ## Project status
 
@@ -86,7 +100,6 @@ into its own repository, be folded into Dokimasia, or be retired with a record
 of what was learned. The current comparison is not a paper claim; any broader
 method would need separate evidence.
 
-Two policy exceptions are explicit. The project is **not an island** for
-advertising: the parent names it while it is still research. The name **ydoki**
-follows the ecosystem's derived names rather than being a descriptive Greek
-word. Neither exception changes its research status or scope.
+The name **ydoki** follows the ecosystem's derived names, a contraction of
+*dokimasia*, rather than being a descriptive Greek word of its own; it marks the
+work as research grown from the parent's scrutiny of proof support.

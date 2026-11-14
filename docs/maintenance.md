@@ -375,6 +375,7 @@ Input content is hashed before and after analysis to reject a changing checkout.
 | [bug_db/bugs.json](../bug_db/bugs.json) | Dokimasia's accumulated observation history, recorded through Koine's writer |
 | bug_db/bugs.md | generated Markdown view of that database |
 | `bug_db/runs/*.json` | archived observations and run records, named by their content digest |
+| `bug_db/runs/*.conflicts.txt` | Koine's conflict and reopen-candidate lines for that run, when there were any |
 
 `bug_db/` is this repository's data artifact.
 
@@ -454,7 +455,12 @@ about a record has to read. Both producers write the same shape.
 
 **`complete` is about honesty, not breadth**, and reading it as breadth is the
 error to avoid: a program run of one analysis is `complete` and covers a ninth
-of the catalogue. **Comparability is `input_sha256` plus `analyses`**: without
+of the catalogue. **On a program run `complete` is always `true` and carries no
+information**: the analyzer either finishes every selected check or exits
+without writing a dump, and `read_run` in `scripts/bug_reports.py` refuses a
+program record that says `false`. The field is informative only on an agent
+run. `coverage` is required of both producers; `not_read` is the agent's own
+addition and is not validated. **Comparability is `input_sha256` plus `analyses`**: without
 both equal, a record present in one run and absent from the other says nothing
 about cvc5.
 
@@ -462,8 +468,11 @@ Locations, source excerpts, changing mode restrictions and measurements belong
 in the sidecar's `evidence`, keyed by target and finding id. This keeps a line
 shift or a new source commit from generating a Koine conflict. A changed claim
 under the same id still produces a conflict: Koine keeps the original claim
-and updates `last_seen`, even on a conflict. It returns success for conflicts;
-read its diagnostic output. A later sighting does not mean the original claim
+and updates `last_seen`, even on a conflict. It returns success for conflicts
+and reports each on stderr; the append echoes those lines and keeps every
+`-- conflict:` and `-- reopen candidate:` line in
+`bug_db/runs/<digest>.conflicts.txt`, beside the archived run that produced
+them. Koine's database still holds only the original claim. A later sighting does not mean the original claim
 was reconfirmed. Absent observations remain in the database unchanged.
 
 ### Koine
@@ -645,6 +654,23 @@ python3 -m dokimasia_analyzer.tcb cuts     <cvc5>   # what each dependency edge 
 python3 -m dokimasia_analyzer.tcb why      <cvc5> theory/strings/core_solver.h
 python3 -m dokimasia_analyzer.tcb baseline <cvc5> --check    # ratchet, for CI
 ```
+
+**ethos, for comparison.** The seed sets `ethos-type-checker` and
+`ethos-parser` apply the same `headers` closure to an ethos checkout, so the
+internal checker's surface has a figure measured the same way beside it:
+
+```bash
+python3 -m dokimasia_analyzer.tcb --seeds ethos-type-checker measure <ethos>
+python3 -m dokimasia_analyzer.tcb --seeds ethos-parser       measure <ethos>
+```
+
+At ethos `9217112fc9b159ae530b6b2a02d6ed08e84d28d0` (cvc5/ethos `main`,
+2026-11-12), the type checker's closure is 24 files and 5,669 lines and the
+parser's is 24 files and 3,726 lines, of 45 files and 14,110 lines in `src/`.
+These are comparison figures, not an analysis of ethos: the include-closure
+caveats above apply, the `headers` mode counts only the seeds' own `.cpp`
+files, and no baseline ratchets them. Re-measure rather than quote them at
+another commit.
 
 **[`dokimasia_analyzer.modes`](../dokimasia_analyzer/modes/)** — what safe and stable mode change
 about the defaults, from all 172 option-setting sites in `set_defaults.cpp`.
