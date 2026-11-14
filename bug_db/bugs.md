@@ -11,7 +11,7 @@ See `docs/maintenance.md` for evidence, limitations and the historical register.
 197 observation(s); 1 with a recorded closure.
 
 Entries without closure fields can include withdrawn claims and false positives; they are not a count of open defects.
-See the [reviewed outcomes](README.md#reviewed-outcomes) for interpretation and the latest source assessment.
+See **Reviewed outcomes** in `bug_db/README.md` for interpretation and the latest source assessment.
 
 ## Recorded closures
 

@@ -18,10 +18,10 @@ edited away: an entry that turns out wrong gains a later entry correcting it,
 and both stay. Instructions for adding one are at the foot.
 
 This is not the record of an observation — that is
-[`bug_db/`](../bug_db/README.md), which holds
+`bug_db/`, which holds
 identities, dates, archived evidence and the `closed_*` fields a closure adds.
 The open hypotheses that have not yet become an episode are the register in
-[`docs/README.md`](README.md).
+`docs/README.md`.
 
 **5 episodes so far, and 2 of 5 are negative.** Three record cvc5 acting on
 our work and two record cvc5 telling us we were wrong. None establishes a
@@ -233,7 +233,7 @@ entry is written by hand. **An entry does not require a database closure:** a
 landed change, rejection or correction that answers something of ours earns an
 entry even when it closes no row. Its `Outcome` says what remains unresolved;
 a later closure gets a new entry naming the earlier one. Never claim a database
-closure that the database does not carry. The [running tally](#running-tally)
+closure that the database does not carry. The running tally
 is generated from the episodes' `Kind` fields by
 `scripts/append_findings --render-only`; regenerate it after adding an episode.
 

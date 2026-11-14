@@ -118,7 +118,7 @@ def render(db=DB, page=None):
         f"{len(bugs)} observation(s); {len(closed)} with a recorded closure.", "",
         "Entries without closure fields can include withdrawn claims and false positives; "
         "they are not a count of open defects.",
-        f"See the [reviewed outcomes]({link(db.parent / 'README.md')}#reviewed-outcomes) "
+        "See **Reviewed outcomes** in `bug_db/README.md` "
         "for interpretation and the latest source assessment.", ""]
     def cell(value):
         return str(value).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("|", "&#124;").replace("`", "&#96;").replace("\n", " ")

@@ -476,7 +476,7 @@ worth as much as a finding.
 | # | what we suspected | what settled it |
 | --- | --- | --- |
 | i-10 | Three dead `PREPROCESS_*` trust ids remained declared | **Fixed.** [cvc5 #12948](https://github.com/cvc5/cvc5/pull/12948) removed `PREPROCESS_BV_TO_INT`, `PREPROCESS_BV_TO_INT_LEMMA`, and `PREPROCESS_BITVECTOR_EAGER_ATOMS`. These were measurements in the run archive, not individual database observations. |
-| i-21 | `SUBS` documentation omitted the third argument `ida` | **Fixed.** [cvc5 #12948](https://github.com/cvc5/cvc5/pull/12948) documented it; `SIG0003` / `dokimasia:398b7ed5b492831606d98491` already carries the closure. See [E9](experience.md#e9-cvc5-documented-the-argument-subss-checker-had-always-read). |
+| i-21 | `SUBS` documentation omitted the third argument `ida` | **Fixed.** [cvc5 #12948](https://github.com/cvc5/cvc5/pull/12948) documented it; `SIG0003` / `dokimasia:398b7ed5b492831606d98491` already carries the closure. See E9 in `docs/experience.md`. |
 | s-1 | `ARITH_POW_ELIM` and `ARRAYS_SELECT_CONST` might be safe-mode seam gaps | **blocked.** `POW` needs `--arith-exp`; `ARRAYS_SELECT_CONST`'s arm conjoins `SELECT` with `STORE_ALL`, which needs `--arrays-exp` |
 | s-2 | `ARRAYS_EQ_RANGE_EXPAND` and `DT_MATCH_ELIM` — two hard rewrite gaps | **blocked.** `EQ_RANGE` needs `--arrays-exp`, `MATCH` needs `--datatypes-exp` |
 | s-3 | "`EoPrinter::isHandled` refuses 37 rules" (172 − 135) | **superseded.** The subtraction was naive. The ledger computes it: 40 refused, of which 14 by design, 12 unreachable, 14 real gaps |
